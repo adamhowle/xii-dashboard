@@ -2697,7 +2697,7 @@ function renderWTDMobile(data) {
       sorted.forEach(e => {
         const oc = OFFICE_COLORS[e.office] || '#888';
         const badge = e.exp_rank ? rkRankBadge(e.exp_rank) : '';
-        html += `<div style="display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border2);gap:10px;cursor:pointer" onclick="openRepModal(${e.id})">
+        html += `<div style="display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border2);gap:10px;cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)">
           <div style="flex:1;min-width:0">
             <div style="font-size:15px;font-weight:600;color:var(--off-white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.name}</div>
             <div style="display:flex;gap:6px;margin-top:4px;align-items:center">
@@ -2731,7 +2731,7 @@ function renderWTDMobile(data) {
     data.forEach(e => {
       const oc = OFFICE_COLORS[e.office] || '#888';
       const badge = e.exp_rank ? rkRankBadge(e.exp_rank) : '';
-      html += `<div style="display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border2);gap:10px;cursor:pointer" onclick="openRepModal(${e.id})">
+      html += `<div style="display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border2);gap:10px;cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)">
         <div style="flex:1;min-width:0">
           <div style="font-size:15px;font-weight:600;color:var(--off-white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.name}</div>
           <div style="display:flex;gap:6px;margin-top:4px;align-items:center">
@@ -2789,7 +2789,7 @@ function renderQTDMobile(data) {
     sorted.forEach(e => {
       const oc = OFFICE_COLORS[e.office] || '#888';
       const badge = e.exp_rank ? rkRankBadge(e.exp_rank) : '';
-      html += `<div style="display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border2);gap:10px;cursor:pointer" onclick="openRepModal(${e.id})">
+      html += `<div style="display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border2);gap:10px;cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)">
         <div style="flex:1;min-width:0">
           <div style="font-size:15px;font-weight:600;color:var(--off-white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.name}</div>
           <div style="display:flex;gap:6px;margin-top:4px;align-items:center">
@@ -2922,7 +2922,7 @@ function renderWTD(){
       const isActive = wtdSquadFilter === squadName;
       const clickStyle = squadName ? 'cursor:pointer;' : '';
       const activeStyle = isActive ? 'outline:1px solid rgba(39,217,217,0.4);' : '';
-      return `<tr class="group-header" style="${clickStyle}${activeStyle}" onclick="${squadName ? `wtdSetSquad('${squadName.replace(/'/g,"\\'")}')` : ''}"><td colspan="11">${r.label}${isActive ? ' <span style="font-size:10px;letter-spacing:1.5px;color:rgba(39,217,217,0.7);margin-left:12px">▶ ISOLATED — click to clear</span>' : ''}</td></tr>` +
+      return `<tr class="group-header" style="${clickStyle}${activeStyle}" data-squad="${squadName}" onclick="if(this.dataset.squad){wtdSetSquad(this.dataset.squad)}"><td colspan="11">${r.label}${isActive ? ' <span style="font-size:10px;letter-spacing:1.5px;color:rgba(39,217,217,0.7);margin-left:12px">▶ ISOLATED — click to clear</span>' : ''}</td></tr>` +
       `<tr class="col-header">
         <td onclick="wtdSort('name')">Name <span class="sa">↕</span></td>
         <td class="col-wtd-ac" style="text-align:center" onclick="wtdSort('wtd_ac')">AC <span class="sa">↕</span></td>
@@ -2942,7 +2942,7 @@ function renderWTD(){
     const oc=OFFICE_COLORS[e.office]||'#888';
     function wtdCls(val,goal){if(!val||val===0)return 'nil';if(val>goal)return 'exceeds';return 'pos';}
     return `<tr style="animation-delay:${Math.min(i*.01,.35)}s">
-      <td class="td-name" style="cursor:pointer" onclick="openRepModal(${e.id})">${e.name}</td>
+      <td class="td-name" style="cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)">${e.name}</td>
       <td class="col-wtd-ac td-num ${wtdCls(e.wtd_ac,WTD_GOALS.ac)}">${fmtN(e.wtd_ac)}</td>
       <td class="col-wtd-cs td-num ${wtdCls(e.wtd_cs,WTD_GOALS.cs)}">${fmtN(e.wtd_cs)}</td>
       <td class="col-wtd-sra td-num ${wtdCls(e.wtd_sra,WTD_GOALS.sra)}">${fmtN(e.wtd_sra)}</td>
@@ -3145,7 +3145,7 @@ function renderQTD(){
       const isActive = qtdSquadFilter === squadName;
       const clickStyle = squadName ? 'cursor:pointer;' : '';
       const activeStyle = isActive ? 'outline:1px solid rgba(39,217,217,0.4);' : '';
-      return `<tr class="group-header" style="${clickStyle}${activeStyle}" onclick="${squadName ? `qtdSetSquad('${squadName.replace(/'/g,"\\'")}')` : ''}"><td colspan="12">${r.label}${isActive ? ' <span style="font-size:10px;letter-spacing:1.5px;color:rgba(39,217,217,0.7);margin-left:12px">▶ ISOLATED — click to clear</span>' : ''}</td></tr>` +
+      return `<tr class="group-header" style="${clickStyle}${activeStyle}" data-squad="${squadName}" onclick="if(this.dataset.squad){qtdSetSquad(this.dataset.squad)}"><td colspan="12">${r.label}${isActive ? ' <span style="font-size:10px;letter-spacing:1.5px;color:rgba(39,217,217,0.7);margin-left:12px">▶ ISOLATED — click to clear</span>' : ''}</td></tr>` +
       `<tr class="col-header">
         <td onclick="qtdSort('name')">Name <span class="sa">↕</span></td>
         <td class="col-qtd-sra" style="text-align:center" onclick="qtdSort('qtr_sra')">SRA <span class="sa">↕</span></td>
@@ -3165,7 +3165,7 @@ function renderQTD(){
     const oc=OFFICE_COLORS[e.office]||'#888';
     const dsraDanger = e.days_since_sra>14;
     return `<tr style="animation-delay:${Math.min(i*.01,.35)}s">
-      <td class="td-name" style="cursor:pointer" onclick="openRepModal(${e.id})">${e.name}</td>
+      <td class="td-name" style="cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)">${e.name}</td>
       <td class="col-qtd-sra">${miniBar(e.qtr_sra,40,'#5A9EA0')}</td>
       <td class="col-qtd-cap">${miniBar(e.qtr_cap,20,'#9ABFBF')}</td>
       <td class="col-qtd-ic">${miniBar(e.qtr_ic,20,'#F2CF9C')}</td>
@@ -3238,7 +3238,7 @@ function renderRoster(){
     const cleanMobile = e.mobile ? e.mobile.replace(/[^0-9+]/g,'') : '';
     return `<div class="roster-card${ns?' needs-squad':''}" data-id="${e.id}">
       <div class="rc-alert"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 1l5 9H1z"/><line x1="6" y1="5" x2="6" y2="7.5"/><circle cx="6" cy="9" r=".5" fill="currentColor"/></svg> No Squad Assigned</div>
-      <div class="rc-name" style="cursor:pointer" onclick="openRepModal(${e.id})" title="View rep detail">${e.name}</div>
+      <div class="rc-name" style="cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)" title="View rep detail">${e.name}</div>
       <div class="rc-role-wrap">
         <span class="office-dot" style="background:${oc}"></span>
         <span class="rc-role">${e.office||''}</span>
@@ -3258,7 +3258,7 @@ function renderRoster(){
       <div class="rc-actions">
         ${smsHref?`<a class="rc-contact-btn rc-sms-btn" href="${smsHref}"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1h10v7H7l-3 3V8H1z"/></svg>Text</a>`:''}
         ${mailHref?`<a class="rc-contact-btn rc-email-btn" href="${mailHref}"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="10" height="8" rx="1"/><path d="M1 3l5 4 5-4"/></svg>Email</a>`:''}
-        <button class="rc-delete-btn" onclick="deleteEmployee('${e.id}')" title="Remove employee"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="2,4 10,4"/><path d="M5 4V2h2v2"/><path d="M3 4l.7 6.3h4.6L9 4"/></svg></button>
+        <button class="rc-delete-btn" data-eid="${e.id}" onclick="deleteEmployee(this.dataset.eid)" title="Remove employee"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="2,4 10,4"/><path d="M5 4V2h2v2"/><path d="M3 4l.7 6.3h4.6L9 4"/></svg></button>
       </div>
     </div>`;
   }).join('');
@@ -3478,7 +3478,7 @@ function buildColDropdown(tab){
   const prefs = tab==='wtd' ? wtdColPrefs : qtdColPrefs;
   const dd = document.getElementById(tab+'-col-dropdown');
   dd.innerHTML = defs.map(d=>`
-    <div class="col-dropdown-item" onclick="toggleCol('${tab}','${d.key}')">
+    <div class="col-dropdown-item" data-tab="${tab}" data-key="${d.key}" onclick="toggleCol(this.dataset.tab,this.dataset.key)">
       <span class="col-chk ${prefs[d.key]?'on':''}"></span>
       ${d.label}
     </div>`).join('');
@@ -4175,39 +4175,39 @@ function ob_renderTable() {
     const dupeTag = isDupe ? `<span class="dupe-badge">dupe</span>` : '';
     return `
     <tr class="${isDupe ? 'is-dupe' : ''}">
-      <td class="editable" onclick="ob_editStatusCell(this,'${emp.id}')">${ob_statusBadge(emp.status)}</td>
-      <td class="name-cell editable" onclick="ob_editCell(this,'${emp.id}','name')">${ob_cap(emp.name)}${dupeTag}</td>
-      <td class="editable" style="font-family:monospace;font-size:13px;" onclick="ob_editCell(this,'${emp.id}','mobile')">
+      <td class="editable" data-eid="${emp.id}" onclick="ob_editStatusCell(this,this.dataset.eid)">${ob_statusBadge(emp.status)}</td>
+      <td class="name-cell editable" data-eid="${emp.id}" data-field="name" onclick="ob_editCell(this,this.dataset.eid,this.dataset.field)">${ob_cap(emp.name)}${dupeTag}</td>
+      <td class="editable" style="font-family:monospace;font-size:13px;" data-eid="${emp.id}" data-field="mobile" onclick="ob_editCell(this,this.dataset.eid,this.dataset.field)">
         <div style="display:flex;align-items:center;gap:6px;">
           <span>${emp.mobile || '—'}</span>
-          ${emp.mobile ? `<button class="btn-sms" title="Send SMS" onclick="event.stopPropagation();ob_sendSMS('${emp.id}')">
+          ${emp.mobile ? `<button class="btn-sms" title="Send SMS" data-eid="${emp.id}" onclick="event.stopPropagation();ob_sendSMS(this.dataset.eid)">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           </button>` : ''}
         </div>
       </td>
-      <td class="editable" style="max-width:130px;overflow:hidden;text-overflow:ellipsis;" onclick="ob_editCell(this,'${emp.id}','referral')">${emp.referral || '—'}</td>
-      <td class="editable" onclick="ob_editCell(this,'${emp.id}','leader')">${emp.leader || '—'}</td>
-      <td class="editable" onclick="ob_editLeaderCell(this,'${emp.id}')">${emp.squad || '—'}</td>
-      <td class="editable" onclick="ob_editCell(this,'${emp.id}','office')">${emp.office || '—'}</td>
+      <td class="editable" style="max-width:130px;overflow:hidden;text-overflow:ellipsis;" data-eid="${emp.id}" data-field="referral" onclick="ob_editCell(this,this.dataset.eid,this.dataset.field)">${emp.referral || '—'}</td>
+      <td class="editable" data-eid="${emp.id}" data-field="leader" onclick="ob_editCell(this,this.dataset.eid,this.dataset.field)">${emp.leader || '—'}</td>
+      <td class="editable" data-eid="${emp.id}" onclick="ob_editLeaderCell(this,this.dataset.eid)">${emp.squad || '—'}</td>
+      <td class="editable" data-eid="${emp.id}" data-field="office" onclick="ob_editCell(this,this.dataset.eid,this.dataset.field)">${emp.office || '—'}</td>
       <td>${ob_fmtDate(emp.interviewDate) || '—'}</td>
-      <td class="td-check"><span class="check ${emp.infoCall}" onclick="ob_toggleCheck('${emp.id}','infoCall')">✓</span></td>
-      <td class="td-check"><span class="check ${emp.jobOffer}" onclick="ob_toggleCheck('${emp.id}','jobOffer')">✓</span></td>
-      <td class="td-check"><span class="check ${emp.i9}" onclick="ob_toggleCheck('${emp.id}','i9')">✓</span></td>
-      <td class="td-check"><span class="check ${emp.bgClear}" onclick="ob_toggleCheck('${emp.id}','bgClear')">✓</span></td>
-      <td class="td-check"><span class="check ${emp.pronto}" onclick="ob_toggleCheck('${emp.id}','pronto')">✓</span></td>
-      <td class="td-check"><span class="check ${emp.skool}" onclick="ob_toggleCheck('${emp.id}','skool')">✓</span></td>
-      <td class="td-check"><span class="check ${emp.squadAssign}" onclick="ob_toggleCheck('${emp.id}','squadAssign')">✓</span></td>
-      <td class="td-check"><span class="check ${emp.bootcamp}" onclick="ob_toggleCheck('${emp.id}','bootcamp')">✓</span></td>
-      <td class="editable" onclick="ob_editDateCell(this,'${emp.id}','startDate')">${ob_fmtDate(emp.startDate) || '—'}</td>
+      <td class="td-check"><span class="check ${emp.infoCall}" data-eid="${emp.id}" data-field="infoCall" onclick="ob_toggleCheck(this.dataset.eid,this.dataset.field)">✓</span></td>
+      <td class="td-check"><span class="check ${emp.jobOffer}" data-eid="${emp.id}" data-field="jobOffer" onclick="ob_toggleCheck(this.dataset.eid,this.dataset.field)">✓</span></td>
+      <td class="td-check"><span class="check ${emp.i9}" data-eid="${emp.id}" data-field="i9" onclick="ob_toggleCheck(this.dataset.eid,this.dataset.field)">✓</span></td>
+      <td class="td-check"><span class="check ${emp.bgClear}" data-eid="${emp.id}" data-field="bgClear" onclick="ob_toggleCheck(this.dataset.eid,this.dataset.field)">✓</span></td>
+      <td class="td-check"><span class="check ${emp.pronto}" data-eid="${emp.id}" data-field="pronto" onclick="ob_toggleCheck(this.dataset.eid,this.dataset.field)">✓</span></td>
+      <td class="td-check"><span class="check ${emp.skool}" data-eid="${emp.id}" data-field="skool" onclick="ob_toggleCheck(this.dataset.eid,this.dataset.field)">✓</span></td>
+      <td class="td-check"><span class="check ${emp.squadAssign}" data-eid="${emp.id}" data-field="squadAssign" onclick="ob_toggleCheck(this.dataset.eid,this.dataset.field)">✓</span></td>
+      <td class="td-check"><span class="check ${emp.bootcamp}" data-eid="${emp.id}" data-field="bootcamp" onclick="ob_toggleCheck(this.dataset.eid,this.dataset.field)">✓</span></td>
+      <td class="editable" data-eid="${emp.id}" onclick="ob_editDateCell(this,this.dataset.eid,'startDate')">${ob_fmtDate(emp.startDate) || '—'}</td>
       <td>
         <div class="prog-wrap">
           <div class="prog-bar"><div class="prog-fill" style="width:${p.pct}%;background:${progColor};"></div></div>
           <span class="prog-pct">${p.pct}%</span>
         </div>
       </td>
-      <td class="editable" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;color:var(--text-muted);font-size:13px;" onclick="ob_editCell(this,'${emp.id}','notes')">${emp.notes || '—'}</td>
+      <td class="editable" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;color:var(--text-muted);font-size:13px;" data-eid="${emp.id}" data-field="notes" onclick="ob_editCell(this,this.dataset.eid,this.dataset.field)">${emp.notes || '—'}</td>
       <td style="text-align:right;white-space:nowrap;">
-        <button class="btn-delete" onclick="ob_deleteEmployee('${emp.id}')">🗑 Remove</button>
+        <button class="btn-delete" data-eid="${emp.id}" onclick="ob_deleteEmployee(this.dataset.eid)">🗑 Remove</button>
       </td>
     </tr>`;
   }).join('');
@@ -4696,7 +4696,7 @@ function ob_renderDashboard() {
       const officeShort = (emp.office || '').replace('Orange County','OC').replace('Newport Beach','NB').replace('Riverside','RV');
       const statusHtml = emp.status ? ob_statusBadge(emp.status) : '';
 
-      return `<button class="rep-card${isComplete ? ' complete' : ''}" onclick="ob_goToEmployee('${emp.id}')">
+      return `<button class="rep-card${isComplete ? ' complete' : ''}" data-eid="${emp.id}" onclick="ob_goToEmployee(this.dataset.eid)">
         <div class="rep-card-top">
           <div>
             <div class="rep-name">${ob_cap(emp.name)}</div>
@@ -5110,7 +5110,7 @@ function renderTable() {
       <td class="td-num ${numClass(row['QIC'])}">${fmtNum(row['QIC'])}</td>
       <td class="td-office"><span class="office-dot" style="background:${officeColor}"></span>${row['Office']}</td>
       <td class="td-action">
-        <button class="delete-btn" onclick="deleteRow(${row._id})" title="Remove">
+        <button class="delete-btn" data-rid="${row._id}" onclick="deleteRow(this.dataset.rid)" title="Remove">
           <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5">
             <line x1="2" y1="2" x2="8" y2="8"/><line x1="8" y1="2" x2="2" y2="8"/>
           </svg>
@@ -5876,7 +5876,7 @@ function renderRankings() {
   // Table rows
   tbody.innerHTML = data.map(r => `
     <tr>
-      <td class="td-name" style="cursor:pointer" onclick="openRepModal(${r.id})">${r.name}</td>
+      <td class="td-name" style="cursor:pointer" data-rid="${r.id}" onclick="openRepModal(this.dataset.rid)">${r.name}</td>
       <td>${rkRankBadge(r.currentRank)}</td>
       <td style="min-width:260px;padding:12px 16px">${rkProgressBar(r)}</td>
       <td>${rkPaceArrow(r.currentRank, r.rankPace)}</td>
@@ -5894,31 +5894,32 @@ function renderRankings() {
 }
 
 function renderRankingsMobile(data) {
-  const list = document.getElementById('rankings-mobile-list');
+  var list = document.getElementById('rankings-mobile-list');
   if (!list) return;
   if (!data.length) { list.innerHTML = '<div style="padding:24px;color:var(--text-muted);text-align:center;font-size:13px">No rankings data</div>'; return; }
-  list.innerHTML = data.map((r, i) => {
-    const oc = OFFICE_COLORS[r.office] || '#888';
-    const badge = r.currentRank ? rkRankBadge(r.currentRank) : '';
-    const llp = r.llPoints != null ? Math.round(r.llPoints*10)/10 : '—';
-    const sra = r.sraPoints != null ? Math.round(r.sraPoints*10)/10 : '—';
-    const qi  = r.qInstalls != null ? Math.round(r.qInstalls*10)/10 : '—';
-    return `<div style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border2);gap:10px;cursor:pointer" onclick="openRepModal(${r.id})">
-      <div style="font-size:12px;font-weight:700;color:var(--text-muted);min-width:22px;text-align:center">${i+1}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:15px;font-weight:600;color:var(--off-white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.name}</div>
-        <div style="display:flex;gap:6px;margin-top:3px;align-items:center"><span style="width:7px;height:7px;border-radius:50%;background:${oc};display:inline-block;flex-shrink:0"></span>${badge}</div>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(3,46px);gap:4px;flex-shrink:0;text-align:center">
-        <div><div style="font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">LLP</div><div style="font-size:15px;font-weight:700;color:var(--off-white)">${llp}</div></div>
-        <div><div style="font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">SRA</div><div style="font-size:15px;font-weight:700;color:var(--off-white)">${sra}</div></div>
-        <div><div style="font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">Q Inst</div><div style="font-size:15px;font-weight:700;color:var(--off-white)">${qi}</div></div>
-      </div>
-    </div>`;
-  }).join('');
-  if (isMobile()) {
-    setTimeout(function(){ renderRankingsMobile(data); }, 300);
+  var html = '';
+  for (var i = 0; i < data.length; i++) {
+    var r = data[i];
+    var oc = OFFICE_COLORS[r.office] || '#888';
+    var badge = r.currentRank ? rkRankBadge(r.currentRank) : '';
+    var llp = r.llPoints != null ? Math.round(r.llPoints*10)/10 : '—';
+    var sra = r.sraPoints != null ? Math.round(r.sraPoints*10)/10 : '—';
+    var qi  = r.qInstalls != null ? Math.round(r.qInstalls*10)/10 : '—';
+    var statCell = '<div style="display:grid;grid-template-columns:repeat(3,46px);gap:4px;flex-shrink:0;text-align:center">'
+      + '<div><div style="font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">LLP</div><div style="font-size:15px;font-weight:700;color:var(--off-white)">' + llp + '</div></div>'
+      + '<div><div style="font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">SRA</div><div style="font-size:15px;font-weight:700;color:var(--off-white)">' + sra + '</div></div>'
+      + '<div><div style="font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">Q Inst</div><div style="font-size:15px;font-weight:700;color:var(--off-white)">' + qi + '</div></div>'
+      + '</div>';
+    html += '<div style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border2);gap:10px;cursor:pointer" onclick="openRepModal(' + r.id + ')">'
+      + '<div style="font-size:12px;font-weight:700;color:var(--text-muted);min-width:22px;text-align:center">' + (i+1) + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:15px;font-weight:600;color:var(--off-white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + r.name + '</div>'
+      + '<div style="display:flex;gap:6px;margin-top:3px;align-items:center">'
+      + '<span style="width:7px;height:7px;border-radius:50%;background:' + oc + ';display:inline-block;flex-shrink:0"></span>'
+      + badge + '</div></div>'
+      + statCell + '</div>';
   }
+  list.innerHTML = html;
 }
 
 
