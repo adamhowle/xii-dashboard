@@ -6525,6 +6525,8 @@ async function fetchSheetsData() {
       }
     }
   } catch(e) { errors.push('New Hires: ' + e.message); }
+
+  if (errors.length) {
     showSyncBanner('Sync issues: ' + errors.join(' / '), true);
     console.warn('[Sheets] errors:', errors);
   } else {
