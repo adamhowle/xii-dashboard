@@ -6199,10 +6199,10 @@ function squadRowToEntry(r) {
   return {
     squad:      squad,
     leader:     String(r['leader'] || ''),
-    weekly_sra: parseInt(r['weekly sra'] || r['weekly_sra'] || 0) || 0,
-    weekly_ic:  parseInt(r['weekly ic']  || r['weekly_ic']  || 0) || 0,
-    qtr_sra:    parseInt(r['qtr sra']    || r['qtr_sra']    || 0) || 0,
-    qtr_ic:     parseInt(r['qtr ic']     || r['qtr_ic']     || 0) || 0
+    weekly_sra: parseInt(r['weekly sra goal'] || r['weekly sra'] || r['weekly_sra'] || 0) || 0,
+    weekly_ic:  parseInt(r['weekly ic goal']  || r['weekly ic']  || r['weekly_ic']  || 0) || 0,
+    qtr_sra:    parseInt(r['quarter sra goal'] || r['qtr sra goal'] || r['qtr sra'] || r['qtr_sra'] || 0) || 0,
+    qtr_ic:     parseInt(r['quarter ic goal']  || r['qtr ic goal']  || r['qtr ic']  || r['qtr_ic']  || 0) || 0
   };
 }
 
@@ -7664,8 +7664,18 @@ function initGIS() {
         if (tInfo.email) currentUserEmail = tInfo.email;
       } catch(e) { console.warn('userinfo failed', e); }
       updateAuthUI(true);
-      showSyncBanner('Signed in as ' + (currentUserEmail || 'unknown') + ' — edits will save to Sheets');
+      showSyncBanner('Signed in as ' + (currentUserEmail || 'unknown') + ' — syncing live data...');
       flushWriteQueue();
+      // Re-fetch all live Sheets tabs now that we have an auth token
+      fetchSheetsData().then(function() {
+        buildSIFromRepPerf();
+        renderOverview();
+        renderWTD();
+        renderQTD();
+        renderRankings();
+        renderRoster();
+        updateFooter();
+      });
     }
   });
   // Always start unsigned-in — token never persists across page loads
