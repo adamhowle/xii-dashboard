@@ -6526,30 +6526,35 @@ async function fetchSheetsData() {
     await fetchSheetsData();
   } catch(e) {
     console.warn('[initDashboard] fetchSheetsData error:', e);
-    showSyncBanner('Data load error — using cached data', true);
+    showSyncBanner('Data load error: ' + e.message, true);
   }
-  applyBakedQTDPoints();
-  if (!document.getElementById('wtd-date-input').value) {
-    document.getElementById('wtd-date-input').value = '2026-03-29';
+  try {
+    applyBakedQTDPoints();
+    if (!document.getElementById('wtd-date-input').value) {
+      document.getElementById('wtd-date-input').value = '2026-03-29';
+    }
+    if (!document.getElementById('qtd-date-input').value) {
+      document.getElementById('qtd-date-input').value = '2026-03-29';
+    }
+    buildSIFromRepPerf();
+    renderRankings();
+    renderOverview();
+    renderWTD();
+    renderQTD();
+    renderCombineTab();
+    renderRoster();
+    if ((window.innerWidth || screen.width) <= 430) {
+      setTimeout(function() { renderWTD(); renderQTD(); renderRankings(); }, 300);
+    }
+    window.addEventListener('resize', function() { renderWTD(); renderQTD(); }, { passive: true });
+    updateFooter();
+    applyColPrefs('wtd');
+    applyColPrefs('qtd');
+    populateSquadSelects();
+  } catch(e) {
+    console.error('[initDashboard] render error:', e);
+    showSyncBanner('Render error: ' + e.message, true);
   }
-  if (!document.getElementById('qtd-date-input').value) {
-    document.getElementById('qtd-date-input').value = '2026-03-29';
-  }
-  buildSIFromRepPerf();
-  renderRankings();
-  renderOverview();
-  renderWTD();
-  renderQTD();
-  renderCombineTab();
-  renderRoster();
-  if ((window.innerWidth || screen.width) <= 430) {
-    setTimeout(function() { renderWTD(); renderQTD(); renderRankings(); }, 300);
-  }
-  window.addEventListener('resize', function() { renderWTD(); renderQTD(); }, { passive: true });
-  updateFooter();
-  applyColPrefs('wtd');
-  applyColPrefs('qtd');
-  populateSquadSelects();
 })();
 
 // ── WTD GOALS PANEL ─────────────────────────────────────────────────────────
