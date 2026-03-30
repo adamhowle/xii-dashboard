@@ -1535,6 +1535,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
     <span class="brand-tag">■ Performance Dashboard</span>
   </div>
   <div class="header-right">
+    <button class="hdr-btn-secondary" id="gis-signin-btn" onclick="gisSignIn()" style="color:var(--sand);border-color:rgba(242,207,156,0.45);letter-spacing:1.5px;">⬡ Enable Edits</button>
     <button class="hdr-btn-secondary" id="theme-toggle-btn" onclick="toggleTheme()">☀ Light Mode</button>
     <button class="hdr-collapse-btn" id="chrome-collapse-btn" onclick="toggleChrome()">▼ Hide tabs &amp; filters</button>
   </div>
@@ -4319,6 +4320,13 @@ function ob_toggleCheck(id, field) {
 
   ob_renderTable();
 
+  // Write checkbox change back to Google Sheets
+  sheetsSaveCheckbox(emp, field);
+  // If status was auto-advanced, save that too
+  if (emp[field] && (field === 'infoCall' || field === 'jobOffer' || field === 'bgClear')) {
+    sheetsSaveStatus(emp);
+  }
+
   // Route to Roster and open Add Existing Employee when BG Clear is checked ON
   if (field === 'bgClear' && emp[field]) {
     ob_bgClearToRoster(emp);
@@ -4417,7 +4425,10 @@ function ob_commitSelectEdit(sel, id, field) {
   if (!emp) return;
   const prev = emp[field];
   emp[field] = sel.value;
-  if (emp[field] !== prev) ob_showToast(`✓ ${ob_cap(emp.name)} — ${field} → ${sel.value || 'cleared'}`);
+  if (emp[field] !== prev) {
+    ob_showToast(`✓ ${ob_cap(emp.name)} — ${field} → ${sel.value || 'cleared'}`);
+    if (field === 'status') sheetsSaveStatus(emp);
+  }
   ob_renderTable();
 }
 
@@ -4506,6 +4517,8 @@ function ob_addEmployee() {
   ob_renderTable();
   ob_closeAddModal();
   ob_showToast(`✓ ${ob_cap(name)} added`);
+  // Save new hire to Google Sheets
+  sheetsSaveNewHire(emp);
   // reset form
   ['ob-f-name','ob-f-mobile','ob-f-email','ob-f-interview','ob-f-start','ob-f-office','ob-f-referral','ob-f-leader','ob-f-address','ob-f-notes','ob-f-squad']
     .forEach(id => { document.getElementById(id).value = ''; });
@@ -6114,13 +6127,14 @@ function sheetsRowsToObjects(values) {
   if (!values || values.length < 2) return [];
   var headers = values[0].map(function(h) { return String(h).trim().toLowerCase(); });
   var numCols  = headers.length;
-  return values.slice(1).map(function(row) {
+  return values.slice(1).map(function(row, i) {
     while (row.length < numCols) row.push('');
     var obj = {};
-    headers.forEach(function(h, i) {
-      var v = row[i];
+    headers.forEach(function(h, j) {
+      var v = row[j];
       obj[h] = (v == null) ? '' : v;
     });
+    obj._sheetRow = i + 2; // 1-indexed, +1 for header row
     return obj;
   });
 }
@@ -6180,6 +6194,7 @@ function onboardRowToEmployee(r, idx) {
   var id = r['rep id'] || r['id'] || (Date.now() + idx);
   return {
     id:            id,
+    _sheetRow:     r._sheetRow || null,
     status:        String(r['status'] || ''),
     name:          name,
     mobile:        String(r['mobile'] || ''),
@@ -7207,6 +7222,240 @@ document.addEventListener('keydown', function(e) {
 <div id="rep-modal" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(720px,94vw);max-height:88vh;background:#1a1718;border:1px solid rgba(170,221,221,0.2);z-index:300;overflow-y:auto;flex-direction:column">
   <div id="rep-modal-content" style="padding:32px"></div>
 </div>
+
+<!-- ── GOOGLE IDENTITY SERVICES ───────────────────────────────────────────── -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<script>
+// ── OAUTH CONFIG ─────────────────────────────────────────────────────────────
+const OAUTH_CLIENT_ID = '824495442632-o4v639jl9rcsj7dq2fgvfcr6joj98s2c.apps.googleusercontent.com';
+const OAUTH_SCOPE     = 'https://www.googleapis.com/auth/spreadsheets';
+
+let gisTokenClient  = null;
+let sheetsAuthToken = null; // set after user grants access
+
+// ── COLUMN MAP: field name → 1-based column index in Onboarding sheet ────────
+// Matches: status,name,mobile,referral,leader,squad,office,email,address,
+//          hire date,interview date,step 1..9,notes
+const OB_COL = {
+  status:      1,
+  name:        2,
+  mobile:      3,
+  referral:    4,
+  leader:      5,
+  squad:       6,
+  office:      7,
+  email:       8,
+  address:     9,
+  hireDate:   10,
+  interviewDate: 11,
+  infoCall:   12,  // step 1
+  jobOffer:   13,  // step 2
+  i9:         14,  // step 3
+  bgClear:    15,  // step 4
+  pronto:     16,  // step 5
+  skool:      17,  // step 6
+  squadAssign:18,  // step 7
+  bootcamp:   19,  // step 8
+  startDate:  20,  // step 9
+  notes:      21
+};
+
+// Convert col number to A1 letter (1=A, 2=B … 26=Z)
+function colLetter(n) {
+  var s = '';
+  while (n > 0) {
+    var r = (n - 1) % 26;
+    s = String.fromCharCode(65 + r) + s;
+    n = Math.floor((n - 1) / 26);
+  }
+  return s;
+}
+
+// ── INIT GIS ──────────────────────────────────────────────────────────────────
+function initGIS() {
+  if (typeof google === 'undefined' || !google.accounts) {
+    setTimeout(initGIS, 300);
+    return;
+  }
+  gisTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: OAUTH_CLIENT_ID,
+    scope:     OAUTH_SCOPE,
+    callback:  function(resp) {
+      if (resp.error) {
+        showSyncBanner('Sign-in failed: ' + resp.error, true);
+        return;
+      }
+      sheetsAuthToken = resp.access_token;
+      localStorage.setItem('xii-auth-hint', 'granted');
+      updateAuthUI(true);
+      showSyncBanner('Signed in — edits will save to Sheets');
+      // Flush any queued writes that arrived before sign-in
+      flushWriteQueue();
+    }
+  });
+  // Restore hint so button shows correct state on reload
+  if (localStorage.getItem('xii-auth-hint') === 'granted') {
+    updateAuthUI(false); // show as "not yet signed in this session" but hint the button
+  }
+}
+window.addEventListener('load', function() { setTimeout(initGIS, 500); });
+
+// ── AUTH UI ───────────────────────────────────────────────────────────────────
+function updateAuthUI(signedIn) {
+  var btn = document.getElementById('gis-signin-btn');
+  if (!btn) return;
+  if (signedIn) {
+    btn.textContent = '● Sheets Live';
+    btn.style.color = '#2DC48E';
+    btn.style.borderColor = 'rgba(45,196,142,0.45)';
+  } else {
+    btn.textContent = '⬡ Enable Edits';
+    btn.style.color = 'var(--sand)';
+    btn.style.borderColor = 'rgba(242,207,156,0.45)';
+  }
+}
+
+function gisSignIn() {
+  if (sheetsAuthToken) {
+    showSyncBanner('Already signed in — edits are saving to Sheets');
+    return;
+  }
+  if (!gisTokenClient) {
+    showSyncBanner('Auth not ready yet — try again in a moment', true);
+    return;
+  }
+  gisTokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+// ── WRITE QUEUE (buffers writes if not signed in yet) ─────────────────────────
+var _writeQueue = [];
+
+function flushWriteQueue() {
+  var q = _writeQueue.slice();
+  _writeQueue = [];
+  q.forEach(function(fn) { fn(); });
+}
+
+// ── CORE WRITE: single-cell update ───────────────────────────────────────────
+async function sheetsWriteCell(tab, row, col, value) {
+  if (!sheetsAuthToken) {
+    showSyncBanner('Sign in to enable edits  →  click "Enable Edits"', true);
+    return false;
+  }
+  var range = encodeURIComponent(tab + '!' + colLetter(col) + row);
+  var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEETS_ID
+          + '/values/' + range + '?valueInputOption=USER_ENTERED';
+  try {
+    var res = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'Bearer ' + sheetsAuthToken,
+        'Content-Type':  'application/json'
+      },
+      body: JSON.stringify({ values: [[value]] })
+    });
+    if (res.status === 401) {
+      sheetsAuthToken = null;
+      updateAuthUI(false);
+      showSyncBanner('Session expired — please sign in again', true);
+      return false;
+    }
+    if (!res.ok) {
+      var err = await res.json().catch(function(){return {};});
+      showSyncBanner('Save failed: ' + (err.error && err.error.message || res.status), true);
+      return false;
+    }
+    return true;
+  } catch(e) {
+    showSyncBanner('Save error: ' + e.message, true);
+    return false;
+  }
+}
+
+// ── CORE WRITE: append a new row ─────────────────────────────────────────────
+async function sheetsAppendRow(tab, values) {
+  if (!sheetsAuthToken) {
+    showSyncBanner('Sign in to enable edits  →  click "Enable Edits"', true);
+    return false;
+  }
+  var range = encodeURIComponent(tab + '!A1');
+  var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEETS_ID
+          + '/values/' + range + ':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS';
+  try {
+    var res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + sheetsAuthToken,
+        'Content-Type':  'application/json'
+      },
+      body: JSON.stringify({ values: [values] })
+    });
+    if (res.status === 401) {
+      sheetsAuthToken = null;
+      updateAuthUI(false);
+      showSyncBanner('Session expired — please sign in again', true);
+      return false;
+    }
+    if (!res.ok) {
+      var err = await res.json().catch(function(){return {};});
+      showSyncBanner('Save failed: ' + (err.error && err.error.message || res.status), true);
+      return false;
+    }
+    return true;
+  } catch(e) {
+    showSyncBanner('Save error: ' + e.message, true);
+    return false;
+  }
+}
+
+// ── WRITE HELPERS called by existing UI functions ─────────────────────────────
+
+// Called after ob_toggleCheck updates the in-memory employee
+async function sheetsSaveCheckbox(emp, field) {
+  if (!emp._sheetRow) return;
+  var col = OB_COL[field];
+  if (!col) return;
+  var ok = await sheetsWriteCell('Onboarding', emp._sheetRow, col, emp[field] ? 'TRUE' : 'FALSE');
+  if (ok) showSyncBanner('✓ Saved');
+}
+
+// Called after ob_editStatusCell updates status
+async function sheetsSaveStatus(emp) {
+  if (!emp._sheetRow) return;
+  var ok = await sheetsWriteCell('Onboarding', emp._sheetRow, OB_COL.status, emp.status || '');
+  if (ok) showSyncBanner('✓ Status saved');
+}
+
+// Called when a new hire is added via ob_addEmployee
+async function sheetsSaveNewHire(emp) {
+  var row = [
+    emp.status       || '',
+    emp.name         || '',
+    emp.mobile       || '',
+    emp.referral     || '',
+    emp.leader       || '',
+    emp.squad        || '',
+    emp.office       || '',
+    emp.homeEmail    || '',
+    emp.address      || '',
+    emp.inputDate    || '',
+    emp.interviewDate|| '',
+    emp.infoCall    ? 'TRUE' : 'FALSE',
+    emp.jobOffer    ? 'TRUE' : 'FALSE',
+    emp.i9          ? 'TRUE' : 'FALSE',
+    emp.bgClear     ? 'TRUE' : 'FALSE',
+    emp.pronto      ? 'TRUE' : 'FALSE',
+    emp.skool       ? 'TRUE' : 'FALSE',
+    emp.squadAssign ? 'TRUE' : 'FALSE',
+    emp.bootcamp    ? 'TRUE' : 'FALSE',
+    emp.startDate    || '',
+    emp.notes        || ''
+  ];
+  var ok = await sheetsAppendRow('Onboarding', row);
+  if (ok) showSyncBanner('✓ New hire saved to Sheets');
+}
+</script>
 
 </body>
 </html>
