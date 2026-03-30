@@ -3292,12 +3292,19 @@ function updateField(id, field, value){
 }
 
 function deleteEmployee(id){
-  if(!confirm('Remove this employee from the roster?')) return;
+  if(!confirm('Remove this employee from the roster? They will be moved to the Terminated log.')) return;
   const idx = ROSTER_EMPLOYEES.findIndex(e=>e.id===id);
   if(idx>-1){
+    const emp = ROSTER_EMPLOYEES[idx];
     ROSTER_EMPLOYEES.splice(idx,1);
     renderRoster();
-    // WTD/QTD will auto-join from updated roster on next render
+    // Archive to Terminated tab, then delete from Roster sheet
+    sheetsArchiveToTerminated(emp).then(function(ok) {
+      if (ok && emp._sheetRow) {
+        // Use Roster sheet gid for batchUpdate
+        sheetsDeleteRosterRow(emp._sheetRow);
+      }
+    });
   }
 }
 
@@ -4246,8 +4253,11 @@ function ob_deleteEmployee(id) {
   ob_employees = ob_employees.filter(e => String(e.id) !== id);
   ob_renderTable();
   ob_showToast(`🗑 ${ob_cap(emp.name)} removed`);
-  // Delete row from Sheets and send notification email
-  if (emp._sheetRow) sheetsDeleteRow(emp._sheetRow);
+  // Archive to Offboarding tab, then delete from Onboarding
+  sheetsArchiveToOffboarding(emp).then(function(ok) {
+    if (ok && emp._sheetRow) sheetsDeleteRow(emp._sheetRow);
+  });
+  // Also send email notification (best-effort)
   sendDeleteNotification(emp);
 }
 
@@ -6163,14 +6173,15 @@ function sheetsBool(v) {
 
 function rosterRowToEmployee(r) {
   return {
-    id:     String(r['rep id'] || r['id'] || ''),
-    name:   String(r['name']   || ''),
-    office: shortOffice(String(r['office'] || '')),
-    squad:  String(r['squad']  || ''),
-    role:   String(r['role']   || 'Sales Manager'),
-    mobile: String(r['mobile'] || r['phone'] || ''),
-    email:  String(r['email']  || ''),
-    status: String(r['status'] || '')
+    id:        String(r['rep id'] || r['id'] || ''),
+    _sheetRow: r._sheetRow || null,
+    name:      String(r['name']   || ''),
+    office:    shortOffice(String(r['office'] || '')),
+    squad:     String(r['squad']  || ''),
+    role:      String(r['role']   || 'Sales Manager'),
+    mobile:    String(r['mobile'] || r['phone'] || ''),
+    email:     String(r['email']  || ''),
+    status:    String(r['status'] || '')
   };
 }
 
@@ -7230,7 +7241,56 @@ document.addEventListener('keydown', function(e) {
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <script>
-// ── GMAIL: send delete notification ──────────────────────────────────────────
+// ── SHEETS: archive onboarding employee to Offboarding tab ───────────────────
+async function sheetsArchiveToOffboarding(emp) {
+  var now = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' });
+  var deletedBy = (typeof currentUserEmail !== 'undefined' && currentUserEmail) ? currentUserEmail : 'unknown';
+  var row = [
+    emp.status        || '',
+    emp.name          || '',
+    emp.mobile        || '',
+    emp.referral      || '',
+    emp.leader        || '',
+    emp.squad         || '',
+    emp.office        || '',
+    emp.homeEmail     || '',
+    emp.address       || '',
+    emp.inputDate     || '',
+    emp.interviewDate || '',
+    emp.infoCall    ? 'TRUE' : 'FALSE',
+    emp.jobOffer    ? 'TRUE' : 'FALSE',
+    emp.i9          ? 'TRUE' : 'FALSE',
+    emp.bgClear     ? 'TRUE' : 'FALSE',
+    emp.pronto      ? 'TRUE' : 'FALSE',
+    emp.skool       ? 'TRUE' : 'FALSE',
+    emp.squadAssign ? 'TRUE' : 'FALSE',
+    emp.bootcamp    ? 'TRUE' : 'FALSE',
+    emp.startDate     || '',
+    emp.notes         || '',
+    now,
+    deletedBy
+  ];
+  return await sheetsAppendRow('Offboarding', row);
+}
+
+// ── SHEETS: archive roster employee to Terminated tab ────────────────────────
+async function sheetsArchiveToTerminated(emp) {
+  var now = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' });
+  var deletedBy = (typeof currentUserEmail !== 'undefined' && currentUserEmail) ? currentUserEmail : 'unknown';
+  var row = [
+    emp.id      || '',
+    emp.name    || '',
+    emp.office  || '',
+    emp.squad   || '',
+    emp.role    || '',
+    emp.mobile  || '',
+    emp.email   || '',
+    emp.status  || '',
+    now,
+    deletedBy
+  ];
+  return await sheetsAppendRow('Terminated', row);
+}
 async function sendDeleteNotification(emp) {
   if (!sheetsAuthToken) return; // silently skip if not signed in
 
@@ -7301,9 +7361,14 @@ async function sendDeleteNotification(emp) {
     });
     if (!res.ok) {
       var err = await res.json().catch(function(){return {};});
-      console.warn('[Gmail] send failed:', err.error && err.error.message || res.status);
+      var msg = (err.error && err.error.message) || ('HTTP ' + res.status);
+      showSyncBanner('Email failed: ' + msg, true);
+      console.warn('[Gmail] send failed:', msg, err);
+    } else {
+      showSyncBanner('📧 Delete notification sent');
     }
   } catch(e) {
+    showSyncBanner('Email error: ' + e.message, true);
     console.warn('[Gmail] send error:', e.message);
   }
 }
@@ -7355,6 +7420,56 @@ async function sheetsDeleteRow(sheetRow) {
     return false;
   }
 }
+// Track the signed-in user's email for audit trail
+var currentUserEmail = '';
+
+// ── SHEETS: delete a row from the Roster tab (gid=0) ─────────────────────────
+async function sheetsDeleteRosterRow(sheetRow) {
+  if (!sheetsAuthToken) return;
+  const ROSTER_SHEET_ID = 0;
+  var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEETS_ID + ':batchUpdate';
+  try {
+    var res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + sheetsAuthToken,
+        'Content-Type':  'application/json'
+      },
+      body: JSON.stringify({
+        requests: [{
+          deleteDimension: {
+            range: {
+              sheetId:    ROSTER_SHEET_ID,
+              dimension:  'ROWS',
+              startIndex: sheetRow - 1,
+              endIndex:   sheetRow
+            }
+          }
+        }]
+      })
+    });
+    if (res.status === 401) {
+      sheetsAuthToken = null;
+      updateAuthUI(false);
+      showSyncBanner('Session expired — please sign in again', true);
+      return false;
+    }
+    if (!res.ok) {
+      var err = await res.json().catch(function(){return {};});
+      showSyncBanner('Delete failed: ' + (err.error && err.error.message || res.status), true);
+      return false;
+    }
+    ROSTER_EMPLOYEES.forEach(function(e) {
+      if (e._sheetRow && e._sheetRow > sheetRow) e._sheetRow--;
+    });
+    showSyncBanner('✓ Employee moved to Terminated log');
+    return true;
+  } catch(e) {
+    showSyncBanner('Delete error: ' + e.message, true);
+    return false;
+  }
+}
+
 const OAUTH_CLIENT_ID = '824495442632-o4v639jl9rcsj7dq2fgvfcr6joj98s2c.apps.googleusercontent.com';
 const OAUTH_SCOPE     = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/gmail.send';
 const NOTIFY_EMAIL    = 'adam.howle@sunrun.com';
@@ -7415,6 +7530,11 @@ function initGIS() {
         return;
       }
       sheetsAuthToken = resp.access_token;
+      // Fetch the signed-in user's email for audit trail
+      fetch('https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=' + resp.access_token)
+        .then(function(r){ return r.json(); })
+        .then(function(info){ if(info.email) currentUserEmail = info.email; })
+        .catch(function(){}); 
       localStorage.setItem('xii-auth-hint', 'granted');
       updateAuthUI(true);
       showSyncBanner('Signed in — edits will save to Sheets');
