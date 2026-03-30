@@ -6113,34 +6113,56 @@ function sheetsUrl(tab) {
 function sheetsRowsToObjects(values) {
   if (!values || values.length < 2) return [];
   var headers = values[0].map(function(h) { return String(h).trim().toLowerCase(); });
-  var numCols = headers.length;
+  var numCols  = headers.length;
   return values.slice(1).map(function(row) {
     while (row.length < numCols) row.push('');
     var obj = {};
-    headers.forEach(function(h, i) { obj[h] = String(row[i] == null ? '' : row[i]).trim(); });
+    headers.forEach(function(h, i) {
+      var v = row[i];
+      obj[h] = (v == null) ? '' : v;
+    });
     return obj;
   });
 }
 
+// Convert Google Sheets date serial number to readable string
+function sheetsSerialToDate(v) {
+  if (!v) return '';
+  var n = parseFloat(v);
+  if (isNaN(n)) return String(v);
+  // Sheets epoch is Dec 30 1899
+  var d = new Date(Date.UTC(1899, 11, 30) + n * 86400000);
+  var mm = d.getUTCMonth() + 1;
+  var dd = d.getUTCDate();
+  var yyyy = d.getUTCFullYear();
+  return mm + '/' + dd + '/' + yyyy;
+}
+
+function sheetsBool(v) {
+  if (v === true || v === 1) return true;
+  var s = String(v || '').trim().toUpperCase();
+  return s === 'TRUE' || s === 'YES' || s === '1';
+}
+
 function rosterRowToEmployee(r) {
   return {
-    id:     r['rep id'] || r['id'] || '',
-    name:   r['name']   || '',
-    office: shortOffice(r['office'] || ''),
-    squad:  r['squad']  || '',
-    role:   r['role']   || 'Sales Manager',
-    mobile: r['mobile'] || r['phone'] || '',
-    email:  r['email']  || '',
-    status: r['status'] || ''
+    id:     String(r['rep id'] || r['id'] || ''),
+    name:   String(r['name']   || ''),
+    office: shortOffice(String(r['office'] || '')),
+    squad:  String(r['squad']  || ''),
+    role:   String(r['role']   || 'Sales Manager'),
+    mobile: String(r['mobile'] || r['phone'] || ''),
+    email:  String(r['email']  || ''),
+    status: String(r['status'] || '')
   };
 }
 
 function squadRowToEntry(r) {
-  var squad = r['squad'] || r['squad name'] || '';
+  var squad = String(r['squad'] || r['squad name'] || '');
   if (!squad) return null;
   return {
     squad:      squad,
-    leader:     r['leader'] || '',
+    leader:     String(r['leader'] || ''),
     weekly_sra: parseInt(r['weekly sra'] || r['weekly_sra'] || 0) || 0,
     weekly_ic:  parseInt(r['weekly ic']  || r['weekly_ic']  || 0) || 0,
     qtr_sra:    parseInt(r['qtr sra']    || r['qtr_sra']    || 0) || 0,
@@ -6149,37 +6171,37 @@ function squadRowToEntry(r) {
 }
 
 function onboardRowToEmployee(r, idx) {
-  var name = r['name'] || '';
+  // Field names match ob_rowToEmployee exactly so rendering works unchanged
+  // Sheet columns: status,name,mobile,referral,leader,squad,office,
+  //   email,address,hire date,interview date,
+  //   step 1,step 2,step 3,step 4,step 5,step 6,step 7,step 8,step 9,notes
+  var name = String(r['name'] || '');
   if (!name) return null;
-  var id = r['rep id'] || r['id'] || (name.toLowerCase().replace(/\s+/g,'_') + '_' + idx);
-  function bool(v) {
-    var s = String(v || '').trim().toUpperCase();
-    return s === 'TRUE' || s === '1' || s === 'YES' || s === 'X';
-  }
+  var id = r['rep id'] || r['id'] || (Date.now() + idx);
   return {
-    id:           id,
-    name:         name,
-    office:       shortOffice(r['office'] || ''),
-    squad:        r['squad']  || '',
-    leader:       r['leader'] || '',
-    referral:     r['referral'] || '',
-    hireDate:     r['hire date'] || '',
-    interviewDate:r['interview date'] || '',
-    status:       r['status'] || 'Candidate',
-    phone:        r['mobile'] || '',
-    email:        r['email']  || '',
-    address:      r['address'] || '',
-    s1:  bool(r['step 1']),
-    s2:  bool(r['step 2']),
-    s3:  bool(r['step 3']),
-    s4:  bool(r['step 4']),
-    s5:  bool(r['step 5']),
-    s6:  bool(r['step 6']),
-    s7:  bool(r['step 7']),
-    s8:  bool(r['step 8']),
-    s9:  bool(r['step 9']),
-    s10: false,
-    notes: r['notes'] || ''
+    id:            id,
+    status:        String(r['status'] || ''),
+    name:          name,
+    mobile:        String(r['mobile'] || ''),
+    referral:      String(r['referral'] || ''),
+    leader:        String(r['leader'] || ''),
+    squad:         String(r['squad']  || ''),
+    office:        shortOffice(String(r['office'] || '')),
+    homeEmail:     String(r['email'] || ''),
+    address:       String(r['address'] || ''),
+    inputDate:     sheetsSerialToDate(r['hire date']),
+    interviewDate: sheetsSerialToDate(r['interview date']),
+    infoCall:      sheetsBool(r['step 1']),
+    jobOffer:      sheetsBool(r['step 2']),
+    i9:            sheetsBool(r['step 3']),
+    bgClear:       sheetsBool(r['step 4']),
+    pronto:        sheetsBool(r['step 5']),
+    skool:         sheetsBool(r['step 6']),
+    squadAssign:   sheetsBool(r['step 7']),
+    bootcamp:      sheetsBool(r['step 8']),
+    startDate:     sheetsSerialToDate(r['step 9']),
+    notes:         String(r['notes'] || ''),
+    hired:         false
   };
 }
 
@@ -6210,7 +6232,10 @@ async function fetchSheetsData() {
     var rows  = sheetsRowsToObjects(rJson.values || [])
                   .map(rosterRowToEmployee)
                   .filter(function(e) { return e.id && e.name; });
-    if (rows.length > 0) { ROSTER_EMPLOYEES.length = 0; rows.forEach(function(e) { ROSTER_EMPLOYEES.push(e); }); }
+    if (rows.length > 0) {
+      ROSTER_EMPLOYEES.length = 0;
+      rows.forEach(function(e) { ROSTER_EMPLOYEES.push(e); });
+    }
   } catch(e) { errors.push('Roster: ' + e.message); }
 
   try {
@@ -6221,9 +6246,17 @@ async function fetchSheetsData() {
     if (squads.length > 0) {
       Object.keys(SQUAD_DB).forEach(function(k) { delete SQUAD_DB[k]; });
       squads.forEach(function(e) {
-        SQUAD_DB[e.squad] = { leader: e.leader, weekly_sra: e.weekly_sra, weekly_ic: e.weekly_ic, qtr_sra: e.qtr_sra, qtr_ic: e.qtr_ic };
+        SQUAD_DB[e.squad] = {
+          leader:     e.leader,
+          weekly_sra: e.weekly_sra,
+          weekly_ic:  e.weekly_ic,
+          qtr_sra:    e.qtr_sra,
+          qtr_ic:     e.qtr_ic
+        };
       });
-      if (!SQUAD_DB['No Squad']) SQUAD_DB['No Squad'] = { leader:'', weekly_sra:0, weekly_ic:0, qtr_sra:0, qtr_ic:0 };
+      if (!SQUAD_DB['No Squad']) {
+        SQUAD_DB['No Squad'] = { leader:'', weekly_sra:0, weekly_ic:0, qtr_sra:0, qtr_ic:0 };
+      }
     }
   } catch(e) { errors.push('Squad Structure: ' + e.message); }
 
@@ -6234,7 +6267,10 @@ async function fetchSheetsData() {
     var obRows = sheetsRowsToObjects(oJson.values || [])
                    .map(function(r, i) { return onboardRowToEmployee(r, i); })
                    .filter(Boolean);
-    if (obRows.length > 0) { ob_employees.length = 0; obRows.forEach(function(e) { ob_employees.push(e); }); }
+    if (obRows.length > 0) {
+      ob_employees.length = 0;
+      obRows.forEach(function(e) { ob_employees.push(e); });
+    }
   } catch(e) { errors.push('Onboarding: ' + e.message); }
 
   if (errors.length) {
