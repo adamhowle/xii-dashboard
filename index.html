@@ -4246,6 +4246,9 @@ function ob_deleteEmployee(id) {
   ob_employees = ob_employees.filter(e => String(e.id) !== id);
   ob_renderTable();
   ob_showToast(`🗑 ${ob_cap(emp.name)} removed`);
+  // Delete row from Sheets and send notification email
+  if (emp._sheetRow) sheetsDeleteRow(emp._sheetRow);
+  sendDeleteNotification(emp);
 }
 
 function ob_toggleDuplicateFilter() {
@@ -7227,9 +7230,134 @@ document.addEventListener('keydown', function(e) {
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <script>
-// ── OAUTH CONFIG ─────────────────────────────────────────────────────────────
+// ── GMAIL: send delete notification ──────────────────────────────────────────
+async function sendDeleteNotification(emp) {
+  if (!sheetsAuthToken) return; // silently skip if not signed in
+
+  var steps = [
+    ['Info Call',    emp.infoCall],
+    ['Job Offer',    emp.jobOffer],
+    ['I9',           emp.i9],
+    ['BG Clear',     emp.bgClear],
+    ['Pronto/Chat',  emp.pronto],
+    ['Skool',        emp.skool],
+    ['Squad Assign', emp.squadAssign],
+    ['Bootcamp',     emp.bootcamp],
+  ].map(function(s) { return s[0] + ': ' + (s[1] ? '✓' : '✗'); }).join('\n');
+
+  var body = [
+    'An employee was deleted from the XII Dashboard Onboarding tracker.',
+    '',
+    '── EMPLOYEE RECORD ─────────────────────────────',
+    'Name:           ' + (emp.name          || '—'),
+    'Status:         ' + (emp.status        || '—'),
+    'Mobile:         ' + (emp.mobile        || '—'),
+    'Email:          ' + (emp.homeEmail     || '—'),
+    'Office:         ' + (emp.office        || '—'),
+    'Squad:          ' + (emp.squad         || '—'),
+    'Leader:         ' + (emp.leader        || '—'),
+    'Referral:       ' + (emp.referral      || '—'),
+    'Address:        ' + (emp.address       || '—'),
+    'Interview Date: ' + (emp.interviewDate || '—'),
+    'Start Date:     ' + (emp.startDate     || '—'),
+    'Hire Date:      ' + (emp.inputDate     || '—'),
+    '',
+    '── ONBOARDING STEPS ────────────────────────────',
+    steps,
+    '',
+    '── NOTES ───────────────────────────────────────',
+    (emp.notes || '(none)'),
+    '',
+    '────────────────────────────────────────────────',
+    'If this was a mistake, you can re-add this employee manually using the Add New Hire button.',
+    '',
+    'XII Performance Dashboard'
+  ].join('\n');
+
+  var subject = '[XII Dashboard] Employee Deleted: ' + (emp.name || 'Unknown');
+
+  // Construct RFC 2822 message
+  var message = [
+    'To: ' + NOTIFY_EMAIL,
+    'Subject: ' + subject,
+    'Content-Type: text/plain; charset=utf-8',
+    'MIME-Version: 1.0',
+    '',
+    body
+  ].join('\r\n');
+
+  // Base64url encode (Gmail API requirement)
+  var encoded = btoa(unescape(encodeURIComponent(message)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+  try {
+    var res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + sheetsAuthToken,
+        'Content-Type':  'application/json'
+      },
+      body: JSON.stringify({ raw: encoded })
+    });
+    if (!res.ok) {
+      var err = await res.json().catch(function(){return {};});
+      console.warn('[Gmail] send failed:', err.error && err.error.message || res.status);
+    }
+  } catch(e) {
+    console.warn('[Gmail] send error:', e.message);
+  }
+}
+
+// ── SHEETS: delete a row by sheet row number ──────────────────────────────────
+async function sheetsDeleteRow(sheetRow) {
+  if (!sheetsAuthToken) return;
+  // batchUpdate deleteRange requires the sheetId for Onboarding tab
+  const ONBOARDING_SHEET_ID = 1523967309;
+  var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEETS_ID + ':batchUpdate';
+  try {
+    var res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + sheetsAuthToken,
+        'Content-Type':  'application/json'
+      },
+      body: JSON.stringify({
+        requests: [{
+          deleteDimension: {
+            range: {
+              sheetId:    ONBOARDING_SHEET_ID,
+              dimension:  'ROWS',
+              startIndex: sheetRow - 1, // 0-indexed
+              endIndex:   sheetRow      // exclusive
+            }
+          }
+        }]
+      })
+    });
+    if (res.status === 401) {
+      sheetsAuthToken = null;
+      updateAuthUI(false);
+      showSyncBanner('Session expired — please sign in again', true);
+      return false;
+    }
+    if (!res.ok) {
+      var err = await res.json().catch(function(){return {};});
+      showSyncBanner('Delete failed: ' + (err.error && err.error.message || res.status), true);
+      return false;
+    }
+    // After deletion, decrement _sheetRow for all employees below this row
+    ob_employees.forEach(function(e) {
+      if (e._sheetRow && e._sheetRow > sheetRow) e._sheetRow--;
+    });
+    return true;
+  } catch(e) {
+    showSyncBanner('Delete error: ' + e.message, true);
+    return false;
+  }
+}
 const OAUTH_CLIENT_ID = '824495442632-o4v639jl9rcsj7dq2fgvfcr6joj98s2c.apps.googleusercontent.com';
-const OAUTH_SCOPE     = 'https://www.googleapis.com/auth/spreadsheets';
+const OAUTH_SCOPE     = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/gmail.send';
+const NOTIFY_EMAIL    = 'adam.howle@sunrun.com';
 
 let gisTokenClient  = null;
 let sheetsAuthToken = null; // set after user grants access
