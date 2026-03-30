@@ -6136,6 +6136,17 @@ function sheetsUrl(tab) {
     + '?valueRenderOption=UNFORMATTED_VALUE&key=' + SHEETS_API_KEY;
 }
 
+// Fetch with a 8-second timeout so a stalled tab never blocks the dashboard
+function fetchWithTimeout(url, ms) {
+  ms = ms || 8000;
+  return Promise.race([
+    fetch(url),
+    new Promise(function(_, reject) {
+      setTimeout(function() { reject(new Error('timeout')); }, ms);
+    })
+  ]);
+}
+
 function sheetsRowsToObjects(values) {
   if (!values || values.length < 2) return [];
   var headers = values[0].map(function(h) { return String(h).trim().toLowerCase(); });
@@ -6262,7 +6273,7 @@ async function fetchSheetsData() {
   var errors = [];
 
   try {
-    var rRes  = await fetch(sheetsUrl('Roster'));
+    var rRes  = await fetchWithTimeout(sheetsUrl('Roster'));
     if (!rRes.ok) throw new Error('HTTP ' + rRes.status);
     var rJson = await rRes.json();
     var rows  = sheetsRowsToObjects(rJson.values || [])
@@ -6275,7 +6286,7 @@ async function fetchSheetsData() {
   } catch(e) { errors.push('Roster: ' + e.message); }
 
   try {
-    var sRes  = await fetch(sheetsUrl('Squad Structure'));
+    var sRes  = await fetchWithTimeout(sheetsUrl('Squad Structure'));
     if (!sRes.ok) throw new Error('HTTP ' + sRes.status);
     var sJson = await sRes.json();
     var squads = sheetsRowsToObjects(sJson.values || []).map(squadRowToEntry).filter(Boolean);
@@ -6297,7 +6308,7 @@ async function fetchSheetsData() {
   } catch(e) { errors.push('Squad Structure: ' + e.message); }
 
   try {
-    var oRes  = await fetch(sheetsUrl('Onboarding'));
+    var oRes  = await fetchWithTimeout(sheetsUrl('Onboarding'));
     if (!oRes.ok) throw new Error('HTTP ' + oRes.status);
     var oJson = await oRes.json();
     var obRows = sheetsRowsToObjects(oJson.values || [])
@@ -6311,7 +6322,7 @@ async function fetchSheetsData() {
 
   // ── QTD Points ──────────────────────────────────────────────────────────────
   try {
-    var qpRes  = await fetch(sheetsUrl('QTD Points'));
+    var qpRes  = await fetchWithTimeout(sheetsUrl('QTD Points'));
     if (!qpRes.ok) throw new Error('HTTP ' + qpRes.status);
     var qpJson = await qpRes.json();
     var qpRows = sheetsRowsToObjects(qpJson.values || []);
@@ -6354,7 +6365,7 @@ async function fetchSheetsData() {
 
   // ── Export (Rankings) ───────────────────────────────────────────────────────
   try {
-    var exRes  = await fetch(sheetsUrl('Export'));
+    var exRes  = await fetchWithTimeout(sheetsUrl('Export'));
     if (!exRes.ok) throw new Error('HTTP ' + exRes.status);
     var exJson = await exRes.json();
     var exRows = sheetsRowsToObjects(exJson.values || []);
@@ -6385,7 +6396,7 @@ async function fetchSheetsData() {
 
   // ── Report (WTD AC/Knocks/Pitches/Hours) ────────────────────────────────────
   try {
-    var rpRes  = await fetch(sheetsUrl('Report'));
+    var rpRes  = await fetchWithTimeout(sheetsUrl('Report'));
     if (!rpRes.ok) throw new Error('HTTP ' + rpRes.status);
     var rpJson = await rpRes.json();
     var rpRows = sheetsRowsToObjects(rpJson.values || []);
@@ -6408,7 +6419,7 @@ async function fetchSheetsData() {
 
   // ── Rep Detail (Status/Change) ───────────────────────────────────────────────
   try {
-    var rdRes  = await fetch(sheetsUrl('Rep Detail'));
+    var rdRes  = await fetchWithTimeout(sheetsUrl('Rep Detail'));
     if (!rdRes.ok) throw new Error('HTTP ' + rdRes.status);
     var rdJson = await rdRes.json();
     var rdRows = sheetsRowsToObjects(rdJson.values || []);
@@ -6431,7 +6442,7 @@ async function fetchSheetsData() {
 
   // ── Stars ────────────────────────────────────────────────────────────────────
   try {
-    var stRes  = await fetch(sheetsUrl('Stars'));
+    var stRes  = await fetchWithTimeout(sheetsUrl('Stars'));
     if (!stRes.ok) throw new Error('HTTP ' + stRes.status);
     var stJson = await stRes.json();
     var stRows = sheetsRowsToObjects(stJson.values || []);
@@ -6456,7 +6467,7 @@ async function fetchSheetsData() {
 
   // ── In Combine ───────────────────────────────────────────────────────────────
   try {
-    var icRes  = await fetch(sheetsUrl('In Combine'));
+    var icRes  = await fetchWithTimeout(sheetsUrl('In Combine'));
     if (!icRes.ok) throw new Error('HTTP ' + icRes.status);
     var icJson = await icRes.json();
     var icRows = sheetsRowsToObjects(icJson.values || []);
@@ -6488,7 +6499,7 @@ async function fetchSheetsData() {
 
   // ── New Hires ────────────────────────────────────────────────────────────────
   try {
-    var nhRes  = await fetch(sheetsUrl('New Hires'));
+    var nhRes  = await fetchWithTimeout(sheetsUrl('New Hires'));
     if (!nhRes.ok) throw new Error('HTTP ' + nhRes.status);
     var nhJson = await nhRes.json();
     var nhRows = sheetsRowsToObjects(nhJson.values || []);
@@ -6522,8 +6533,17 @@ async function fetchSheetsData() {
 }
 
 (async function initDashboard() {
+  // Update footer immediately so page doesn't look frozen
+  document.getElementById('footer-count').textContent = '■ Loading data...';
+
   try {
-    await fetchSheetsData();
+    // Timeout safety net — if fetchSheetsData hangs, give up after 15s
+    await Promise.race([
+      fetchSheetsData(),
+      new Promise(function(_, reject) {
+        setTimeout(function() { reject(new Error('Sheets fetch timed out after 15s')); }, 15000);
+      })
+    ]);
   } catch(e) {
     console.warn('[initDashboard] fetchSheetsData error:', e);
     showSyncBanner('Data load error: ' + e.message, true);
