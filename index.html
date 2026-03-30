@@ -6136,14 +6136,11 @@ function sheetsUrl(tab) {
     + '?valueRenderOption=UNFORMATTED_VALUE&key=' + SHEETS_API_KEY;
 }
 
-// Fetch with a 8-second timeout so a stalled tab never blocks the dashboard
 function fetchWithTimeout(url, ms) {
   ms = ms || 8000;
   return Promise.race([
     fetch(url),
-    new Promise(function(_, reject) {
-      setTimeout(function() { reject(new Error('timeout')); }, ms);
-    })
+    new Promise(function(_, reject) { setTimeout(function(){ reject(new Error('timeout')); }, ms); })
   ]);
 }
 
@@ -6273,7 +6270,7 @@ async function fetchSheetsData() {
   var errors = [];
 
   try {
-    var rRes  = await fetchWithTimeout(sheetsUrl('Roster'));
+    var rRes  = await fetch(sheetsUrl('Roster'));
     if (!rRes.ok) throw new Error('HTTP ' + rRes.status);
     var rJson = await rRes.json();
     var rows  = sheetsRowsToObjects(rJson.values || [])
@@ -6286,7 +6283,7 @@ async function fetchSheetsData() {
   } catch(e) { errors.push('Roster: ' + e.message); }
 
   try {
-    var sRes  = await fetchWithTimeout(sheetsUrl('Squad Structure'));
+    var sRes  = await fetch(sheetsUrl('Squad Structure'));
     if (!sRes.ok) throw new Error('HTTP ' + sRes.status);
     var sJson = await sRes.json();
     var squads = sheetsRowsToObjects(sJson.values || []).map(squadRowToEntry).filter(Boolean);
@@ -6308,7 +6305,7 @@ async function fetchSheetsData() {
   } catch(e) { errors.push('Squad Structure: ' + e.message); }
 
   try {
-    var oRes  = await fetchWithTimeout(sheetsUrl('Onboarding'));
+    var oRes  = await fetch(sheetsUrl('Onboarding'));
     if (!oRes.ok) throw new Error('HTTP ' + oRes.status);
     var oJson = await oRes.json();
     var obRows = sheetsRowsToObjects(oJson.values || [])
@@ -6322,208 +6319,92 @@ async function fetchSheetsData() {
 
   // ── QTD Points ──────────────────────────────────────────────────────────────
   try {
-    var qpRes  = await fetchWithTimeout(sheetsUrl('QTD Points'));
+    var qpRes = await fetchWithTimeout(sheetsUrl('QTD Points'));
     if (!qpRes.ok) throw new Error('HTTP ' + qpRes.status);
-    var qpJson = await qpRes.json();
-    var qpRows = sheetsRowsToObjects(qpJson.values || []);
-    if (qpRows.length > 0) {
-      qpRows.forEach(function(r) {
-        var id = String(r['employee id'] || r['id'] || '').trim();
-        if (!id || !/^\d+$/.test(id)) return;
-        var entry = {
-          id,
-          wtd_cs:         csvNum(r['cs week']),
-          wtd_sra:        csvNum(r['sra week']),
-          wtd_cap:        csvNum(r['cap week']),
-          wtd_ic:         csvNum(r['ic week']),
-          qtd_sra:        csvNum(r['sra qtr']),
-          qtd_cap:        csvNum(r['cap qtr']),
-          qtd_ic:         csvNum(r['ic qtr']),
-          qtr_status:     String(r['qtr status'] || ''),
-          rolling_status: String(r['rolling status'] || ''),
-          days_since_sra: csvNum(r['days since last sra']),
-        };
-        // Merge into WTD_MAP / QTD_MAP exactly like parseRepPerfCSV does
-        var existing = WTD_MAP[id];
-        if (existing) {
-          existing.wtd_cs = entry.wtd_cs; existing.wtd_sra = entry.wtd_sra;
-          existing.wtd_cap = entry.wtd_cap; existing.wtd_ic = entry.wtd_ic;
-        } else {
-          WTD_MAP[id] = entry;
-        }
-        var qExisting = QTD_MAP[id];
-        if (qExisting) {
-          qExisting.qtd_sra = entry.qtd_sra; qExisting.qtd_cap = entry.qtd_cap;
-          qExisting.qtd_ic = entry.qtd_ic; qExisting.qtr_status = entry.qtr_status;
-          qExisting.rolling_status = entry.rolling_status; qExisting.days_since_sra = entry.days_since_sra;
-        } else {
-          QTD_MAP[id] = entry;
-        }
-      });
-    }
+    var qpRows = sheetsRowsToObjects((await qpRes.json()).values || []);
+    qpRows.forEach(function(r) {
+      var id = String(r['employee id'] || r['id'] || '').trim();
+      if (!id || !/^\d+$/.test(id)) return;
+      var wtd = WTD_MAP[id]; var qtd = QTD_MAP[id];
+      var entry = { id, wtd_cs: csvNum(r['cs week']), wtd_sra: csvNum(r['sra week']), wtd_cap: csvNum(r['cap week']), wtd_ic: csvNum(r['ic week']), qtd_sra: csvNum(r['sra qtr']), qtd_cap: csvNum(r['cap qtr']), qtd_ic: csvNum(r['ic qtr']), qtr_status: String(r['qtr status'] || ''), rolling_status: String(r['rolling status'] || ''), days_since_sra: csvNum(r['days since last sra']) };
+      if (wtd) { wtd.wtd_cs = entry.wtd_cs; wtd.wtd_sra = entry.wtd_sra; wtd.wtd_cap = entry.wtd_cap; wtd.wtd_ic = entry.wtd_ic; } else { WTD_MAP[id] = entry; }
+      if (qtd) { qtd.qtd_sra = entry.qtd_sra; qtd.qtd_cap = entry.qtd_cap; qtd.qtd_ic = entry.qtd_ic; qtd.qtr_status = entry.qtr_status; qtd.rolling_status = entry.rolling_status; qtd.days_since_sra = entry.days_since_sra; } else { QTD_MAP[id] = entry; }
+    });
   } catch(e) { errors.push('QTD Points: ' + e.message); }
 
   // ── Export (Rankings) ───────────────────────────────────────────────────────
   try {
-    var exRes  = await fetchWithTimeout(sheetsUrl('Export'));
+    var exRes = await fetchWithTimeout(sheetsUrl('Export'));
     if (!exRes.ok) throw new Error('HTTP ' + exRes.status);
-    var exJson = await exRes.json();
-    var exRows = sheetsRowsToObjects(exJson.values || []);
-    if (exRows.length > 0) {
-      var newRankings = exRows.map(function(r) {
-        var id = String(r['employee id'] || '').trim();
-        if (!id || !/^\d+$/.test(id)) return null;
-        return {
-          id,
-          name:        String(r['name'] || ''),
-          office:      shortOffice(String(r['office'] || '')),
-          title:       String(r['title'] || ''),
-          currentRank: String(r['current rank'] || 'NO STATUS'),
-          rankPace:    String(r['rank pace'] || 'NO STATUS'),
-          llPoints:    csvNum(r['ll install points']),
-          qInstalls:   csvNum(r['q installs (w/ add-ons)']),
-          capPoints:   csvNum(r['cap points']),
-          sraPoints:   csvNum(r['sra points']),
-          careerIC:    csvNum(r['career ic']),
-        };
-      }).filter(Boolean);
-      rankingsData = newRankings;
-      RANKINGS_MAP = Object.fromEntries(newRankings.map(function(r) {
-        return [r.id, {title: r.title, currentRank: r.currentRank}];
-      }));
-    }
+    var exRows = sheetsRowsToObjects((await exRes.json()).values || []).map(function(r) {
+      var id = String(r['employee id'] || '').trim();
+      if (!id || !/^\d+$/.test(id)) return null;
+      return { id, name: String(r['name']||''), office: shortOffice(String(r['office']||'')), title: String(r['title']||''), currentRank: String(r['current rank']||'NO STATUS'), rankPace: String(r['rank pace']||'NO STATUS'), llPoints: csvNum(r['ll install points']), qInstalls: csvNum(r['q installs (w/ add-ons)']), capPoints: csvNum(r['cap points']), sraPoints: csvNum(r['sra points']), careerIC: csvNum(r['career ic']) };
+    }).filter(Boolean);
+    if (exRows.length) { rankingsData = exRows; RANKINGS_MAP = Object.fromEntries(exRows.map(function(r){ return [r.id, {title:r.title, currentRank:r.currentRank}]; })); }
   } catch(e) { errors.push('Export: ' + e.message); }
 
-  // ── Report (WTD AC/Knocks/Pitches/Hours) ────────────────────────────────────
+  // ── Report (WTD AC/Knocks/Pitches) ──────────────────────────────────────────
   try {
-    var rpRes  = await fetchWithTimeout(sheetsUrl('Report'));
+    var rpRes = await fetchWithTimeout(sheetsUrl('Report'));
     if (!rpRes.ok) throw new Error('HTTP ' + rpRes.status);
-    var rpJson = await rpRes.json();
-    var rpRows = sheetsRowsToObjects(rpJson.values || []);
-    if (rpRows.length > 0) {
-      rpRows.forEach(function(r) {
-        var id = String(r['client user id'] || r['user id'] || '').trim();
-        if (!id || !/^\d+$/.test(id)) return;
-        var existing = WTD_MAP[id];
-        if (existing) {
-          existing.wtd_ac = csvNum(r['acs']);
-          existing.pitches = csvNum(r['pitches']);
-          existing.knocks = csvNum(r['knocks']);
-          existing.hours_knocked = csvNum(r['hours knocked']);
-        } else {
-          WTD_MAP[id] = { id, wtd_ac: csvNum(r['acs']), pitches: csvNum(r['pitches']), knocks: csvNum(r['knocks']), hours_knocked: csvNum(r['hours knocked']) };
-        }
-      });
-    }
+    sheetsRowsToObjects((await rpRes.json()).values || []).forEach(function(r) {
+      var id = String(r['client user id'] || r['user id'] || '').trim();
+      if (!id || !/^\d+$/.test(id)) return;
+      var wtd = WTD_MAP[id];
+      if (wtd) { wtd.wtd_ac = csvNum(r['acs']); wtd.pitches = csvNum(r['pitches']); wtd.knocks = csvNum(r['knocks']); wtd.hours_knocked = csvNum(r['hours knocked']); }
+      else { WTD_MAP[id] = { id, wtd_ac: csvNum(r['acs']), pitches: csvNum(r['pitches']), knocks: csvNum(r['knocks']), hours_knocked: csvNum(r['hours knocked']) }; }
+    });
   } catch(e) { errors.push('Report: ' + e.message); }
 
-  // ── Rep Detail (Status/Change) ───────────────────────────────────────────────
+  // ── Rep Detail ───────────────────────────────────────────────────────────────
   try {
-    var rdRes  = await fetchWithTimeout(sheetsUrl('Rep Detail'));
+    var rdRes = await fetchWithTimeout(sheetsUrl('Rep Detail'));
     if (!rdRes.ok) throw new Error('HTTP ' + rdRes.status);
-    var rdJson = await rdRes.json();
-    var rdRows = sheetsRowsToObjects(rdJson.values || []);
-    if (rdRows.length > 0) {
-      rdRows.forEach(function(r) {
-        var id = String(r['employee id'] || '').trim();
-        if (!id || !/^\d+$/.test(id)) return;
-        var qtd = QTD_MAP[id];
-        if (qtd) {
-          qtd.title_group   = String(r['title group'] || '');
-          qtd.status        = String(r['status'] || '');
-          qtd.status_change = String(r['change'] || '');
-          qtd.prev_status   = String(r['previous status'] || '');
-        } else {
-          QTD_MAP[id] = { id, title_group: String(r['title group'] || ''), status: String(r['status'] || ''), status_change: String(r['change'] || ''), prev_status: String(r['previous status'] || '') };
-        }
-      });
-    }
+    sheetsRowsToObjects((await rdRes.json()).values || []).forEach(function(r) {
+      var id = String(r['employee id'] || '').trim();
+      if (!id || !/^\d+$/.test(id)) return;
+      var qtd = QTD_MAP[id];
+      if (qtd) { qtd.title_group = String(r['title group']||''); qtd.status = String(r['status']||''); qtd.status_change = String(r['change']||''); qtd.prev_status = String(r['previous status']||''); }
+    });
   } catch(e) { errors.push('Rep Detail: ' + e.message); }
 
   // ── Stars ────────────────────────────────────────────────────────────────────
   try {
-    var stRes  = await fetchWithTimeout(sheetsUrl('Stars'));
+    var stRes = await fetchWithTimeout(sheetsUrl('Stars'));
     if (!stRes.ok) throw new Error('HTTP ' + stRes.status);
-    var stJson = await stRes.json();
-    var stRows = sheetsRowsToObjects(stJson.values || []);
-    if (stRows.length > 0) {
-      var starsMap = {};
-      stRows.forEach(function(r) {
-        var id  = String(r['employee id'] || '').trim();
-        if (!id || !/^\d+$/.test(id)) return;
-        var pts  = csvNum(r['current_points']);
-        var star = String(r['stars'] || '');
-        if (!starsMap[id] || pts > (starsMap[id].rec_points || 0)) {
-          starsMap[id] = { id, rec_points: pts, rec_stars: star };
-        }
-      });
-      Object.keys(starsMap).forEach(function(id) {
-        var qtd = QTD_MAP[id];
-        if (qtd) { qtd.rec_points = starsMap[id].rec_points; qtd.rec_stars = starsMap[id].rec_stars; }
-        else { QTD_MAP[id] = starsMap[id]; }
-      });
-    }
+    var stMap = {};
+    sheetsRowsToObjects((await stRes.json()).values || []).forEach(function(r) {
+      var id = String(r['employee id'] || '').trim();
+      if (!id || !/^\d+$/.test(id)) return;
+      var pts = csvNum(r['current_points']); var star = String(r['stars']||'');
+      if (!stMap[id] || pts > (stMap[id].rec_points||0)) stMap[id] = { id, rec_points: pts, rec_stars: star };
+    });
+    Object.keys(stMap).forEach(function(id) { var qtd = QTD_MAP[id]; if (qtd) { qtd.rec_points = stMap[id].rec_points; qtd.rec_stars = stMap[id].rec_stars; } });
   } catch(e) { errors.push('Stars: ' + e.message); }
 
   // ── In Combine ───────────────────────────────────────────────────────────────
   try {
-    var icRes  = await fetchWithTimeout(sheetsUrl('In Combine'));
+    var icRes = await fetchWithTimeout(sheetsUrl('In Combine'));
     if (!icRes.ok) throw new Error('HTTP ' + icRes.status);
-    var icJson = await icRes.json();
-    var icRows = sheetsRowsToObjects(icJson.values || []);
-    if (icRows.length > 0) {
-      var newCombine = icRows.map(function(r) {
-        var id = String(r['rep id'] || '').trim();
-        if (!id || !/^\d+$/.test(id)) return null;
-        return {
-          id,
-          name:          String(r['name'] || ''),
-          office:        shortOffice(String(r['office'] || '')),
-          combineStatus: String(r['combine status'] || ''),
-          status:        String(r['status'] || ''),
-          startDate:     String(r['start date'] || ''),
-          endDate:       String(r['end date'] || ''),
-          daysLeft:      csvNum(r['days left in combine']),
-          totalSRA:      csvNum(r['total sra']),
-          totalCAP:      csvNum(r['total cap']),
-          totalIC:       csvNum(r['total ic']),
-          sras30:        csvNum(r['sras 1st 30 days']),
-        };
-      }).filter(Boolean);
-      if (newCombine.length > 0) {
-        COMBINE2_EMPLOYEES.length = 0;
-        newCombine.forEach(function(e) { COMBINE2_EMPLOYEES.push(e); });
-      }
-    }
+    var icRows = sheetsRowsToObjects((await icRes.json()).values || []).map(function(r) {
+      var id = String(r['rep id'] || '').trim();
+      if (!id || !/^\d+$/.test(id)) return null;
+      return { id, name: String(r['name']||''), office: shortOffice(String(r['office']||'')), combineStatus: String(r['combine status']||''), status: String(r['status']||''), startDate: String(r['start date']||''), endDate: String(r['end date']||''), daysLeft: csvNum(r['days left in combine']), totalSRA: csvNum(r['total sra']), totalCAP: csvNum(r['total cap']), totalIC: csvNum(r['total ic']), sras30: csvNum(r['sras 1st 30 days']) };
+    }).filter(Boolean);
+    if (icRows.length) { COMBINE2_EMPLOYEES.length = 0; icRows.forEach(function(e){ COMBINE2_EMPLOYEES.push(e); }); }
   } catch(e) { errors.push('In Combine: ' + e.message); }
 
   // ── New Hires ────────────────────────────────────────────────────────────────
   try {
-    var nhRes  = await fetchWithTimeout(sheetsUrl('New Hires'));
+    var nhRes = await fetchWithTimeout(sheetsUrl('New Hires'));
     if (!nhRes.ok) throw new Error('HTTP ' + nhRes.status);
-    var nhJson = await nhRes.json();
-    var nhRows = sheetsRowsToObjects(nhJson.values || []);
-    if (nhRows.length > 0) {
-      var newHires = nhRows.map(function(r) {
-        var id = String(r['rep id'] || '').trim();
-        if (!id || !/^\d+$/.test(id)) return null;
-        return {
-          id,
-          name:        String(r['name'] || ''),
-          office:      shortOffice(String(r['office'] || '')),
-          hireDate:    String(r['hire date'] || ''),
-          termDate:    String(r['term date'] || ''),
-          hireTime:    csvNum(r['hire time']),
-          hireSorting: csvNum(r['hire sorting']),
-          compliance:  String(r['compliance'] || ''),
-          repBasic:    String(r['rep basic'] || ''),
-        };
-      }).filter(Boolean);
-      if (newHires.length > 0) {
-        NEW_HIRE_EMPLOYEES.length = 0;
-        newHires.forEach(function(e) { NEW_HIRE_EMPLOYEES.push(e); });
-      }
-    }
+    var nhRows = sheetsRowsToObjects((await nhRes.json()).values || []).map(function(r) {
+      var id = String(r['rep id'] || '').trim();
+      if (!id || !/^\d+$/.test(id)) return null;
+      return { id, name: String(r['name']||''), office: shortOffice(String(r['office']||'')), hireDate: String(r['hire date']||''), termDate: String(r['term date']||''), hireTime: csvNum(r['hire time']), hireSorting: csvNum(r['hire sorting']), compliance: String(r['compliance']||''), repBasic: String(r['rep basic']||'') };
+    }).filter(Boolean);
+    if (nhRows.length) { NEW_HIRE_EMPLOYEES.length = 0; nhRows.forEach(function(e){ NEW_HIRE_EMPLOYEES.push(e); }); }
   } catch(e) { errors.push('New Hires: ' + e.message); }
 
   if (errors.length) {
@@ -6535,48 +6416,29 @@ async function fetchSheetsData() {
 }
 
 (async function initDashboard() {
-  // Update footer immediately so page doesn't look frozen
-  document.getElementById('footer-count').textContent = '■ Loading data...';
-
-  try {
-    // Timeout safety net — if fetchSheetsData hangs, give up after 15s
-    await Promise.race([
-      fetchSheetsData(),
-      new Promise(function(_, reject) {
-        setTimeout(function() { reject(new Error('Sheets fetch timed out after 15s')); }, 15000);
-      })
-    ]);
-  } catch(e) {
-    console.warn('[initDashboard] fetchSheetsData error:', e);
-    showSyncBanner('Data load error: ' + e.message, true);
+  await fetchSheetsData();
+  applyBakedQTDPoints();
+  if (!document.getElementById('wtd-date-input').value) {
+    document.getElementById('wtd-date-input').value = '2026-03-29';
   }
-  try {
-    applyBakedQTDPoints();
-    if (!document.getElementById('wtd-date-input').value) {
-      document.getElementById('wtd-date-input').value = '2026-03-29';
-    }
-    if (!document.getElementById('qtd-date-input').value) {
-      document.getElementById('qtd-date-input').value = '2026-03-29';
-    }
-    buildSIFromRepPerf();
-    renderRankings();
-    renderOverview();
-    renderWTD();
-    renderQTD();
-    renderCombineTab();
-    renderRoster();
-    if ((window.innerWidth || screen.width) <= 430) {
-      setTimeout(function() { renderWTD(); renderQTD(); renderRankings(); }, 300);
-    }
-    window.addEventListener('resize', function() { renderWTD(); renderQTD(); }, { passive: true });
-    updateFooter();
-    applyColPrefs('wtd');
-    applyColPrefs('qtd');
-    populateSquadSelects();
-  } catch(e) {
-    console.error('[initDashboard] render error:', e);
-    showSyncBanner('Render error: ' + e.message, true);
+  if (!document.getElementById('qtd-date-input').value) {
+    document.getElementById('qtd-date-input').value = '2026-03-29';
   }
+  buildSIFromRepPerf();
+  renderRankings();
+  renderOverview();
+  renderWTD();
+  renderQTD();
+  renderCombineTab();
+  renderRoster();
+  if ((window.innerWidth || screen.width) <= 430) {
+    setTimeout(function() { renderWTD(); renderQTD(); renderRankings(); }, 300);
+  }
+  window.addEventListener('resize', function() { renderWTD(); renderQTD(); }, { passive: true });
+  updateFooter();
+  applyColPrefs('wtd');
+  applyColPrefs('qtd');
+  populateSquadSelects();
 })();
 
 // ── WTD GOALS PANEL ─────────────────────────────────────────────────────────
