@@ -6522,7 +6522,12 @@ async function fetchSheetsData() {
 }
 
 (async function initDashboard() {
-  await fetchSheetsData();
+  try {
+    await fetchSheetsData();
+  } catch(e) {
+    console.warn('[initDashboard] fetchSheetsData error:', e);
+    showSyncBanner('Data load error — using cached data', true);
+  }
   applyBakedQTDPoints();
   if (!document.getElementById('wtd-date-input').value) {
     document.getElementById('wtd-date-input').value = '2026-03-29';
