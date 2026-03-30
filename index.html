@@ -6239,15 +6239,22 @@ function showSyncBanner(msg, isError) {
   if (!banner) {
     banner = document.createElement('div');
     banner.id = 'sheets-sync-banner';
-    banner.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:9999;padding:10px 18px;border-radius:3px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;transition:opacity 0.4s;';
+    banner.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:9999;padding:10px 18px 10px 18px;border-radius:3px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;transition:opacity 0.4s;cursor:pointer;max-width:480px;line-height:1.6;';
+    banner.title = 'Click to dismiss';
+    banner.addEventListener('click', function() { banner.style.opacity = '0'; });
     document.body.appendChild(banner);
   }
   banner.textContent = msg;
-  banner.style.background = isError ? 'rgba(220,60,60,0.92)' : 'rgba(29,158,117,0.92)';
+  banner.style.background = isError ? 'rgba(180,30,30,0.96)' : 'rgba(29,158,117,0.92)';
   banner.style.color = '#fff';
   banner.style.opacity = '1';
   clearTimeout(banner._t);
-  banner._t = setTimeout(function() { banner.style.opacity = '0'; }, 4000);
+  if (isError) {
+    // Errors stay until clicked — no auto-dismiss
+    banner._t = null;
+  } else {
+    banner._t = setTimeout(function() { banner.style.opacity = '0'; }, 4000);
+  }
 }
 
 async function fetchSheetsData() {
@@ -7530,11 +7537,12 @@ function initGIS() {
         return;
       }
       sheetsAuthToken = resp.access_token;
-      // Fetch the signed-in user's email for audit trail
-      fetch('https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=' + resp.access_token)
-        .then(function(r){ return r.json(); })
-        .then(function(info){ if(info.email) currentUserEmail = info.email; })
-        .catch(function(){}); 
+      // Fetch signed-in user's email synchronously before any writes are possible
+      try {
+        var tRes = await fetch('https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=' + resp.access_token);
+        var tInfo = await tRes.json();
+        if (tInfo.email) currentUserEmail = tInfo.email;
+      } catch(e) { console.warn('tokeninfo failed', e); }
       localStorage.setItem('xii-auth-hint', 'granted');
       updateAuthUI(true);
       showSyncBanner('Signed in — edits will save to Sheets');
