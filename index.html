@@ -6153,7 +6153,7 @@ function sheetsRowsToObjects(values) {
     var obj = {};
     headers.forEach(function(h, j) {
       var v = row[j];
-      obj[h] = (v == null) ? '' : v;
+      obj[h] = (v == null) ? '' : String(v);
     });
     obj._sheetRow = i + 2; // 1-indexed, +1 for header row
     return obj;
