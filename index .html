@@ -5934,7 +5934,6 @@ const DATA_SOURCES = {
   stars:          { label:'Stars',           cardId:'dc-stars',          keywords:['star'] },
 
   combine:        { label:'In Combine 2',    cardId:'dc-combine',        keywords:['in_combine','in combine'] },
-  newhires:       { label:'New Hires',       cardId:'dc-newhires',       keywords:['new_hire','new hire','newhire'] },
   squadstructure: { label:'Squad Structure', cardId:'dc-squadstructure', keywords:['squad_structure','squadstructure'] },
   roster:         { label:'Roster',          cardId:'dc-roster',         keywords:['roster'] },
 };
@@ -6101,33 +6100,176 @@ document.getElementById('ov-c-riverside').classList.add('active');
 document.getElementById('ov-c-newport').classList.remove('active');
 document.getElementById('ov-c-oc').classList.remove('active');
 
-// Use requestAnimationFrame to ensure DOM is ready before first render
-applyBakedQTDPoints();
-// Set default CSV dates so Overview pace calculates immediately
-if (!document.getElementById('wtd-date-input').value) {
-  document.getElementById('wtd-date-input').value = '2026-03-29';
+// ── GOOGLE SHEETS LIVE FETCH ─────────────────────────────────────────────────
+const SHEETS_API_KEY = 'AIzaSyCpVnUmNfuldsnJ5BotzSSo89aVehuoctk';
+const SHEETS_ID      = '1Awy-KgfNtf8IBAZf-nY8pmv26n0juNk28IRTfN0usn4';
+const SHEETS_BASE    = 'https://sheets.googleapis.com/v4/spreadsheets';
+
+function sheetsUrl(tab) {
+  return SHEETS_BASE + '/' + SHEETS_ID + '/values/' + encodeURIComponent(tab)
+    + '?valueRenderOption=UNFORMATTED_VALUE&key=' + SHEETS_API_KEY;
 }
-if (!document.getElementById('qtd-date-input').value) {
-  document.getElementById('qtd-date-input').value = '2026-03-29';
+
+function sheetsRowsToObjects(values) {
+  if (!values || values.length < 2) return [];
+  var headers = values[0].map(function(h) { return String(h).trim().toLowerCase(); });
+  var numCols = headers.length;
+  return values.slice(1).map(function(row) {
+    while (row.length < numCols) row.push('');
+    var obj = {};
+    headers.forEach(function(h, i) { obj[h] = String(row[i] == null ? '' : row[i]).trim(); });
+    return obj;
+  });
 }
-buildSIFromRepPerf();
-renderRankings();
-renderOverview();
-renderWTD();
-renderQTD();
-renderCombineTab();
-renderRoster();
-// On mobile, force re-render after DOM settles to ensure card lists populate
-if ((window.innerWidth || screen.width) <= 430) {
-  setTimeout(function(){ renderWTD(); renderQTD(); renderRankings(); }, 300);
+
+function rosterRowToEmployee(r) {
+  return {
+    id:     r['rep id'] || r['id'] || '',
+    name:   r['name']   || '',
+    office: shortOffice(r['office'] || ''),
+    squad:  r['squad']  || '',
+    role:   r['role']   || 'Sales Manager',
+    mobile: r['mobile'] || r['phone'] || '',
+    email:  r['email']  || '',
+    status: r['status'] || ''
+  };
 }
-window.addEventListener('resize', function(){
-  renderWTD(); renderQTD();
-}, { passive: true });
-updateFooter();
-applyColPrefs('wtd');
-applyColPrefs('qtd');
-populateSquadSelects();
+
+function squadRowToEntry(r) {
+  var squad = r['squad'] || r['squad name'] || '';
+  if (!squad) return null;
+  return {
+    squad:      squad,
+    leader:     r['leader'] || '',
+    weekly_sra: parseInt(r['weekly sra'] || r['weekly_sra'] || 0) || 0,
+    weekly_ic:  parseInt(r['weekly ic']  || r['weekly_ic']  || 0) || 0,
+    qtr_sra:    parseInt(r['qtr sra']    || r['qtr_sra']    || 0) || 0,
+    qtr_ic:     parseInt(r['qtr ic']     || r['qtr_ic']     || 0) || 0
+  };
+}
+
+function onboardRowToEmployee(r, idx) {
+  var name = r['name'] || '';
+  if (!name) return null;
+  var id = r['rep id'] || r['id'] || (name.toLowerCase().replace(/\s+/g,'_') + '_' + idx);
+  function bool(v) {
+    var s = String(v || '').trim().toUpperCase();
+    return s === 'TRUE' || s === '1' || s === 'YES' || s === 'X';
+  }
+  return {
+    id:           id,
+    name:         name,
+    office:       shortOffice(r['office'] || ''),
+    squad:        r['squad']  || '',
+    leader:       r['leader'] || '',
+    referral:     r['referral'] || '',
+    hireDate:     r['hire date'] || '',
+    interviewDate:r['interview date'] || '',
+    status:       r['status'] || 'Candidate',
+    phone:        r['mobile'] || '',
+    email:        r['email']  || '',
+    address:      r['address'] || '',
+    s1:  bool(r['step 1']),
+    s2:  bool(r['step 2']),
+    s3:  bool(r['step 3']),
+    s4:  bool(r['step 4']),
+    s5:  bool(r['step 5']),
+    s6:  bool(r['step 6']),
+    s7:  bool(r['step 7']),
+    s8:  bool(r['step 8']),
+    s9:  bool(r['step 9']),
+    s10: false,
+    notes: r['notes'] || ''
+  };
+}
+
+function showSyncBanner(msg, isError) {
+  var banner = document.getElementById('sheets-sync-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'sheets-sync-banner';
+    banner.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:9999;padding:10px 18px;border-radius:3px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;transition:opacity 0.4s;';
+    document.body.appendChild(banner);
+  }
+  banner.textContent = msg;
+  banner.style.background = isError ? 'rgba(220,60,60,0.92)' : 'rgba(29,158,117,0.92)';
+  banner.style.color = '#fff';
+  banner.style.opacity = '1';
+  clearTimeout(banner._t);
+  banner._t = setTimeout(function() { banner.style.opacity = '0'; }, 4000);
+}
+
+async function fetchSheetsData() {
+  showSyncBanner('Syncing live data...');
+  var errors = [];
+
+  try {
+    var rRes  = await fetch(sheetsUrl('Roster'));
+    if (!rRes.ok) throw new Error('HTTP ' + rRes.status);
+    var rJson = await rRes.json();
+    var rows  = sheetsRowsToObjects(rJson.values || [])
+                  .map(rosterRowToEmployee)
+                  .filter(function(e) { return e.id && e.name; });
+    if (rows.length > 0) { ROSTER_EMPLOYEES.length = 0; rows.forEach(function(e) { ROSTER_EMPLOYEES.push(e); }); }
+  } catch(e) { errors.push('Roster: ' + e.message); }
+
+  try {
+    var sRes  = await fetch(sheetsUrl('Squad Structure'));
+    if (!sRes.ok) throw new Error('HTTP ' + sRes.status);
+    var sJson = await sRes.json();
+    var squads = sheetsRowsToObjects(sJson.values || []).map(squadRowToEntry).filter(Boolean);
+    if (squads.length > 0) {
+      Object.keys(SQUAD_DB).forEach(function(k) { delete SQUAD_DB[k]; });
+      squads.forEach(function(e) {
+        SQUAD_DB[e.squad] = { leader: e.leader, weekly_sra: e.weekly_sra, weekly_ic: e.weekly_ic, qtr_sra: e.qtr_sra, qtr_ic: e.qtr_ic };
+      });
+      if (!SQUAD_DB['No Squad']) SQUAD_DB['No Squad'] = { leader:'', weekly_sra:0, weekly_ic:0, qtr_sra:0, qtr_ic:0 };
+    }
+  } catch(e) { errors.push('Squad Structure: ' + e.message); }
+
+  try {
+    var oRes  = await fetch(sheetsUrl('Onboarding'));
+    if (!oRes.ok) throw new Error('HTTP ' + oRes.status);
+    var oJson = await oRes.json();
+    var obRows = sheetsRowsToObjects(oJson.values || [])
+                   .map(function(r, i) { return onboardRowToEmployee(r, i); })
+                   .filter(Boolean);
+    if (obRows.length > 0) { ob_employees.length = 0; obRows.forEach(function(e) { ob_employees.push(e); }); }
+  } catch(e) { errors.push('Onboarding: ' + e.message); }
+
+  if (errors.length) {
+    showSyncBanner('Sync issues: ' + errors.join(' / '), true);
+    console.warn('[Sheets] errors:', errors);
+  } else {
+    showSyncBanner('Live data loaded');
+  }
+}
+
+(async function initDashboard() {
+  await fetchSheetsData();
+  applyBakedQTDPoints();
+  if (!document.getElementById('wtd-date-input').value) {
+    document.getElementById('wtd-date-input').value = '2026-03-29';
+  }
+  if (!document.getElementById('qtd-date-input').value) {
+    document.getElementById('qtd-date-input').value = '2026-03-29';
+  }
+  buildSIFromRepPerf();
+  renderRankings();
+  renderOverview();
+  renderWTD();
+  renderQTD();
+  renderCombineTab();
+  renderRoster();
+  if ((window.innerWidth || screen.width) <= 430) {
+    setTimeout(function() { renderWTD(); renderQTD(); renderRankings(); }, 300);
+  }
+  window.addEventListener('resize', function() { renderWTD(); renderQTD(); }, { passive: true });
+  updateFooter();
+  applyColPrefs('wtd');
+  applyColPrefs('qtd');
+  populateSquadSelects();
+})();
 
 // ── WTD GOALS PANEL ─────────────────────────────────────────────────────────
 const WTD_GOALS_META = [
@@ -6871,72 +7013,13 @@ document.addEventListener('keydown', function(e) {
         </button>
       </div>
 
-      <!-- In Combine 2 -->
-      <div class="data-card" id="dc-combine">
-        <div class="data-card-header">
-          <div>
-            <div class="data-card-title">In Combine 2</div>
-            <div class="data-card-subtitle">Combine Program Tracker</div>
-          </div>
-          <div class="data-card-icon">🔄</div>
-        </div>
-        <div class="data-card-meta">
-          <div class="data-card-meta-row">
-            <span class="data-card-meta-label">Status</span>
-            <span class="data-card-meta-val empty" id="dc-combine-status">Not loaded</span>
-          </div>
-          <div class="data-card-meta-row">
-            <span class="data-card-meta-label">Records</span>
-            <span class="data-card-meta-val empty" id="dc-combine-records">—</span>
-          </div>
-          <div class="data-card-meta-row">
-            <span class="data-card-meta-label">Last Upload</span>
-            <span class="data-card-meta-val empty" id="dc-combine-date">—</span>
-          </div>
-        </div>
-        <div class="data-card-keyword">KEYWORD: in_combine</div>
-        <button class="data-upload-btn" onclick="dataUploadSingle('combine')">
-          <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 8V2M3 5l3-3 3 3M2 10h8"/></svg>
-          Upload File
-        </button>
-      </div>
-
-      <!-- New Hires -->
-      <div class="data-card" id="dc-newhires">
-        <div class="data-card-header">
-          <div>
-            <div class="data-card-title">New Hires</div>
-            <div class="data-card-subtitle">Onboarding Pipeline</div>
-          </div>
-          <div class="data-card-icon">🆕</div>
-        </div>
-        <div class="data-card-meta">
-          <div class="data-card-meta-row">
-            <span class="data-card-meta-label">Status</span>
-            <span class="data-card-meta-val empty" id="dc-newhires-status">Not loaded</span>
-          </div>
-          <div class="data-card-meta-row">
-            <span class="data-card-meta-label">Records</span>
-            <span class="data-card-meta-val empty" id="dc-newhires-records">—</span>
-          </div>
-          <div class="data-card-meta-row">
-            <span class="data-card-meta-label">Last Upload</span>
-            <span class="data-card-meta-val empty" id="dc-newhires-date">—</span>
-          </div>
-        </div>
-        <div class="data-card-keyword">KEYWORD: new_hire</div>
-        <button class="data-upload-btn" onclick="dataUploadSingle('newhires')">
-          <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 8V2M3 5l3-3 3 3M2 10h8"/></svg>
-          Upload File
-        </button>
-      </div>
 
     </div><!-- end data-grid -->
   </div><!-- end scrollable area -->
 
   <!-- Footer -->
   <div class="footer-bar" style="flex-shrink:0">
-    <span class="footer-count" id="data-footer-count">■ 0 of 9 sources loaded</span>
+    <span class="footer-count" id="data-footer-count">■ 0 of 7 sources loaded</span>
     <span class="footer-brand">■ XII — BUILDING CULTURE FORWARD ■</span>
   </div>
 
