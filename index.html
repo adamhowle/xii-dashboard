@@ -3298,13 +3298,13 @@ function deleteEmployee(id){
     const emp = ROSTER_EMPLOYEES[idx];
     ROSTER_EMPLOYEES.splice(idx,1);
     renderRoster();
+    showSyncBanner('🗑 ' + (emp.name || 'Employee') + ' moved to Terminated log');
     // Archive to Terminated tab, then delete from Roster sheet
     sheetsArchiveToTerminated(emp).then(function(ok) {
-      if (ok && emp._sheetRow) {
-        // Use Roster sheet gid for batchUpdate
-        sheetsDeleteRosterRow(emp._sheetRow);
-      }
+      if (ok && emp._sheetRow) sheetsDeleteRosterRow(emp._sheetRow);
     });
+    // Send email notification (same as onboarding deletes)
+    sendDeleteNotification(emp);
   }
 }
 
@@ -7301,49 +7301,70 @@ async function sheetsArchiveToTerminated(emp) {
 async function sendDeleteNotification(emp) {
   if (!sheetsAuthToken) return; // silently skip if not signed in
 
-  var steps = [
-    ['Info Call',    emp.infoCall],
-    ['Job Offer',    emp.jobOffer],
-    ['I9',           emp.i9],
-    ['BG Clear',     emp.bgClear],
-    ['Pronto/Chat',  emp.pronto],
-    ['Skool',        emp.skool],
-    ['Squad Assign', emp.squadAssign],
-    ['Bootcamp',     emp.bootcamp],
-  ].map(function(s) { return s[0] + ': ' + (s[1] ? '✓' : '✗'); }).join('\n');
+  // Detect whether this is an onboarding or roster employee
+  var isOnboarding = (emp.infoCall !== undefined || emp.homeEmail !== undefined);
+  var source = isOnboarding ? 'Onboarding Tracker' : 'Roster';
+  var emailAddr = emp.homeEmail || emp.email || '—';
 
-  var body = [
-    'An employee was deleted from the XII Dashboard Onboarding tracker.',
-    '',
-    '── EMPLOYEE RECORD ─────────────────────────────',
-    'Name:           ' + (emp.name          || '—'),
-    'Status:         ' + (emp.status        || '—'),
-    'Mobile:         ' + (emp.mobile        || '—'),
-    'Email:          ' + (emp.homeEmail     || '—'),
-    'Office:         ' + (emp.office        || '—'),
-    'Squad:          ' + (emp.squad         || '—'),
+  var coreFields = [
+    'Name:           ' + (emp.name   || '—'),
+    'Status:         ' + (emp.status || '—'),
+    'Mobile:         ' + (emp.mobile || '—'),
+    'Email:          ' + emailAddr,
+    'Office:         ' + (emp.office || '—'),
+    'Squad:          ' + (emp.squad  || '—'),
+    'Role:           ' + (emp.role   || '—'),
+  ];
+
+  var extraFields = isOnboarding ? [
     'Leader:         ' + (emp.leader        || '—'),
     'Referral:       ' + (emp.referral      || '—'),
     'Address:        ' + (emp.address       || '—'),
     'Interview Date: ' + (emp.interviewDate || '—'),
     'Start Date:     ' + (emp.startDate     || '—'),
     'Hire Date:      ' + (emp.inputDate     || '—'),
+  ] : [
+    'Rep ID:         ' + (emp.id || '—'),
+  ];
+
+  var stepsSection = isOnboarding ? [
     '',
     '── ONBOARDING STEPS ────────────────────────────',
-    steps,
+    [
+      ['Info Call',    emp.infoCall],
+      ['Job Offer',    emp.jobOffer],
+      ['I9',           emp.i9],
+      ['BG Clear',     emp.bgClear],
+      ['Pronto/Chat',  emp.pronto],
+      ['Skool',        emp.skool],
+      ['Squad Assign', emp.squadAssign],
+      ['Bootcamp',     emp.bootcamp],
+    ].map(function(s){ return s[0] + ': ' + (s[1] ? '✓' : '✗'); }).join('\n'),
     '',
     '── NOTES ───────────────────────────────────────',
     (emp.notes || '(none)'),
+  ] : [];
+
+  var deletedBy = currentUserEmail || 'unknown';
+  var now = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' });
+
+  var body = [
+    'An employee was deleted from the XII Dashboard ' + source + '.',
+    'Deleted by: ' + deletedBy + '  |  ' + now,
+    '',
+    '── EMPLOYEE RECORD ─────────────────────────────',
+  ].concat(coreFields).concat(extraFields).concat(stepsSection).concat([
     '',
     '────────────────────────────────────────────────',
-    'If this was a mistake, you can re-add this employee manually using the Add New Hire button.',
+    isOnboarding
+      ? 'If this was a mistake, re-add via the Add New Hire button.'
+      : 'If this was a mistake, re-add via the Add Existing Employee button on the Roster tab.',
     '',
     'XII Performance Dashboard'
-  ].join('\n');
+  ]).join('\n');
 
-  var subject = '[XII Dashboard] Employee Deleted: ' + (emp.name || 'Unknown');
+  var subject = '[XII Dashboard] ' + source + ' Delete: ' + (emp.name || 'Unknown');
 
-  // Construct RFC 2822 message
   var message = [
     'To: ' + NOTIFY_EMAIL,
     'Subject: ' + subject,
@@ -7353,7 +7374,6 @@ async function sendDeleteNotification(emp) {
     body
   ].join('\r\n');
 
-  // Base64url encode (Gmail API requirement)
   var encoded = btoa(unescape(encodeURIComponent(message)))
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
@@ -7478,7 +7498,7 @@ async function sheetsDeleteRosterRow(sheetRow) {
 }
 
 const OAUTH_CLIENT_ID = '824495442632-o4v639jl9rcsj7dq2fgvfcr6joj98s2c.apps.googleusercontent.com';
-const OAUTH_SCOPE     = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/gmail.send';
+const OAUTH_SCOPE     = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/gmail.send email profile';
 const NOTIFY_EMAIL    = 'adam.howle@sunrun.com';
 
 let gisTokenClient  = null;
@@ -7531,18 +7551,20 @@ function initGIS() {
   gisTokenClient = google.accounts.oauth2.initTokenClient({
     client_id: OAUTH_CLIENT_ID,
     scope:     OAUTH_SCOPE,
-    callback:  function(resp) {
+    callback:  async function(resp) {
       if (resp.error) {
         showSyncBanner('Sign-in failed: ' + resp.error, true);
         return;
       }
       sheetsAuthToken = resp.access_token;
-      // Fetch signed-in user's email synchronously before any writes are possible
+      // Fetch signed-in user's email BEFORE enabling UI or flushing writes
       try {
-        var tRes = await fetch('https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=' + resp.access_token);
+        var tRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { 'Authorization': 'Bearer ' + resp.access_token }
+        });
         var tInfo = await tRes.json();
         if (tInfo.email) currentUserEmail = tInfo.email;
-      } catch(e) { console.warn('tokeninfo failed', e); }
+      } catch(e) { console.warn('userinfo failed', e); }
       localStorage.setItem('xii-auth-hint', 'granted');
       updateAuthUI(true);
       showSyncBanner('Signed in — edits will save to Sheets');
