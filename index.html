@@ -7565,17 +7565,13 @@ function initGIS() {
         var tInfo = await tRes.json();
         if (tInfo.email) currentUserEmail = tInfo.email;
       } catch(e) { console.warn('userinfo failed', e); }
-      localStorage.setItem('xii-auth-hint', 'granted');
       updateAuthUI(true);
-      showSyncBanner('Signed in — edits will save to Sheets');
-      // Flush any queued writes that arrived before sign-in
+      showSyncBanner('Signed in as ' + (currentUserEmail || 'unknown') + ' — edits will save to Sheets');
       flushWriteQueue();
     }
   });
-  // Restore hint so button shows correct state on reload
-  if (localStorage.getItem('xii-auth-hint') === 'granted') {
-    updateAuthUI(false); // show as "not yet signed in this session" but hint the button
-  }
+  // Always start unsigned-in — token never persists across page loads
+  updateAuthUI(false);
 }
 window.addEventListener('load', function() { setTimeout(initGIS, 500); });
 
@@ -7596,14 +7592,17 @@ function updateAuthUI(signedIn) {
 
 function gisSignIn() {
   if (sheetsAuthToken) {
-    showSyncBanner('Already signed in — edits are saving to Sheets');
+    showSyncBanner('● Signed in as ' + (currentUserEmail || 'unknown') + ' — click again to re-authenticate');
+    sheetsAuthToken = null;
+    currentUserEmail = '';
+    updateAuthUI(false);
     return;
   }
   if (!gisTokenClient) {
     showSyncBanner('Auth not ready yet — try again in a moment', true);
     return;
   }
-  gisTokenClient.requestAccessToken({ prompt: 'consent' });
+  gisTokenClient.requestAccessToken({ prompt: 'select_account' });
 }
 
 // ── WRITE QUEUE (buffers writes if not signed in yet) ─────────────────────────
