@@ -2091,6 +2091,7 @@ function sqGoalQTD(k, members) {
   const g = SQUAD_GOALS[k];
   const label = k || 'No Squad';
   if (!g || !g.weekly_sra) return label; // No Squad or no goals defined — label only
+  const cs  = members.reduce((s,e)=>s+(e.qtd_cs||0),0);
   const sra = Math.round(members.reduce((s,e)=>s+(e.qtr_sra||0),0));
   const ic  = Math.round(members.reduce((s,e)=>s+(e.qtr_ic||0),0));
   const sraGoal = g.weekly_sra * 13;
@@ -2102,7 +2103,12 @@ function sqGoalQTD(k, members) {
     <span style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;color:#F2CF9C">${goal}</span>
     <span style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(242,207,156,.55)">goal</span>
   </span>`;
-  return label + m('SRA',sra,sraGoal) + m('IC',ic,icGoal);
+  const csChip = cs > 0 ? `<span style="margin-left:24px;display:inline-flex;align-items:baseline;gap:7px">
+    <span style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:16px;letter-spacing:2px;color:#AADDDD;font-weight:600">CS</span>
+    <span style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:16px;color:#F8F9F9;font-weight:600">${cs}</span>
+    <span style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(170,221,221,.45)">wtd</span>
+  </span>` : '';
+  return label + csChip + m('SRA',sra,sraGoal) + m('IC',ic,icGoal);
 }
 
 function groupRows(data, keyFn, labelFn){
@@ -3042,12 +3048,14 @@ function getQTDData(){
 }
 function renderQTD(){
   const data=getQTDData();
+  const totCS =data.reduce((s,e)=>s+(e.qtd_cs||0),0);
   const totSRA=data.reduce((s,e)=>s+e.qtr_sra,0);
   const totCAP=data.reduce((s,e)=>s+e.qtr_cap,0);
   const totIC=data.reduce((s,e)=>s+e.qtr_ic,0);
   const club=data.filter(e=>['LEVEL 1','LEVEL 2','LEVEL 3','PREMIER','FRANCHISE'].includes((e.exp_rank||'').toUpperCase())).length;
   document.getElementById('qtd-stats').innerHTML=`
     <div class="stat-card"><div class="stat-label">Reps</div><div class="stat-value">${data.length}</div><div class="stat-sub">visible</div></div>
+    <div class="stat-card"><div class="stat-label">WTD CS</div><div class="stat-value">${totCS}</div><div class="stat-sub">this week</div></div>
     <div class="stat-card"><div class="stat-label">QTR SRA</div><div class="stat-value">${totSRA}</div><div class="stat-sub">total</div></div>
     <div class="stat-card"><div class="stat-label">QTR CAP</div><div class="stat-value">${totCAP}</div><div class="stat-sub">total</div></div>
     <div class="stat-card"><div class="stat-label">QTR IC</div><div class="stat-value">${totIC}</div><div class="stat-sub">total</div></div>
@@ -5600,8 +5608,12 @@ function loadCSVFile(file, forcedSourceKey) {
             qtd.days_since_sra=r.days_since_sra;
             qtd.qtd_sra=r.qtd_sra; qtd.qtd_cap=r.qtd_cap; qtd.qtd_ic=r.qtd_ic;
             qtd.qtr_sra=r.qtd_sra; qtd.qtr_cap=r.qtd_cap; qtd.qtr_ic=r.qtd_ic;
+            // qtd_cs: no QTD cumulative CS column exists in any current report.
+            // Store wtd_cs so office-level aggregation on the Overview/QTD tab
+            // has something to sum. Will be replaced when cs_qtr column is added.
+            qtd.qtd_cs = r.wtd_cs;
           } else {
-            QTD_EMPLOYEES.push({ id:r.id, qtd_ac:0, qtd_cs:0,
+            QTD_EMPLOYEES.push({ id:r.id, qtd_ac:0, qtd_cs:r.wtd_cs,
               qtd_sra:r.qtd_sra, qtd_cap:r.qtd_cap, qtd_ic:r.qtd_ic,
               qtr_sra:r.qtd_sra, qtr_cap:r.qtd_cap, qtr_ic:r.qtd_ic,
               qtr_status:r.qtr_status, rolling_status:r.rolling_status,
@@ -6336,9 +6348,11 @@ async function fetchSheetsData(opts) {
       var id = String(r['employee id'] || r['id'] || '').trim();
       if (!id || !/^\d+$/.test(id)) return;
       var wtd = WTD_MAP[id]; var qtd = QTD_MAP[id];
-      // qtd_cs: read 'cs qtr' or 'cs_qtr' column if the sheet has it (Phase 2).
-      // Until then it stays 0 — QTD CS totals are not in any current report.
-      var entry = { id, wtd_cs: csvNum(r['cs week']), wtd_sra: csvNum(r['sra week']), wtd_cap: csvNum(r['cap week']), wtd_ic: csvNum(r['ic week']), qtd_cs: csvNum(r['cs qtr'] || r['cs_qtr'] || 0), qtd_sra: csvNum(r['sra qtr']), qtd_cap: csvNum(r['cap qtr']), qtd_ic: csvNum(r['ic qtr']), qtr_status: String(r['qtr status'] || ''), rolling_status: String(r['rolling status'] || ''), days_since_sra: csvNum(r['days since last sra']) };
+      // qtd_cs: use 'cs qtr'/'cs_qtr' if the column exists (Phase 2).
+      // Fall back to wtd_cs so office aggregation on Overview/QTD shows
+      // something meaningful until a cumulative CS column is added.
+      var qtdCs = csvNum(r['cs qtr'] || r['cs_qtr'] || 0) || csvNum(r['cs week'] || 0);
+      var entry = { id, wtd_cs: csvNum(r['cs week']), wtd_sra: csvNum(r['sra week']), wtd_cap: csvNum(r['cap week']), wtd_ic: csvNum(r['ic week']), qtd_cs: qtdCs, qtd_sra: csvNum(r['sra qtr']), qtd_cap: csvNum(r['cap qtr']), qtd_ic: csvNum(r['ic qtr']), qtr_status: String(r['qtr status'] || ''), rolling_status: String(r['rolling status'] || ''), days_since_sra: csvNum(r['days since last sra']) };
       if (wtd) { wtd.wtd_cs = entry.wtd_cs; wtd.wtd_sra = entry.wtd_sra; wtd.wtd_cap = entry.wtd_cap; wtd.wtd_ic = entry.wtd_ic; } else { WTD_MAP[id] = entry; }
       if (qtd) { qtd.qtd_cs = entry.qtd_cs; qtd.qtd_sra = entry.qtd_sra; qtd.qtd_cap = entry.qtd_cap; qtd.qtd_ic = entry.qtd_ic; qtd.qtr_status = entry.qtr_status; qtd.rolling_status = entry.rolling_status; qtd.days_since_sra = entry.days_since_sra; } else { QTD_MAP[id] = entry; }
     });
