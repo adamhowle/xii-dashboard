@@ -6265,7 +6265,11 @@ function showSyncBanner(msg, isError) {
   }
 }
 
-async function fetchSheetsData() {
+async function fetchSheetsData(opts) {
+  // opts.skipOnboarding = true when called after sign-in to avoid overwriting
+  // ob_employees (and their _sheetRow values) that were already loaded on page
+  // load — destroying write-back capability.
+  opts = opts || {};
   showSyncBanner('Syncing live data...');
   var errors = [];
 
@@ -6304,18 +6308,24 @@ async function fetchSheetsData() {
     }
   } catch(e) { errors.push('Squad Structure: ' + e.message); }
 
-  try {
-    var oRes  = await fetch(sheetsUrl('Onboarding'));
-    if (!oRes.ok) throw new Error('HTTP ' + oRes.status);
-    var oJson = await oRes.json();
-    var obRows = sheetsRowsToObjects(oJson.values || [])
-                   .map(function(r, i) { return onboardRowToEmployee(r, i); })
-                   .filter(Boolean);
-    if (obRows.length > 0) {
-      ob_employees.length = 0;
-      obRows.forEach(function(e) { ob_employees.push(e); });
-    }
-  } catch(e) { errors.push('Onboarding: ' + e.message); }
+  // Skip Onboarding re-fetch when called after OAuth sign-in: the initial page-
+  // load fetch already populated ob_employees with correct _sheetRow values.
+  // Re-fetching here would overwrite those values and silently break all
+  // checkbox/status write-back operations.
+  if (!opts.skipOnboarding) {
+    try {
+      var oRes  = await fetch(sheetsUrl('Onboarding'));
+      if (!oRes.ok) throw new Error('HTTP ' + oRes.status);
+      var oJson = await oRes.json();
+      var obRows = sheetsRowsToObjects(oJson.values || [])
+                     .map(function(r, i) { return onboardRowToEmployee(r, i); })
+                     .filter(Boolean);
+      if (obRows.length > 0) {
+        ob_employees.length = 0;
+        obRows.forEach(function(e) { ob_employees.push(e); });
+      }
+    } catch(e) { errors.push('Onboarding: ' + e.message); }
+  }
 
   // ── QTD Points ──────────────────────────────────────────────────────────────
   try {
@@ -6326,9 +6336,11 @@ async function fetchSheetsData() {
       var id = String(r['employee id'] || r['id'] || '').trim();
       if (!id || !/^\d+$/.test(id)) return;
       var wtd = WTD_MAP[id]; var qtd = QTD_MAP[id];
-      var entry = { id, wtd_cs: csvNum(r['cs week']), wtd_sra: csvNum(r['sra week']), wtd_cap: csvNum(r['cap week']), wtd_ic: csvNum(r['ic week']), qtd_sra: csvNum(r['sra qtr']), qtd_cap: csvNum(r['cap qtr']), qtd_ic: csvNum(r['ic qtr']), qtr_status: String(r['qtr status'] || ''), rolling_status: String(r['rolling status'] || ''), days_since_sra: csvNum(r['days since last sra']) };
+      // qtd_cs: read 'cs qtr' or 'cs_qtr' column if the sheet has it (Phase 2).
+      // Until then it stays 0 — QTD CS totals are not in any current report.
+      var entry = { id, wtd_cs: csvNum(r['cs week']), wtd_sra: csvNum(r['sra week']), wtd_cap: csvNum(r['cap week']), wtd_ic: csvNum(r['ic week']), qtd_cs: csvNum(r['cs qtr'] || r['cs_qtr'] || 0), qtd_sra: csvNum(r['sra qtr']), qtd_cap: csvNum(r['cap qtr']), qtd_ic: csvNum(r['ic qtr']), qtr_status: String(r['qtr status'] || ''), rolling_status: String(r['rolling status'] || ''), days_since_sra: csvNum(r['days since last sra']) };
       if (wtd) { wtd.wtd_cs = entry.wtd_cs; wtd.wtd_sra = entry.wtd_sra; wtd.wtd_cap = entry.wtd_cap; wtd.wtd_ic = entry.wtd_ic; } else { WTD_MAP[id] = entry; }
-      if (qtd) { qtd.qtd_sra = entry.qtd_sra; qtd.qtd_cap = entry.qtd_cap; qtd.qtd_ic = entry.qtd_ic; qtd.qtr_status = entry.qtr_status; qtd.rolling_status = entry.rolling_status; qtd.days_since_sra = entry.days_since_sra; } else { QTD_MAP[id] = entry; }
+      if (qtd) { qtd.qtd_cs = entry.qtd_cs; qtd.qtd_sra = entry.qtd_sra; qtd.qtd_cap = entry.qtd_cap; qtd.qtd_ic = entry.qtd_ic; qtd.qtr_status = entry.qtr_status; qtd.rolling_status = entry.rolling_status; qtd.days_since_sra = entry.days_since_sra; } else { QTD_MAP[id] = entry; }
     });
   } catch(e) { errors.push('QTD Points: ' + e.message); }
 
@@ -7666,8 +7678,10 @@ function initGIS() {
       updateAuthUI(true);
       showSyncBanner('Signed in as ' + (currentUserEmail || 'unknown') + ' — syncing live data...');
       flushWriteQueue();
-      // Re-fetch all live Sheets tabs now that we have an auth token
-      fetchSheetsData().then(function() {
+      // Re-fetch all live Sheets tabs now that we have an auth token.
+      // skipOnboarding:true preserves ob_employees._sheetRow values so
+      // write-back (checkboxes, status, new hires) continues to work.
+      fetchSheetsData({ skipOnboarding: true }).then(function() {
         buildSIFromRepPerf();
         renderOverview();
         renderWTD();
@@ -7748,11 +7762,14 @@ async function sheetsWriteCell(tab, row, col, value) {
     }
     if (!res.ok) {
       var err = await res.json().catch(function(){return {};});
-      showSyncBanner('Save failed: ' + (err.error && err.error.message || res.status), true);
+      var msg = (err.error && err.error.message) || res.status;
+      console.error('[Sheets] sheetsWriteCell failed:', res.status, msg, {tab, row, col, value});
+      showSyncBanner('Save failed: ' + msg, true);
       return false;
     }
     return true;
   } catch(e) {
+    console.error('[Sheets] sheetsWriteCell error:', e.message, {tab, row, col});
     showSyncBanner('Save error: ' + e.message, true);
     return false;
   }
@@ -7784,11 +7801,14 @@ async function sheetsAppendRow(tab, values) {
     }
     if (!res.ok) {
       var err = await res.json().catch(function(){return {};});
-      showSyncBanner('Save failed: ' + (err.error && err.error.message || res.status), true);
+      var msg = (err.error && err.error.message) || res.status;
+      console.error('[Sheets] sheetsAppendRow failed:', res.status, msg, {tab});
+      showSyncBanner('Save failed: ' + msg, true);
       return false;
     }
     return true;
   } catch(e) {
+    console.error('[Sheets] sheetsAppendRow error:', e.message, {tab});
     showSyncBanner('Save error: ' + e.message, true);
     return false;
   }
