@@ -6278,9 +6278,13 @@ function showSyncBanner(msg, isError) {
 }
 
 async function fetchSheetsData(opts) {
-  // opts.skipOnboarding = true when called after sign-in to avoid overwriting
-  // ob_employees (and their _sheetRow values) that were already loaded on page
-  // load — destroying write-back capability.
+  // opts.skipOnboarding = true  — skip Onboarding re-fetch to preserve _sheetRow
+  //                               values needed for checkbox/status write-back.
+  // opts.skipPerfTabs   = true  — skip QTD Points, Export, Report, Rep Detail,
+  //                               Stars fetches on post-sign-in call. Those tabs
+  //                               are populated by CSV upload + baked data.
+  //                               Fetching them on sign-in overwrites that data
+  //                               with whatever is in the sheet, blanking tables.
   opts = opts || {};
   showSyncBanner('Syncing live data...');
   var errors = [];
@@ -6340,7 +6344,10 @@ async function fetchSheetsData(opts) {
   }
 
   // ── QTD Points ──────────────────────────────────────────────────────────────
-  try {
+  // Skip on post-sign-in re-fetch: WTD/QTD data comes from CSV uploads and
+  // baked BAKED_QTDPOINTS. Fetching from Sheets here overwrites that data
+  // with whatever is in the sheet (often zeroed out), blanking WTD/QTD tables.
+  if (!opts.skipPerfTabs) try {
     var qpRes = await fetchWithTimeout(sheetsUrl('QTD Points'));
     if (!qpRes.ok) throw new Error('HTTP ' + qpRes.status);
     var qpRows = sheetsRowsToObjects((await qpRes.json()).values || []);
@@ -6359,7 +6366,7 @@ async function fetchSheetsData(opts) {
   } catch(e) { errors.push('QTD Points: ' + e.message); }
 
   // ── Export (Rankings) ───────────────────────────────────────────────────────
-  try {
+  if (!opts.skipPerfTabs) try {
     var exRes = await fetchWithTimeout(sheetsUrl('Export'));
     if (!exRes.ok) throw new Error('HTTP ' + exRes.status);
     var exRows = sheetsRowsToObjects((await exRes.json()).values || []).map(function(r) {
@@ -6371,7 +6378,7 @@ async function fetchSheetsData(opts) {
   } catch(e) { errors.push('Export: ' + e.message); }
 
   // ── Report (WTD AC/Knocks/Pitches) ──────────────────────────────────────────
-  try {
+  if (!opts.skipPerfTabs) try {
     var rpRes = await fetchWithTimeout(sheetsUrl('Report'));
     if (!rpRes.ok) throw new Error('HTTP ' + rpRes.status);
     sheetsRowsToObjects((await rpRes.json()).values || []).forEach(function(r) {
@@ -6384,7 +6391,7 @@ async function fetchSheetsData(opts) {
   } catch(e) { errors.push('Report: ' + e.message); }
 
   // ── Rep Detail ───────────────────────────────────────────────────────────────
-  try {
+  if (!opts.skipPerfTabs) try {
     var rdRes = await fetchWithTimeout(sheetsUrl('Rep Detail'));
     if (!rdRes.ok) throw new Error('HTTP ' + rdRes.status);
     sheetsRowsToObjects((await rdRes.json()).values || []).forEach(function(r) {
@@ -6396,7 +6403,7 @@ async function fetchSheetsData(opts) {
   } catch(e) { errors.push('Rep Detail: ' + e.message); }
 
   // ── Stars ────────────────────────────────────────────────────────────────────
-  try {
+  if (!opts.skipPerfTabs) try {
     var stRes = await fetchWithTimeout(sheetsUrl('Stars'));
     if (!stRes.ok) throw new Error('HTTP ' + stRes.status);
     var stMap = {};
@@ -7695,7 +7702,7 @@ function initGIS() {
       // Re-fetch all live Sheets tabs now that we have an auth token.
       // skipOnboarding:true preserves ob_employees._sheetRow values so
       // write-back (checkboxes, status, new hires) continues to work.
-      fetchSheetsData({ skipOnboarding: true }).then(function() {
+      fetchSheetsData({ skipOnboarding: true, skipPerfTabs: true }).then(function() {
         buildSIFromRepPerf();
         renderOverview();
         renderWTD();
