@@ -5736,15 +5736,16 @@ function sheetsBool(v) {
 }
 
 function rosterRowToEmployee(r) {
+  // Sheet headers: Employee ID, Name, Role, Office, Squad, Status, Mobile, Email, Address
   return {
-    id:        String(r['rep id'] || r['id'] || ''),
+    id:        String(r['employee id'] || r['rep id'] || r['id'] || ''),
     _sheetRow: r._sheetRow || null,
-    name:      String(r['name']   || ''),
+    name:      String(r['name'] || ''),
     office:    shortOffice(String(r['office'] || '')),
-    squad:     String(r['squad']  || ''),
-    role:      String(r['role']   || 'Sales Manager'),
+    squad:     String(r['squad'] || ''),
+    role:      String(r['role'] || 'Sales Manager'),
     mobile:    String(r['mobile'] || r['phone'] || ''),
-    email:     String(r['email']  || ''),
+    email:     String(r['email'] || ''),
     status:    String(r['status'] || '')
   };
 }
@@ -5837,9 +5838,18 @@ async function fetchSheetsData(opts) {
     var rRes  = await fetch(sheetsUrl('Roster'));
     if (!rRes.ok) throw new Error('HTTP ' + rRes.status);
     var rJson = await rRes.json();
-    var rows  = sheetsRowsToObjects(rJson.values || [])
+    var rValues = rJson.values || [];
+    // Log actual headers so we can confirm column name match
+    if (rValues.length > 0) {
+      console.log('[Roster] headers:', rValues[0]);
+      console.log('[Roster] sample row:', rValues[1]);
+    } else {
+      console.log('[Roster] WARNING: sheet returned no values');
+    }
+    var rows  = sheetsRowsToObjects(rValues)
                   .map(rosterRowToEmployee)
                   .filter(function(e) { return e.id && e.name; });
+    console.log('[Roster] rows after filter:', rows.length, rows[0]);
     if (rows.length > 0) {
       ROSTER_EMPLOYEES.length = 0;
       rows.forEach(function(e) { ROSTER_EMPLOYEES.push(e); });
