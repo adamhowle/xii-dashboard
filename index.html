@@ -6020,6 +6020,16 @@ async function fetchSheetsData(opts) {
     if (nhRows.length) { NEW_HIRE_EMPLOYEES.length = 0; nhRows.forEach(function(e){ NEW_HIRE_EMPLOYEES.push(e); }); }
   } catch(e) { errors.push('New Hires: ' + e.message); }
 
+  // ── DIAGNOSTICS ─────────────────────────────────────────────────────────────
+  console.log('[Sheets] fetchSheetsData complete. skipPerfTabs=' + opts.skipPerfTabs);
+  console.log('[Sheets] ROSTER_EMPLOYEES:', ROSTER_EMPLOYEES.length);
+  console.log('[Sheets] WTD_EMPLOYEES:', WTD_EMPLOYEES.length);
+  console.log('[Sheets] QTD_EMPLOYEES:', QTD_EMPLOYEES.length);
+  console.log('[Sheets] rankingsData:', rankingsData.length);
+  console.log('[Sheets] COMBINE2_EMPLOYEES:', COMBINE2_EMPLOYEES.length);
+  console.log('[Sheets] NEW_HIRE_EMPLOYEES:', NEW_HIRE_EMPLOYEES.length);
+  console.log('[Sheets] errors:', errors);
+
   if (errors.length) {
     showSyncBanner('Sync issues: ' + errors.join(' / '), true);
     console.warn('[Sheets] errors:', errors);
@@ -6031,6 +6041,22 @@ async function fetchSheetsData(opts) {
 (async function initDashboard() {
   await fetchSheetsData();
   applyBakedQTDPoints();
+
+  // ── VISIBLE DIAGNOSTIC — remove once confirmed working ──
+  var diagMsg = 'DIAG: Roster=' + ROSTER_EMPLOYEES.length
+    + ' WTD=' + WTD_EMPLOYEES.length
+    + ' QTD=' + QTD_EMPLOYEES.length
+    + ' Rankings=' + rankingsData.length
+    + ' Combine=' + COMBINE2_EMPLOYEES.length
+    + ' NewHires=' + NEW_HIRE_EMPLOYEES.length;
+  console.log(diagMsg);
+  var diagEl = document.createElement('div');
+  diagEl.id = 'diag-banner';
+  diagEl.style.cssText = 'position:fixed;bottom:60px;left:16px;right:16px;z-index:9999;padding:10px 16px;background:rgba(0,0,0,0.85);color:#27d9d9;font-family:monospace;font-size:11px;border:1px solid rgba(39,217,217,0.4);border-radius:3px;white-space:pre-wrap;';
+  diagEl.textContent = diagMsg;
+  document.body.appendChild(diagEl);
+  setTimeout(function(){ var el=document.getElementById('diag-banner'); if(el) el.remove(); }, 20000);
+  // ── END DIAGNOSTIC ──
   if (!document.getElementById('wtd-date-input').value) {
     document.getElementById('wtd-date-input').value = '2026-03-29';
   }
