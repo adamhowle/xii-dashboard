@@ -3569,7 +3569,6 @@ function renderRoster(){
           ${Object.keys(SQUAD_DB).sort().map(s=>`<option value="${s}"${e.squad===s?' selected':''}>${s}</option>`).join('')}
         </select>
       </div>
-      ${e.status?`<div class="rc-row" style="margin-top:4px">Status <strong>${e.status}</strong></div>`:''}
       <div class="rc-actions">
         ${smsHref?`<a class="rc-contact-btn rc-sms-btn" href="${smsHref}"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1h10v7H7l-3 3V8H1z"/></svg>Text</a>`:''}
         ${mailHref?`<a class="rc-contact-btn rc-email-btn" href="${mailHref}"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="10" height="8" rx="1"/><path d="M1 3l5 4 5-4"/></svg>Email</a>`:''}
@@ -3750,8 +3749,8 @@ function exportCSV(tab){
   } else {
     let data=[...ROSTER_EMPLOYEES];
     if(rosterOfficeFilter!=='all') data=data.filter(e=>e.office===rosterOfficeFilter);
-    headers=['Employee ID','Name','Role','Office','Squad','Status','Mobile','Email','Address'];
-    rows=data.map(e=>[e.id,e.name,e.role,e.office,e.squad||'',e.status,e.mobile||'',e.email||'',e.address||'']);
+    headers=['Employee ID','Name','Role','Office','Squad','Mobile','Email','Address'];
+    rows=data.map(e=>[e.id,e.name,e.role,e.office,e.squad||'',e.mobile||'',e.email||'',e.address||'']);
   }
   const csv=[headers,...rows].map(r=>r.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\n');
   const a=document.createElement('a');
@@ -4977,7 +4976,7 @@ function buildSIFromRepPerf() {
       'ID':          id,
       'Name':        roster.name   || '',
       'Office':      roster.office || '',
-      'In Combine':  roster.status === 'Combine' ? 'TRUE' : '',
+      'In Combine':  (()=>{ const rk=(RANKINGS_MAP[id]||{}).currentRank||''; return (rk.toUpperCase()==='IN COMBINE'||rk.toUpperCase()==='COMBINE')?'TRUE':''; })(),
       'QSRA':        qsra !== '' ? String(qsra) : '',
       'QIC':         qic  !== '' ? String(qic)  : '',
       'SRA Remaining': sraRem !== '' ? String(sraRem) : '',
@@ -6193,7 +6192,6 @@ function rosterRowToEmployee(r) {
     role:      String(r['role'] || 'Sales Manager'),
     mobile:    String(r['mobile'] || r['phone'] || ''),
     email:     String(r['email'] || ''),
-    status:    String(r['status'] || '')
   };
 }
 
@@ -6625,8 +6623,8 @@ function openRepModal(repId) {
         <div class="rm-info-lbl">Squad</div>
       </div>
       <div class="rm-info-item">
-        <div class="rm-info-val">${roster.status || '—'}</div>
-        <div class="rm-info-lbl">Status</div>
+        <div class="rm-info-val">${(RANKINGS_MAP[id]||{}).currentRank || '—'}</div>
+        <div class="rm-info-lbl">Rank</div>
       </div>
       <div class="rm-info-item">
         <div class="rm-info-val">${phone}</div>
