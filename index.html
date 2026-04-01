@@ -5888,13 +5888,10 @@ async function fetchSheetsData(opts) {
   }
 
   // ── QTD Points ──────────────────────────────────────────────────────────────
-  // On initial page load (no skipPerfTabs), seed WTD_EMPLOYEES and QTD_EMPLOYEES
-  // directly from this sheet tab — there is no longer any baked fallback data.
-  if (!opts.skipPerfTabs) try {
+  try {
     var qpRes = await fetchWithTimeout(sheetsUrl('QTD Points'));
     if (!qpRes.ok) throw new Error('HTTP ' + qpRes.status);
     var qpRows = sheetsRowsToObjects((await qpRes.json()).values || []);
-    // Rebuild both employee arrays fresh from this sheet
     WTD_EMPLOYEES.length = 0;
     QTD_EMPLOYEES.length = 0;
     var rosterById = Object.fromEntries(ROSTER_EMPLOYEES.map(function(e){ return [e.id, e]; }));
@@ -5935,7 +5932,7 @@ async function fetchSheetsData(opts) {
   } catch(e) { errors.push('QTD Points: ' + e.message); }
 
   // ── Export (Rankings) ───────────────────────────────────────────────────────
-  if (!opts.skipPerfTabs) try {
+  try {
     var exRes = await fetchWithTimeout(sheetsUrl('Export'));
     if (!exRes.ok) throw new Error('HTTP ' + exRes.status);
     var exRows = sheetsRowsToObjects((await exRes.json()).values || []).map(function(r) {
@@ -5947,7 +5944,7 @@ async function fetchSheetsData(opts) {
   } catch(e) { errors.push('Export: ' + e.message); }
 
   // ── Report (WTD AC/Knocks/Pitches) ──────────────────────────────────────────
-  if (!opts.skipPerfTabs) try {
+  try {
     var rpRes = await fetchWithTimeout(sheetsUrl('Report'));
     if (!rpRes.ok) throw new Error('HTTP ' + rpRes.status);
     sheetsRowsToObjects((await rpRes.json()).values || []).forEach(function(r) {
@@ -5960,7 +5957,7 @@ async function fetchSheetsData(opts) {
         wtd.knocks        = csvNum(r['knocks']);
         wtd.hours_knocked = csvNum(r['hours knocked']);
       } else {
-        var ro = (typeof rosterById !== 'undefined' && rosterById[id]) || {};
+        var ro = (rosterById && rosterById[id]) || {};
         var newEntry = { id, name: ro.name||id, squad: ro.squad||'', office: ro.office||'', status: ro.status||'',
           wtd_ac: csvNum(r['acs']), pitches: csvNum(r['pitches']), knocks: csvNum(r['knocks']),
           hours_knocked: csvNum(r['hours knocked']), wtd_cs:0, wtd_wc:0, wtd_sra:0, wtd_cap:0, wtd_ic:0, qtr_status:'' };
@@ -5971,7 +5968,7 @@ async function fetchSheetsData(opts) {
   } catch(e) { errors.push('Report: ' + e.message); }
 
   // ── Rep Detail ───────────────────────────────────────────────────────────────
-  if (!opts.skipPerfTabs) try {
+  try {
     var rdRes = await fetchWithTimeout(sheetsUrl('Rep Detail'));
     if (!rdRes.ok) throw new Error('HTTP ' + rdRes.status);
     sheetsRowsToObjects((await rdRes.json()).values || []).forEach(function(r) {
@@ -5983,7 +5980,7 @@ async function fetchSheetsData(opts) {
   } catch(e) { errors.push('Rep Detail: ' + e.message); }
 
   // ── Stars ────────────────────────────────────────────────────────────────────
-  if (!opts.skipPerfTabs) try {
+  try {
     var stRes = await fetchWithTimeout(sheetsUrl('Stars'));
     if (!stRes.ok) throw new Error('HTTP ' + stRes.status);
     var stMap = {};
