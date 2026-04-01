@@ -35,7 +35,7 @@
 body.light-mode {
   --cyan-light: #27d9d9;
   --cyan-dark: #1D5557;
-  --near-black: #F0EDE8;
+  --near-black: #E7E5E4;
   --sand: #8B5E20;
   --wine: #5C3D1E;
   --off-white: #1A1718;
@@ -54,7 +54,7 @@ body.light-mode {
   --btn-border-idle: rgba(90,87,85,0.45);
   color-scheme: light;
 }
-body.light-mode { background: #F0EDE8; color: #1A1718; }
+body.light-mode { background: #E7E5E4; color: #1A1718; }
 /* ── Cards keep dark bg in light mode — force light text inside them ── */
 body.light-mode .prog-card,
 body.light-mode .prog-card .prog-cat,
@@ -355,6 +355,10 @@ body.light-mode tr.group-header td{background:#2A2828;color:#27d9d9;border-top-c
 /* ── MARKET LEADER INDICATOR ── */
 .roster-card.is-market-leader{border-left:3px solid var(--sand);padding-left:17px}
 .rc-ml-badge{display:inline-block;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sand);border:1px solid rgba(242,207,156,0.4);background:rgba(242,207,156,0.08);padding:1px 6px;margin-left:7px;vertical-align:middle;position:relative;top:-1px}
+.roster-card.is-squad-leader{border-left:3px solid var(--sand);padding-left:17px}
+.rc-sl-badge{display:inline-block;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sand);border:1px solid rgba(242,207,156,0.4);background:rgba(242,207,156,0.08);padding:1px 6px;margin-left:7px;vertical-align:middle;position:relative;top:-1px}
+.roster-card.is-director{border-left:3px solid var(--cyan-light);padding-left:17px}
+.rc-dir-badge{display:inline-block;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan-light);border:1px solid rgba(170,221,221,0.4);background:rgba(170,221,221,0.08);padding:1px 6px;margin-left:7px;vertical-align:middle;position:relative;top:-1px}
 /* ── ROSTER LIST VIEW ── */
 #roster-list{display:none;padding:0 36px 24px}
 #roster-list.active{display:block}
@@ -362,6 +366,8 @@ body.light-mode tr.group-header td{background:#2A2828;color:#27d9d9;border-top-c
 .rc-list-row{display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;gap:12px}
 .rc-list-row:hover{background:var(--row-hover)}
 .rc-list-row.is-market-leader{border-left:3px solid var(--sand);padding-left:13px}
+.rc-list-row.is-squad-leader{border-left:3px solid var(--sand);padding-left:13px}
+.rc-list-row.is-director{border-left:3px solid var(--cyan-light);padding-left:13px}
 .rc-list-name{font-size:14px;font-weight:600;color:var(--off-white);flex:1}
 .rc-list-meta{font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1px;color:var(--text-muted);text-transform:uppercase}
 .rc-list-squad-header{font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan-dark);padding:14px 16px 6px;border-bottom:1px solid var(--border);background:rgba(170,221,221,0.03)}
@@ -3388,11 +3394,17 @@ function rosterHandleSearch() {
     .slice(0, 8);
   if (!matches.length) { ac.classList.remove('open'); return; }
   _rosterAcFocus = -1;
-  const isML = e => (e.role||'').toLowerCase().includes('market leader');
+  const isML  = e => (e.role||'').toLowerCase().includes('market leader');
+  const isSL  = e => (e.role||'').toLowerCase().includes('squad leader');
+  const isDir = e => (e.role||'').toLowerCase().includes('director');
   ac.innerHTML = matches.map((e,i) => {
     const oc = (e.office||'').replace('Orange County','OC').replace('Newport Beach','NB').replace('Riverside','RV');
+    const roleTag = isML(e) ? '<span class="ac-ml"> ★ ML</span>'
+                  : isSL(e) ? '<span class="ac-ml" style="color:var(--sand)"> ★ SL</span>'
+                  : isDir(e) ? '<span class="ac-ml" style="color:var(--cyan-light)"> ★ Dir</span>'
+                  : '';
     return `<div class="rc-ac-item" data-id="${e.id}" onclick="rosterAcSelect('${e.id}')">
-      <span>${e.name}${isML(e)?'<span class="ac-ml"> ★ ML</span>':''}</span>
+      <span>${e.name}${roleTag}</span>
       <span class="ac-office">${oc}</span>
     </div>`;
   }).join('');
@@ -3458,6 +3470,8 @@ function renderRoster(){
     const oc=OFFICE_COLORS[e.office]||'#888';
     const ns=noSquad(e);
     const isML = (e.role||'').toLowerCase().includes('market leader');
+    const isSL = (e.role||'').toLowerCase().includes('squad leader');
+    const isDir = (e.role||'').toLowerCase().includes('director');
     let squadHeader = '';
     if(rosterIsSquadView){
       const thisSquad = e.squad||'— No Squad —';
@@ -3473,9 +3487,9 @@ function renderRoster(){
     const smsHref = e.mobile ? 'sms:'+e.mobile.replace(/[^0-9+]/g,'') : '';
     const mailHref = e.email ? 'mailto:'+e.email : '';
     const cleanMobile = e.mobile ? e.mobile.replace(/[^0-9+]/g,'') : '';
-    return squadHeader + `<div class="roster-card${ns?' needs-squad':''}${isML?' is-market-leader':''}" data-id="${e.id}">
+    return squadHeader + `<div class="roster-card${ns?' needs-squad':''}${isML?' is-market-leader':''}${isSL?' is-squad-leader':''}${isDir?' is-director':''}" data-id="${e.id}">
       <div class="rc-alert"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 1l5 9H1z"/><line x1="6" y1="5" x2="6" y2="7.5"/><circle cx="6" cy="9" r=".5" fill="currentColor"/></svg> No Squad Assigned</div>
-      <div class="rc-name" style="cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)" title="View rep detail">${e.name}${isML?'<span class="rc-ml-badge">Market Leader</span>':''}</div>
+      <div class="rc-name" style="cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)" title="View rep detail">${e.name}${isML?'<span class="rc-ml-badge">Market Leader</span>':''}${isSL?'<span class="rc-sl-badge">Squad Leader</span>':''}${isDir?'<span class="rc-dir-badge">Director</span>':''}</div>
       <div class="rc-role-wrap">
         <span class="office-dot" style="background:${oc}"></span>
         <span class="rc-role">${e.office||''}</span>
@@ -3507,15 +3521,17 @@ function renderRoster(){
     listEl.classList.add('active');
     let _lastSquadList = null;
     listEl.innerHTML = data.map(e => {
-      const isML = (e.role||'').toLowerCase().includes('market leader');
+      const isML  = (e.role||'').toLowerCase().includes('market leader');
+      const isSL  = (e.role||'').toLowerCase().includes('squad leader');
+      const isDir = (e.role||'').toLowerCase().includes('director');
       const oc = e.office ? e.office.replace('Orange County','OC').replace('Newport Beach','NB').replace('Riverside','RV') : '';
       let hdr = '';
       if (rosterSortMode === 'squad') {
         const sq = e.squad || '— No Squad —';
         if (sq !== _lastSquadList) { _lastSquadList = sq; hdr = `<div class="rc-list-squad-header">${sq}</div>`; }
       }
-      return hdr + `<div class="rc-list-row${isML?' is-market-leader':''}" onclick="openRepModal('${e.id}')">
-        <span class="rc-list-name">${e.name}${isML?'<span class="rc-ml-badge" style="margin-left:8px">ML</span>':''}</span>
+      return hdr + `<div class="rc-list-row${isML?' is-market-leader':''}${isSL?' is-squad-leader':''}${isDir?' is-director':''}" onclick="openRepModal('${e.id}')">
+        <span class="rc-list-name">${e.name}${isML?'<span class="rc-ml-badge" style="margin-left:8px">ML</span>':''}${isSL?'<span class="rc-sl-badge" style="margin-left:8px">SL</span>':''}${isDir?'<span class="rc-dir-badge" style="margin-left:8px">Dir</span>':''}</span>
         <span class="rc-list-meta">${oc}</span>
       </div>`;
     }).join('');
