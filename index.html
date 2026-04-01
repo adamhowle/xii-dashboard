@@ -93,6 +93,79 @@ body.light-mode #panel-onboard-progress .rep-prog-bar { background: rgba(255,255
 /* ── REP DETAIL MODAL ── */
 #rep-modal { display:none; }
 #rep-modal-overlay { display:none; }
+
+/* ── SMS MODAL ── */
+#xii-sms-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.7); z-index:2000;
+  align-items:center; justify-content:center; padding:20px;
+}
+#xii-sms-overlay.open { display:flex; }
+#xii-sms-modal {
+  background:#1a1718; border:1px solid var(--cyan-light);
+  padding:28px 32px; width:100%; max-width:520px; position:relative;
+}
+#xii-sms-modal .sms-modal-label {
+  font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
+  font-size:9px; letter-spacing:2.5px; text-transform:uppercase;
+  color:var(--cyan-dark); margin-bottom:6px;
+}
+#xii-sms-modal .sms-modal-to {
+  font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
+  font-size:13px; color:var(--text-muted); margin-bottom:18px;
+  padding-bottom:14px; border-bottom:1px solid var(--border);
+}
+#xii-sms-modal .sms-modal-to strong { color:var(--off-white); }
+#xii-sms-modal .sms-modal-body {
+  background:rgba(255,255,255,0.04); border:1px solid var(--border);
+  color:var(--off-white); font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
+  font-size:14px; line-height:1.6; padding:14px 16px;
+  min-height:90px; width:100%; resize:vertical;
+  outline:none; margin-bottom:16px;
+}
+#xii-sms-modal .sms-modal-body:focus { border-color:var(--cyan-light); }
+#xii-sms-modal .sms-modal-generating {
+  font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
+  font-size:11px; letter-spacing:1px; color:var(--text-muted);
+  text-transform:uppercase; margin-bottom:12px; display:none;
+}
+#xii-sms-modal .sms-modal-generating.show { display:block; }
+#xii-sms-modal .sms-modal-actions {
+  display:flex; gap:10px; justify-content:flex-end; align-items:center;
+}
+#xii-sms-modal .sms-copy-btn {
+  background:var(--cyan-light); color:var(--near-black);
+  border:none; padding:10px 22px;
+  font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
+  font-size:10px; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; cursor:pointer; transition:opacity .15s;
+}
+#xii-sms-modal .sms-copy-btn:hover { opacity:0.85; }
+#xii-sms-modal .sms-copy-btn.copied {
+  background:rgba(45,196,142,0.2); color:#2DC48E;
+  border:1px solid rgba(45,196,142,0.4);
+}
+#xii-sms-modal .sms-cancel-btn {
+  background:transparent; border:1px solid var(--btn-border-idle);
+  color:var(--btn-idle); padding:10px 18px;
+  font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
+  font-size:10px; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; cursor:pointer; transition:all .15s;
+}
+#xii-sms-modal .sms-cancel-btn:hover { border-color:var(--cyan-light); color:var(--cyan-light); }
+#xii-sms-modal .sms-modal-title {
+  font-family:'Space Mono',monospace; font-size:12px; font-weight:700;
+  letter-spacing:2px; text-transform:uppercase; color:var(--off-white);
+  margin-bottom:18px; display:flex; align-items:center; gap:10px;
+}
+#xii-sms-modal .sms-modal-title::before {
+  content:'◼'; color:var(--cyan-light); font-size:8px;
+}
+#xii-sms-queue-indicator {
+  font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
+  font-size:10px; letter-spacing:1px; color:var(--text-muted);
+  text-transform:uppercase; margin-right:auto;
+}
 /* Status progression alert banner */
 #ob-newhire-alert { display:none; margin:0 0 16px 0; padding:14px 18px; background:rgba(242,207,156,0.08); border:1px solid rgba(242,207,156,0.35); }
 #ob-newhire-alert .ob-alert-title { font-family:Helvetica Neue,Helvetica,Arial,sans-serif; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--sand); margin-bottom:6px; }
@@ -278,6 +351,29 @@ body.light-mode tr.group-header td{background:#2A2828;color:#27d9d9;border-top-c
 /* ── ROSTER ── */
 .roster-controls{display:flex;align-items:center;gap:10px;padding:14px 36px;border-bottom:1px solid var(--border);flex-wrap:wrap}
 .roster-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;padding:24px 36px}
+
+/* ── MARKET LEADER INDICATOR ── */
+.roster-card.is-market-leader{border-left:3px solid var(--sand);padding-left:17px}
+.rc-ml-badge{display:inline-block;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sand);border:1px solid rgba(242,207,156,0.4);background:rgba(242,207,156,0.08);padding:1px 6px;margin-left:7px;vertical-align:middle;position:relative;top:-1px}
+/* ── ROSTER LIST VIEW ── */
+#roster-list{display:none;padding:0 36px 24px}
+#roster-list.active{display:block}
+.roster-card-grid.hidden{display:none}
+.rc-list-row{display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;gap:12px}
+.rc-list-row:hover{background:var(--row-hover)}
+.rc-list-row.is-market-leader{border-left:3px solid var(--sand);padding-left:13px}
+.rc-list-name{font-size:14px;font-weight:600;color:var(--off-white);flex:1}
+.rc-list-meta{font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1px;color:var(--text-muted);text-transform:uppercase}
+.rc-list-squad-header{font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan-dark);padding:14px 16px 6px;border-bottom:1px solid var(--border);background:rgba(170,221,221,0.03)}
+/* ── ROSTER AUTOCOMPLETE ── */
+.roster-search-wrap{position:relative}
+#roster-autocomplete{display:none;position:absolute;top:calc(100% + 4px);right:0;background:var(--near-black);border:1px solid var(--cyan-light);z-index:200;min-width:240px;max-height:240px;overflow-y:auto}
+#roster-autocomplete.open{display:block}
+.rc-ac-item{padding:10px 14px;font-size:13px;color:var(--off-white);cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;transition:background .1s}
+.rc-ac-item:last-child{border-bottom:none}
+.rc-ac-item:hover,.rc-ac-item.focused{background:var(--row-hover)}
+.rc-ac-item .ac-office{font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-left:auto}
+.rc-ac-item .ac-ml{color:var(--sand);font-size:9px}
 .roster-card{background:var(--card-bg);border:0.5px solid var(--border);padding:18px 20px;transition:border-color .15s;position:relative}
 .roster-card:hover{border-color:rgba(170,221,221,.4)}
 .roster-card.needs-squad{border-color:rgba(242,207,156,.5);background:rgba(242,207,156,.04)}
@@ -1349,11 +1445,12 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
 #panel-onboard-employee .rep-prog-bar, #panel-onboard-progress .rep-prog-bar{ height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
 #panel-onboard-employee .rep-prog-fill, #panel-onboard-progress .rep-prog-fill{ height: 100%; background: var(--cyan-light); border-radius: 2px; transition: width 0.4s; }
 /* Step dots */
-#panel-onboard-employee .rep-steps, #panel-onboard-progress .rep-steps{ display: flex; gap: 4px; flex-wrap: wrap; }
+#panel-onboard-employee .rep-steps, #panel-onboard-progress .rep-steps{ display: flex; gap: 4px; flex-wrap: nowrap; width: 100%; justify-content: space-between; }
 #panel-onboard-employee .rep-step, #panel-onboard-progress .rep-step{
-    width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+    flex: 1; height: 22px; display: flex; align-items: center; justify-content: center;
     font-family:Helvetica Neue,Helvetica,Arial,sans-serif; font-size: 8px; font-weight: 700; text-transform: uppercase;
     border: 1px solid var(--border); color: var(--text-muted); background: transparent;
+    min-width: 0;
   }
 #panel-onboard-employee .rep-step.done, #panel-onboard-progress .rep-step.done{
     background: rgba(45,196,142,.15); border-color: rgba(45,196,142,.5); color: #2DC48E;
@@ -1395,6 +1492,62 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
 #ob-addModal .btn-outline:hover { border-color:var(--cyan-light); color:var(--cyan-light); }
 </style>
 
+/* ── HAMBURGER MENU (mobile only) ──────────────────────────────────────────── */
+.xii-hamburger-btn {
+  display: none; /* hidden on desktop */
+  align-items: center; justify-content: center;
+  background: transparent;
+  border: 1px solid var(--btn-border-idle);
+  color: var(--btn-idle);
+  padding: 8px 11px; cursor: pointer;
+  transition: all .15s; gap: 6px;
+  font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+  font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+}
+.xii-hamburger-btn:hover { border-color: var(--cyan-light); color: var(--cyan-light); }
+.xii-hamburger-btn .hbg-icon { display: flex; flex-direction: column; gap: 4px; }
+.xii-hamburger-btn .hbg-icon span {
+  display: block; width: 16px; height: 1.5px;
+  background: currentColor; transition: all .2s;
+}
+.xii-hamburger-btn.open .hbg-icon span:nth-child(1) { transform: translateY(5.5px) rotate(45deg); }
+.xii-hamburger-btn.open .hbg-icon span:nth-child(2) { opacity: 0; }
+.xii-hamburger-btn.open .hbg-icon span:nth-child(3) { transform: translateY(-5.5px) rotate(-45deg); }
+
+/* Dropdown */
+#xii-mob-menu {
+  display: none;
+  position: fixed;
+  top: 50px; left: 0; right: 0;
+  background: var(--near-black);
+  border-bottom: 1px solid var(--border);
+  z-index: 98;
+  flex-direction: column;
+  max-height: calc(100vh - 50px);
+  overflow-y: auto;
+}
+#xii-mob-menu.open { display: flex; }
+.xii-mob-tab {
+  font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--btn-idle);
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: all .12s;
+  display: flex; align-items: center; justify-content: space-between;
+  -webkit-tap-highlight-color: rgba(170,221,221,0.15);
+  touch-action: manipulation;
+}
+.xii-mob-tab:hover, .xii-mob-tab.active { color: var(--cyan-light); background: rgba(170,221,221,0.05); }
+.xii-mob-tab.active::after { content: '◀'; font-size: 8px; color: var(--cyan-light); }
+.xii-mob-tab-bug {
+  color: var(--sand); border-color: rgba(242,207,156,0.15);
+  font-size: 10px;
+}
+.xii-mob-tab-bug:hover { color: var(--sand); background: rgba(242,207,156,0.06); }
+
+</style>
+
 <style>
 /* ═══════════════════════════════════════════════════════════════
    MOBILE — iPhone (≤430px)
@@ -1408,24 +1561,11 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
   .hdr-collapse-btn{display:none;}
   .hdr-btn-secondary{padding:6px 10px;font-size:8px;letter-spacing:1px;}
 
-  /* ── Tab bar — horizontally scrollable, only manager tabs visible ── */
-  .tab-bar{
-    padding:0 8px;
-    overflow-x:auto;
-    overflow-y:hidden;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-    top:50px;
-  }
-  .tab-bar::-webkit-scrollbar{display:none;}
-  .tab{padding:12px 14px;font-size:9px;letter-spacing:1.5px;-webkit-tap-highlight-color:rgba(170,221,221,0.3);touch-action:manipulation;}
+  /* ── Hamburger button — mobile only ── */
+  .xii-hamburger-btn{display:flex;}
 
-  /* Hide non-manager tabs on mobile */
-  .tab[onclick*="status-incentive"],
-  .tab[onclick*="roster"],
-  .tab[onclick*="onboard-progress"],
-  .tab[onclick*="combine"],
-  .tab[onclick*="data"]{display:none;}
+  /* ── Hide desktop tab bar on mobile ── */
+  .tab-bar{display:none !important;}
 
   /* ── Overview — already card-based, just tighten ── */
   #panel-overview{padding:0;}
@@ -1538,8 +1678,28 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
     <button class="hdr-btn-secondary" id="gis-signin-btn" onclick="gisSignIn()" style="color:var(--sand);border-color:rgba(242,207,156,0.45);letter-spacing:1.5px;">⬡ Enable Edits</button>
     <button class="hdr-btn-secondary" id="theme-toggle-btn" onclick="toggleTheme()">☀ Light Mode</button>
     <button class="hdr-collapse-btn" id="chrome-collapse-btn" onclick="toggleChrome()">▼ Hide tabs &amp; filters</button>
+    <button class="xii-hamburger-btn" id="xii-hamburger-btn" onclick="xiiToggleMenu()" aria-label="Menu">
+      <div class="hbg-icon">
+        <span></span><span></span><span></span>
+      </div>
+    </button>
   </div>
 </header>
+
+<!-- ── MOBILE DROPDOWN MENU ── -->
+<div id="xii-mob-menu">
+  <div class="xii-mob-tab" data-tab="overview" onclick="xiiMobSwitch('overview',this)">Overview</div>
+  <div class="xii-mob-tab" data-tab="wtd" onclick="xiiMobSwitch('wtd',this)">WTD Detail</div>
+  <div class="xii-mob-tab" data-tab="qtd" onclick="xiiMobSwitch('qtd',this)">QTD Detail</div>
+  <div class="xii-mob-tab" data-tab="rankings" onclick="xiiMobSwitch('rankings',this)">Rankings</div>
+  <div class="xii-mob-tab" data-tab="status-incentive" onclick="xiiMobSwitch('status-incentive',this)">Status Incentive</div>
+  <div class="xii-mob-tab" data-tab="roster" onclick="xiiMobSwitch('roster',this)">Roster</div>
+  <div class="xii-mob-tab" data-tab="onboard-employee" onclick="xiiMobSwitch('onboard-employee',this)">Onboard Employee</div>
+  <div class="xii-mob-tab" data-tab="onboard-progress" onclick="xiiMobSwitch('onboard-progress',this)">Onboard Progress</div>
+  <div class="xii-mob-tab" data-tab="combine" onclick="xiiMobSwitch('combine',this)">Combine</div>
+  <div class="xii-mob-tab" data-tab="data" onclick="xiiMobSwitch('data',this)">Data</div>
+  <div class="xii-mob-tab xii-mob-tab-bug" onclick="xiiReportBug()">⚑ Report a Bug</div>
+</div>
 
 <div class="tab-bar">
   <div class="tab active" onclick="switchTab('overview',this)">Overview</div>
@@ -1824,6 +1984,10 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
     <span class="filter-label">Sort —</span>
     <button class="view-btn active" id="roster-sort-name" onclick="rosterSetSort('name',this)">Name</button>
     <button class="view-btn" id="roster-sort-squad" onclick="rosterSetSort('squad',this)">Squad</button>
+    <div class="filter-sep"></div>
+    <span class="filter-label">View —</span>
+    <button class="view-btn active" id="roster-view-card" onclick="rosterSetView('card',this)">Cards</button>
+    <button class="view-btn" id="roster-view-list" onclick="rosterSetView('list',this)">List</button>
     <div class="ml-auto" style="display:flex;align-items:center;gap:10px">
       <button class="rc-add-btn" onclick="openAddModal()">
         <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="6" y1="2" x2="6" y2="10"/><line x1="2" y1="6" x2="10" y2="6"/></svg>
@@ -1833,13 +1997,17 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
         <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4v6M3 7l3 3 3-3M2 10h8"/></svg>
         Export CSV
       </button>
-      <div class="search-wrap">
-        <svg class="search-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#F8F9F9" stroke-width="1.5"><circle cx="5" cy="5" r="3.5"/><path d="M8 8l2.5 2.5"/></svg>
-        <input type="text" id="roster-search" placeholder="Search name or squad..." oninput="renderRoster()">
+      <div class="roster-search-wrap">
+        <div class="search-wrap">
+          <svg class="search-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#F8F9F9" stroke-width="1.5"><circle cx="5" cy="5" r="3.5"/><path d="M8 8l2.5 2.5"/></svg>
+          <input type="text" id="roster-search" placeholder="Search name or squad..." oninput="rosterHandleSearch()" onkeydown="rosterAcKeydown(event)">
+        </div>
+        <div id="roster-autocomplete"></div>
       </div>
     </div>
   </div>
   <div class="roster-card-grid" id="roster-grid"></div>
+  <div id="roster-list"></div>
   <div class="empty-state" id="roster-empty" style="display:none">No records found</div>
 </div>
 
@@ -1952,7 +2120,7 @@ let wtdOffices = new Set(['Newport Beach','Orange County']);
 let wtdActiveExtra = null; // 'active' or null
 let wtdSortCol='name', wtdSortDir=1, wtdView='squad', wtdSquadFilter='';
 let qtdOffices=new Set(['Newport Beach','Orange County']), qtdSortCol='name', qtdSortDir=1, qtdView='squad', qtdSquadFilter='';
-let rosterOfficeFilter='all', rosterSortMode='name';
+let rosterOfficeFilter='all', rosterSortMode='name', rosterViewMode='card';
 
 // ── WTD GOALS (global, editable, persisted) ──
 const WTD_GOALS_DEFAULT = {ac:4, cs:3, sra:2, cap:1, ic:1, pitches:30, hours:30};
@@ -3195,10 +3363,63 @@ function rosterFilter(type, btn){
 }
 function rosterSetSort(mode, el){
   rosterSortMode=mode;
-  document.querySelectorAll('#panel-roster .view-btn').forEach(b=>b.classList.remove('active'));
+  // Only clear sort view-btns (name/squad), not the card/list view-btns
+  document.querySelectorAll('#roster-sort-name,#roster-sort-squad').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
   renderRoster();
 }
+function rosterSetView(mode, el){
+  rosterViewMode=mode;
+  document.querySelectorAll('#roster-view-card,#roster-view-list').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderRoster();
+}
+
+// ── ROSTER AUTOCOMPLETE ──────────────────────────────────────────────────────
+let _rosterAcFocus = -1;
+function rosterHandleSearch() {
+  renderRoster();
+  const q = (document.getElementById('roster-search').value || '').toLowerCase().trim();
+  const ac = document.getElementById('roster-autocomplete');
+  if (!q || q.length < 1) { ac.classList.remove('open'); return; }
+  const matches = ROSTER_EMPLOYEES
+    .filter(e => (e.name||'').toLowerCase().includes(q))
+    .slice(0, 8);
+  if (!matches.length) { ac.classList.remove('open'); return; }
+  _rosterAcFocus = -1;
+  const isML = e => (e.role||'').toLowerCase().includes('market leader');
+  ac.innerHTML = matches.map((e,i) => {
+    const oc = (e.office||'').replace('Orange County','OC').replace('Newport Beach','NB').replace('Riverside','RV');
+    return `<div class="rc-ac-item" data-id="${e.id}" onclick="rosterAcSelect('${e.id}')">
+      <span>${e.name}${isML(e)?'<span class="ac-ml"> ★ ML</span>':''}</span>
+      <span class="ac-office">${oc}</span>
+    </div>`;
+  }).join('');
+  ac.classList.add('open');
+}
+function rosterAcKeydown(e) {
+  const ac = document.getElementById('roster-autocomplete');
+  if (!ac.classList.contains('open')) return;
+  const items = ac.querySelectorAll('.rc-ac-item');
+  if (e.key === 'ArrowDown') { _rosterAcFocus = Math.min(_rosterAcFocus+1, items.length-1); }
+  else if (e.key === 'ArrowUp') { _rosterAcFocus = Math.max(_rosterAcFocus-1, 0); }
+  else if (e.key === 'Enter' && _rosterAcFocus >= 0) { items[_rosterAcFocus].click(); return; }
+  else if (e.key === 'Escape') { ac.classList.remove('open'); return; }
+  items.forEach((it,i) => it.classList.toggle('focused', i===_rosterAcFocus));
+}
+function rosterAcSelect(id) {
+  document.getElementById('roster-autocomplete').classList.remove('open');
+  document.getElementById('roster-search').value = '';
+  renderRoster();
+  openRepModal(id);
+}
+// Close autocomplete on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.roster-search-wrap')) {
+    const ac = document.getElementById('roster-autocomplete');
+    if (ac) ac.classList.remove('open');
+  }
+});
 function renderRoster(){
   const search=document.getElementById('roster-search').value.toLowerCase();
   let data=[...ROSTER_EMPLOYEES];
@@ -3232,9 +3453,10 @@ function renderRoster(){
   const noSquad = e=>!e.squad||e.squad==="Term'd"||e.squad==='';
 
   let _lastSquad = null;
-  grid.innerHTML=data.map(e=>{
+  const cardHtml = data.map(e=>{
     const oc=OFFICE_COLORS[e.office]||'#888';
     const ns=noSquad(e);
+    const isML = (e.role||'').toLowerCase().includes('market leader');
     let squadHeader = '';
     if(rosterIsSquadView){
       const thisSquad = e.squad||'— No Squad —';
@@ -3250,9 +3472,9 @@ function renderRoster(){
     const smsHref = e.mobile ? 'sms:'+e.mobile.replace(/[^0-9+]/g,'') : '';
     const mailHref = e.email ? 'mailto:'+e.email : '';
     const cleanMobile = e.mobile ? e.mobile.replace(/[^0-9+]/g,'') : '';
-    return squadHeader + `<div class="roster-card${ns?' needs-squad':''}" data-id="${e.id}">
+    return squadHeader + `<div class="roster-card${ns?' needs-squad':''}${isML?' is-market-leader':''}" data-id="${e.id}">
       <div class="rc-alert"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 1l5 9H1z"/><line x1="6" y1="5" x2="6" y2="7.5"/><circle cx="6" cy="9" r=".5" fill="currentColor"/></svg> No Squad Assigned</div>
-      <div class="rc-name" style="cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)" title="View rep detail">${e.name}</div>
+      <div class="rc-name" style="cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)" title="View rep detail">${e.name}${isML?'<span class="rc-ml-badge">Market Leader</span>':''}</div>
       <div class="rc-role-wrap">
         <span class="office-dot" style="background:${oc}"></span>
         <span class="rc-role">${e.office||''}</span>
@@ -3276,6 +3498,31 @@ function renderRoster(){
       </div>
     </div>`;
   }).join('');
+
+  // ── Render based on view mode ──
+  const listEl = document.getElementById('roster-list');
+  if (rosterViewMode === 'list') {
+    grid.classList.add('hidden');
+    listEl.classList.add('active');
+    let _lastSquadList = null;
+    listEl.innerHTML = data.map(e => {
+      const isML = (e.role||'').toLowerCase().includes('market leader');
+      const oc = e.office ? e.office.replace('Orange County','OC').replace('Newport Beach','NB').replace('Riverside','RV') : '';
+      let hdr = '';
+      if (rosterSortMode === 'squad') {
+        const sq = e.squad || '— No Squad —';
+        if (sq !== _lastSquadList) { _lastSquadList = sq; hdr = `<div class="rc-list-squad-header">${sq}</div>`; }
+      }
+      return hdr + `<div class="rc-list-row${isML?' is-market-leader':''}" onclick="openRepModal('${e.id}')">
+        <span class="rc-list-name">${e.name}${isML?'<span class="rc-ml-badge" style="margin-left:8px">ML</span>':''}</span>
+        <span class="rc-list-meta">${oc}</span>
+      </div>`;
+    }).join('');
+  } else {
+    grid.classList.remove('hidden');
+    listEl.classList.remove('active');
+    grid.innerHTML = cardHtml;
+  }
   if(document.getElementById('panel-roster').classList.contains('active'))
     document.getElementById('footer-count').textContent=`■ ${data.length} of ${ROSTER_EMPLOYEES.length} records`;
   else updateFooter();
@@ -3740,6 +3987,8 @@ function ob_sortBy(col) {
 
 function ob_sortedEmployees(list) {
   return [...list].sort((a, b) => {
+    // When no explicit sort column chosen, secondary sort is always by leader name
+    // so "All Leaders" view groups correctly by leader, not squad
     let va = a[ob_sortCol] ?? '', vb = b[ob_sortCol] ?? '';
     if (ob_sortCol === 'progress') { va = ob_getProgress(a).pct; vb = ob_getProgress(b).pct; }
     if (ob_sortCol === 'interviewDate' || ob_sortCol === 'startDate') {
@@ -3748,6 +3997,11 @@ function ob_sortedEmployees(list) {
     }
     if (va < vb) return ob_sortDir === 'asc' ? -1 : 1;
     if (va > vb) return ob_sortDir === 'asc' ? 1 : -1;
+    // Tiebreak: always sort by leader name so All Leaders view groups correctly
+    const la = (a.leader || '').toLowerCase();
+    const lb = (b.leader || '').toLowerCase();
+    if (la < lb) return -1;
+    if (la > lb) return 1;
     return 0;
   });
 }
@@ -3762,6 +4016,8 @@ function ob_getFiltered() {
   const fProg = document.getElementById('ob-filterProgress').value;
 
   return ob_employees.filter(emp => {
+    // Hide anyone with a Start Date — they've graduated to Roster
+    if (emp.startDate && emp.startDate.trim()) return false;
     if (q && !`${emp.name} ${emp.mobile} ${emp.referral} ${emp.leader} ${emp.squad} ${emp.notes}`.toLowerCase().includes(q)) return false;
     if (fStat) {
       const s = emp.status.trim().toUpperCase();
@@ -4047,9 +4303,12 @@ const ob_SKOOL_MSG = encodeURIComponent('Welcome to Skool Training for XII. Clic
 function ob_sendSMS(id) {
   const emp = ob_employees.find(e => String(e.id) === id);
   if (!emp || !emp.mobile) return;
-  const raw = emp.mobile.replace(/\D/g, '');
-  const phone = raw.length === 11 && raw.startsWith('1') ? raw : '1' + raw.slice(-10);
-  window.open(`sms:+${phone}`, '_blank');
+  xii_sendSMS([{
+    toLabel: ob_cap(emp.name) || 'Rep',
+    phone: xii_fmtPhone(emp.mobile),
+    text: '',
+    dynamic: false
+  }]);
 }
 
 function ob_toggleCheck(id, field) {
@@ -4092,21 +4351,63 @@ function ob_toggleCheck(id, field) {
     sheetsSaveStatus(emp);
   }
 
-  // Route to Roster and open Add Existing Employee when BG Clear is checked ON
-  if (field === 'bgClear' && emp[field]) {
-    ob_bgClearToRoster(emp);
-  }
-
-  // Fire SMS link when Skool is checked ON and a phone number is on file
-  if (field === 'skool' && emp[field]) {
-    const raw = (emp.mobile || '').replace(/\D/g, '');
-    if (raw.length >= 10) {
-      const phone = raw.length === 11 && raw.startsWith('1') ? raw : '1' + raw.slice(-10);
-      window.open(`sms:+${phone}&body=${ob_SKOOL_MSG}`, '_blank');
+  // Job Offer checked ON → send background check + I9 SMS
+  if (field === 'jobOffer' && emp[field]) {
+    if (emp.mobile) {
+      ob_sendJobOfferSMS(emp);
     } else {
       ob_showToast(`⚠ No phone number on file for ${ob_cap(emp.name)}`);
     }
   }
+
+  // BG Clear checked ON → 4 SMS messages + route to Roster
+  if (field === 'bgClear' && emp[field]) {
+    ob_sendBGClearSMS(emp);
+    ob_bgClearToRoster(emp);
+  }
+
+  // Skool checked ON → SMS via clipboard modal
+  if (field === 'skool' && emp[field]) {
+    if (emp.mobile) {
+      xii_sendSMS([{
+        toLabel: ob_cap(emp.name),
+        phone: xii_fmtPhone(emp.mobile),
+        text: decodeURIComponent(ob_SKOOL_MSG),
+        dynamic: false
+      }]);
+    } else {
+      ob_showToast(`⚠ No phone number on file for ${ob_cap(emp.name)}`);
+    }
+  }
+}
+
+// ── AUTO-ADD GRADUATED HIRE TO ROSTER ────────────────────────────────────────
+function ob_autoAddToRoster(emp) {
+  const name = ob_cap(emp.name);
+  // Check if already in ROSTER_EMPLOYEES by name to avoid duplicates
+  const already = ROSTER_EMPLOYEES.some(r =>
+    (r.name || '').trim().toLowerCase() === (name || '').trim().toLowerCase()
+  );
+  if (already) return;
+
+  const newRep = {
+    id:     Date.now() + Math.floor(Math.random() * 1000),
+    name:   name || '',
+    mobile: emp.mobile  || '',
+    email:  emp.email || emp.homeEmail || '',
+    office: emp.office  || '',
+    squad:  emp.squad   || '',
+    role:   '',
+    status: 'Active',
+  };
+  ROSTER_EMPLOYEES.push(newRep);
+
+  // Toast confirmation
+  ob_showToast(`✓ ${name} added to Roster`);
+
+  // Re-render Roster if it's currently visible
+  const rosterPanel = document.getElementById('panel-roster');
+  if (rosterPanel && rosterPanel.classList.contains('active')) renderRoster();
 }
 
 // ── BG CLEAR → ROSTER AUTO-ADD ──────────────────────────────────────────────
@@ -4284,6 +4585,8 @@ function ob_addEmployee() {
   ob_showToast(`✓ ${ob_cap(name)} added`);
   // Save new hire to Google Sheets
   sheetsSaveNewHire(emp);
+  // Send Gmail notification to Adam
+  ob_gmailNewHire(emp);
   // reset form
   ['ob-f-name','ob-f-mobile','ob-f-email','ob-f-interview','ob-f-start','ob-f-office','ob-f-referral','ob-f-leader','ob-f-address','ob-f-notes','ob-f-squad']
     .forEach(id => { document.getElementById(id).value = ''; });
@@ -4357,13 +4660,23 @@ function ob_switchTab(tab) {
 }
 
 function ob_goToEmployee(id) {
+  // Open the global rep detail modal if the rep exists in the Roster/Rankings
+  // Fall back to switching to the tracker tab and highlighting the row
   const emp = ob_employees.find(e => String(e.id) === id);
   if (!emp) return;
 
-  // Switch to tracker tab
-  ob_switchTab('tracker');
+  // Try to open the rep card modal (works if rep is in ROSTER_EMPLOYEES)
+  const rosterMatch = ROSTER_EMPLOYEES.find(r =>
+    r.name && emp.name &&
+    r.name.trim().toLowerCase() === emp.name.trim().toLowerCase()
+  );
+  if (rosterMatch) {
+    openRepModal(rosterMatch.id);
+    return;
+  }
 
-  // Clear all filters so the row is visible
+  // Fallback: switch to tracker tab and highlight row
+  ob_switchTab('tracker');
   document.getElementById('ob-searchInput').value = '';
   document.getElementById('ob-filterStatus').value = '';
   document.getElementById('ob-filterOffice').value = '';
@@ -4376,8 +4689,6 @@ function ob_goToEmployee(id) {
     if (btn) { btn.style.background = ''; btn.textContent = '⚑ Find Duplicates'; }
   }
   ob_renderTable();
-
-  // Find the row and scroll + highlight it
   requestAnimationFrame(() => {
     const rows = document.querySelectorAll('#tableBody tr');
     const filtered = ob_sortedEmployees(ob_getFiltered());
@@ -4385,10 +4696,9 @@ function ob_goToEmployee(id) {
     if (rowIndex >= 0 && rows[rowIndex]) {
       const row = rows[rowIndex];
       row.classList.remove('row-highlight');
-      void row.offsetWidth; // force reflow to restart animation
+      void row.offsetWidth;
       row.classList.add('row-highlight');
       row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      // Clean up class after animation
       setTimeout(() => row.classList.remove('row-highlight'), 2000);
     }
   });
@@ -4410,8 +4720,16 @@ function ob_renderDashboard() {
   if (!dashSearch || !container) return;
   const q = (dashSearch.value || '').toLowerCase();
 
-  // Filter ob_employees
-  let pool = ob_employees.filter(e => e.name && e.name.trim());
+  // Auto-add any employees with a Start Date to Roster (silently, once each)
+  ob_employees.forEach(emp => {
+    if (emp.startDate && emp.startDate.trim() && !emp._addedToRoster) {
+      emp._addedToRoster = true;
+      ob_autoAddToRoster(emp);
+    }
+  });
+
+  // Filter ob_employees — exclude anyone with a Start Date (graduated)
+  let pool = ob_employees.filter(e => e.name && e.name.trim() && !(e.startDate && e.startDate.trim()));
   if (ob_dashOfficeFilter) pool = pool.filter(e => e.office === ob_dashOfficeFilter);
   if (q) pool = pool.filter(e =>
     `${e.name} ${e.squad} ${e.leader} ${e.office}`.toLowerCase().includes(q)
@@ -4523,8 +4841,8 @@ let allData = [];
 let filteredData = [];
 let activeFilter = 'all';
 let activeOffice = null;
-let sortCol = 'Name';
-let sortDir = 1;
+let sortCol = 'QSRA';
+let sortDir = -1; // descending by default
 let searchTerm = '';
 
 const SI_OFFICE_COLORS = {
@@ -4586,12 +4904,8 @@ function buildSIFromRepPerf() {
     };
   }).filter(r => r['Name']); // drop any IDs not in roster
 
-  // Sort by progress toward goal descending (closest to qualifying first)
-  allData.sort((a, b) => {
-    const scoreA = (parseFloat(a['QSRA']) || 0) / 7 + (parseFloat(a['QIC']) || 0) / 3;
-    const scoreB = (parseFloat(b['QSRA']) || 0) / 7 + (parseFloat(b['QIC']) || 0) / 3;
-    return scoreB - scoreA;
-  });
+  // Sort by QSRA descending (default sort for Status Incentive tab)
+  allData.sort((a, b) => (parseFloat(b['QSRA']) || 0) - (parseFloat(a['QSRA']) || 0));
 
   applyFilters();
 }
@@ -4675,12 +4989,38 @@ function renderTable() {
   tbody.innerHTML = filteredData.map((row, i) => {
     const combine = row['In Combine'] === 'TRUE';
     const officeColor = SI_OFFICE_COLORS[row['Office']] || '#AADDDD';
-    const sraPct = Math.min(Math.max((parseFloat(row['QSRA']) || 0) / 7 * 100, 0), 100);
-    const icPct  = Math.min(Math.max((parseFloat(row['QIC'])  || 0) / 3  * 100, 0), 100);
+
+    // Dynamic bar max based on current rank
+    const repId   = row['ID'];
+    const rankRaw = ((RANKINGS_MAP[repId] || {}).currentRank || '').toUpperCase();
+    const SI_RANK_GOALS = {
+      'NO STATUS': { sra: 7,  ic: 3  },
+      'LEVEL 1':   { sra: 12, ic: 5  },
+      'LEVEL 2':   { sra: 16, ic: 7  },
+      'LEVEL 3':   { sra: 20, ic: 10 },
+      'PREMIER':   { sra: 20, ic: 20 },
+      'FRANCHISE': { sra: 20, ic: 20 },
+    };
+    const goals    = SI_RANK_GOALS[rankRaw] || SI_RANK_GOALS['NO STATUS'];
+    const sraMax   = goals.sra;
+    const icMax    = goals.ic;
+
+    const sraVal = parseFloat(row['QSRA']) || 0;
+    const icVal  = parseFloat(row['QIC'])  || 0;
+    const sraPct = Math.min(Math.max(sraVal / sraMax * 100, 0), 100);
+    const icPct  = Math.min(Math.max(icVal  / icMax  * 100, 0), 100);
     const sraComplete = sraPct >= 100;
     const icComplete  = icPct  >= 100;
     const sraPctRound = Math.round(sraPct);
     const icPctRound  = Math.round(icPct);
+
+    // + prefix: show only when value meets/exceeds qualifier threshold
+    const sraDisplay = (row['QSRA'] !== '' && row['QSRA'] != null)
+      ? (sraVal >= 7 ? `<span style="color:var(--cyan-light);font-weight:700">+</span>${fmtNum(row['QSRA'])}` : fmtNum(row['QSRA']))
+      : '—';
+    const icDisplay  = (row['QIC']  !== '' && row['QIC']  != null)
+      ? (icVal  >= 3 ? `<span style="color:#2DC48E;font-weight:700">+</span>${fmtNum(row['QIC'])}` : fmtNum(row['QIC']))
+      : '—';
 
     return `<tr style="animation-delay:${Math.min(i*0.02, 0.5)}s" data-id="${row._id}">
       <td>${combine ? '<span class="badge-combine">✓ Yes</span>' : ''}</td>
@@ -4703,8 +5043,8 @@ function renderTable() {
           </div>
         </div>
       </td>
-      <td class="td-num ${numClass(row['QSRA'])}">${fmtNum(row['QSRA'])}</td>
-      <td class="td-num ${numClass(row['QIC'])}">${fmtNum(row['QIC'])}</td>
+      <td class="td-num ${numClass(row['QSRA'])}">${sraDisplay}</td>
+      <td class="td-num ${numClass(row['QIC'])}">${icDisplay}</td>
       <td class="td-office"><span class="office-dot" style="background:${officeColor}"></span>${row['Office']}</td>
       <td class="td-action">
         <button class="delete-btn" data-rid="${row._id}" onclick="deleteRow(this.dataset.rid)" title="Remove">
@@ -5107,9 +5447,9 @@ let rankingsData = []; // Populated from Google Sheets
 // Combine tab state
 let combineState = { offices: new Set(['all']), squad: '', showMissed: false };
 // Rankings tab state
-let rkOfficeFilter = 'all';
-let rkRankFilter   = 'all';
-let rkTitleFilter  = 'all';
+let rkOfficeFilter = new Set(); // empty = all
+let rkRankFilter   = new Set(); // empty = all
+let rkTitleFilter  = new Set(); // empty = all
 let rkSortCol      = 'llPoints';
 let rkSortDir      = -1;
 // qtdView, wtdView, rosterSortMode already declared at script init
@@ -5351,21 +5691,42 @@ function rkPaceArrow(current, pace) {
 }
 
 function rkFilterOffice(val, el) {
-  rkOfficeFilter = val;
-  document.querySelectorAll('[id^="rk-f-"]').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
+  if (val === 'all') {
+    rkOfficeFilter.clear();
+    document.querySelectorAll('[id^="rk-f-"]').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+  } else {
+    document.getElementById('rk-f-all').classList.remove('active');
+    if (rkOfficeFilter.has(val)) { rkOfficeFilter.delete(val); el.classList.remove('active'); }
+    else { rkOfficeFilter.add(val); el.classList.add('active'); }
+    if (rkOfficeFilter.size === 0) document.getElementById('rk-f-all').classList.add('active');
+  }
   renderRankings();
 }
 function rkFilterRank(val, el) {
-  rkRankFilter = val;
-  document.querySelectorAll('[id^="rk-r-"]').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
+  if (val === 'all') {
+    rkRankFilter.clear();
+    document.querySelectorAll('[id^="rk-r-"]').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+  } else {
+    document.getElementById('rk-r-all').classList.remove('active');
+    if (rkRankFilter.has(val)) { rkRankFilter.delete(val); el.classList.remove('active'); }
+    else { rkRankFilter.add(val); el.classList.add('active'); }
+    if (rkRankFilter.size === 0) document.getElementById('rk-r-all').classList.add('active');
+  }
   renderRankings();
 }
 function rkFilterTitle(val, el) {
-  rkTitleFilter = val;
-  document.querySelectorAll('[id^="rk-t-"]').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
+  if (val === 'all') {
+    rkTitleFilter.clear();
+    document.querySelectorAll('[id^="rk-t-"]').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+  } else {
+    document.getElementById('rk-t-all').classList.remove('active');
+    if (rkTitleFilter.has(val)) { rkTitleFilter.delete(val); el.classList.remove('active'); }
+    else { rkTitleFilter.add(val); el.classList.add('active'); }
+    if (rkTitleFilter.size === 0) document.getElementById('rk-t-all').classList.add('active');
+  }
   renderRankings();
 }
 function rkSort(col) {
@@ -5426,14 +5787,21 @@ function renderRankings() {
     return;
   }
 
-  const q = (document.getElementById('rk-search')?.value || '').toLowerCase();
-
   let data = rankingsData.filter(r => {
-    if (rkOfficeFilter !== 'all' && r.office !== rkOfficeFilter) return false;
-    if (rkRankFilter   !== 'all' && r.currentRank?.toUpperCase() !== rkRankFilter) return false;
-    if (rkTitleFilter  !== 'all' && r.title !== rkTitleFilter) return false;
+    const q = (document.getElementById('rk-search')?.value || '').toLowerCase();
     if (q && !`${r.name} ${r.office} ${r.currentRank}`.toLowerCase().includes(q)) return false;
-    return true;
+
+    // Pure OR: if any filter set is non-empty, the rep must match at least one value
+    // across ALL active selections (Office, Rank, Title combined as one OR pool)
+    const hasOffice = rkOfficeFilter.size > 0;
+    const hasRank   = rkRankFilter.size   > 0;
+    const hasTitle  = rkTitleFilter.size  > 0;
+    if (!hasOffice && !hasRank && !hasTitle) return true;
+
+    const matchOffice = hasOffice && rkOfficeFilter.has(r.office);
+    const matchRank   = hasRank   && rkRankFilter.has((r.currentRank || '').toUpperCase());
+    const matchTitle  = hasTitle  && rkTitleFilter.has(r.title);
+    return matchOffice || matchRank || matchTitle;
   });
 
   // Sort
@@ -7449,7 +7817,286 @@ async function sheetsSaveNewHire(emp) {
   var ok = await sheetsAppendRow('Onboarding', row);
   if (ok) showSyncBanner('✓ New hire saved to Sheets');
 }
+
+// ── HAMBURGER MENU ────────────────────────────────────────────────────────────
+function xiiToggleMenu() {
+  const menu = document.getElementById('xii-mob-menu');
+  const btn  = document.getElementById('xii-hamburger-btn');
+  const isOpen = menu.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+}
+
+function xiiMobSwitch(tabId, el) {
+  const tabEl = document.querySelector('.tab[onclick*="' + tabId + '"]');
+  if (tabEl) switchTab(tabId, tabEl);
+  document.querySelectorAll('.xii-mob-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('xii-mob-menu').classList.remove('open');
+  document.getElementById('xii-hamburger-btn').classList.remove('open');
+}
+
+function xiiReportBug() {
+  document.getElementById('xii-mob-menu').classList.remove('open');
+  document.getElementById('xii-hamburger-btn').classList.remove('open');
+  const subject = 'XII Dashboard — Bug Report';
+  const body    = 'Please describe the issue below:\n\n';
+  const gmailUrl = 'https://mail.google.com/mail/?view=cm&to=adam.howle%40sunrun.com&su='
+    + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  window.open(gmailUrl, '_blank');
+}
+
+// ── GMAIL — NEW HIRE NOTIFICATION ────────────────────────────────────────────
+async function ob_gmailNewHire(emp) {
+  const name      = ob_cap(emp.name)    || '—';
+  const mobile    = emp.mobile          || '—';
+  const email     = emp.email || emp.homeEmail || '—';
+  const recruiter = emp.referral        || '—';
+  const address   = emp.address         || '—';
+
+  const subject = `New Hire Added — ${name}`;
+  const body =
+    `New hire added to the XII Onboarding tracker.\n\n` +
+    `Name:      ${name}\n` +
+    `Mobile:    ${mobile}\n` +
+    `Email:     ${email}\n` +
+    `Recruiter: ${recruiter}\n` +
+    `Address:   ${address}\n\n` +
+    `Added: ${new Date().toLocaleString()}`;
+
+  try {
+    // Build RFC 2822 message
+    const to      = ADAM_EMAIL;
+    const raw     = `To: ${to}\r\nSubject: ${subject}\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n${body}`;
+    const encoded = btoa(unescape(encodeURIComponent(raw)))
+                      .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+
+    const resp = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + sheetsAuthToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ raw: encoded })
+    });
+    if (resp.ok) {
+      showSyncBanner(`✓ Email sent to Adam — ${name}`);
+    } else {
+      console.warn('[Gmail] Send failed', resp.status);
+    }
+  } catch(e) {
+    console.warn('[Gmail] ob_gmailNewHire error', e);
+  }
+}
+
+// ── SMS ENGINE ───────────────────────────────────────────────────────────────
+// xii_sendSMS(messages) — messages is an array of {toLabel, phone, text, dynamic}
+//   toLabel : display string shown in modal "To" field
+//   phone   : formatted for display only (copy+paste use)
+//   text    : fixed string OR null (if dynamic=true, Claude generates it)
+//   dynamic : if true, calls Anthropic API with the prompt in `text`
+//   onCopy  : optional callback after user copies this message
+// ══════════════════════════════════════════════════════════════════════════════
+let _xii_sms_queue   = [];
+let _xii_sms_index   = 0;
+let _xii_sms_copied  = false;
+
+function xii_sendSMS(messages) {
+  if (!messages || !messages.length) return;
+  _xii_sms_queue  = messages;
+  _xii_sms_index  = 0;
+  _xii_sms_copied = false;
+  xii_loadSMSStep(_xii_sms_index);
+  document.getElementById('xii-sms-overlay').classList.add('open');
+}
+
+async function xii_loadSMSStep(idx) {
+  const msg  = _xii_sms_queue[idx];
+  const total = _xii_sms_queue.length;
+
+  // Queue indicator
+  const qi = document.getElementById('xii-sms-queue-indicator');
+  qi.textContent = total > 1 ? `Message ${idx + 1} of ${total}` : '';
+
+  // To field
+  const toEl = document.getElementById('xii-sms-to');
+  toEl.innerHTML = `<strong>${msg.toLabel}</strong>${msg.phone ? ' &nbsp;·&nbsp; ' + msg.phone : ''}`;
+
+  // Button label
+  const btn = document.getElementById('xii-sms-copy-btn');
+  const isLast = idx === total - 1;
+  btn.textContent = isLast ? 'Copy ✓' : 'Copy & Next →';
+  btn.classList.remove('copied');
+
+  // Body
+  const bodyEl   = document.getElementById('xii-sms-body');
+  const genEl    = document.getElementById('xii-sms-generating');
+  bodyEl.value   = '';
+
+  if (msg.dynamic) {
+    genEl.classList.add('show');
+    bodyEl.style.opacity = '0.4';
+    btn.disabled = true;
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: msg.text }]
+        })
+      });
+      const data = await resp.json();
+      bodyEl.value = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('') || '(generation failed)';
+    } catch(e) {
+      bodyEl.value = '(generation failed — please type message manually)';
+    }
+    genEl.classList.remove('show');
+    bodyEl.style.opacity = '1';
+    btn.disabled = false;
+  } else {
+    bodyEl.value = msg.text || '';
+    bodyEl.style.opacity = '1';
+    genEl.classList.remove('show');
+    btn.disabled = false;
+  }
+}
+
+function xii_copyAndNext() {
+  const body = document.getElementById('xii-sms-body').value;
+  const btn  = document.getElementById('xii-sms-copy-btn');
+  navigator.clipboard.writeText(body).then(() => {
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    const cb = _xii_sms_queue[_xii_sms_index] && _xii_sms_queue[_xii_sms_index].onCopy;
+    if (cb) cb();
+    setTimeout(() => {
+      if (_xii_sms_index < _xii_sms_queue.length - 1) {
+        _xii_sms_index++;
+        xii_loadSMSStep(_xii_sms_index);
+      } else {
+        xii_closeSMS();
+      }
+    }, 800);
+  }).catch(() => {
+    // Fallback: select the textarea so user can copy manually
+    document.getElementById('xii-sms-body').select();
+    btn.textContent = 'Select All — Copy Manually';
+  });
+}
+
+function xii_closeSMS() {
+  document.getElementById('xii-sms-overlay').classList.remove('open');
+  _xii_sms_queue  = [];
+  _xii_sms_index  = 0;
+}
+
+// ── HELPER: normalize phone for display ──────────────────────────────────────
+function xii_fmtPhone(raw) {
+  const d = (raw || '').replace(/\D/g, '');
+  if (d.length === 10) return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`;
+  if (d.length === 11 && d[0] === '1') return `(${d.slice(1,4)}) ${d.slice(4,7)}-${d.slice(7)}`;
+  return raw || '';
+}
+
+// ── JOB OFFER SMS ────────────────────────────────────────────────────────────
+function ob_sendJobOfferSMS(emp) {
+  const name   = ob_cap(emp.name) || 'there';
+  const leader = ob_cap(emp.leader) || 'your leader';
+  const phone  = emp.mobile || '';
+  const text   = `Welcome to the team ${name}! The next step is giving authorization for a background check to be run, and filling out the I9 form. One tricky thing about this form is it asks you to put in the email of an authorized Sunrun representative. What they really mean is to put in the email address of someone you trust and authorize to look at your ID and upload pictures of them on their phone. Pick someone close by that you see regularly. (If you get stuck, you can reach out to ${leader} and you can show them your IDs.)`;
+  xii_sendSMS([{
+    toLabel: name,
+    phone: xii_fmtPhone(phone),
+    text,
+    dynamic: false
+  }]);
+}
+
+// ── BG CLEAR — 4 SMS MESSAGES ────────────────────────────────────────────────
+const OFFICE_MEETING_INFO = {
+  'Riverside':     { days: 'Tuesday and Thursday', time: '11am–1pm',       address: '1550 Magnolia Ave Ste 200, Corona, CA 92879' },
+  'Newport Beach': { days: 'Monday and Thursday',  time: '10:30am–12:30pm', address: '8 Whatney, Irvine CA 92618' },
+  'Orange County': { days: 'Monday and Thursday',  time: '10:30am–12:30pm', address: '8 Whatney, Irvine CA 92618' },
+};
+const ADAM_PHONE  = '5625371559';
+const ADAM_EMAIL  = 'adam.howle@sunrun.com';
+
+function ob_sendBGClearSMS(emp) {
+  const name    = ob_cap(emp.name) || 'New Hire';
+  const leader  = ob_cap(emp.leader) || 'their leader';
+  const office  = emp.office || '';
+  const phone   = emp.mobile || '';
+  const email   = emp.email  || emp.homeEmail || '';
+
+  // Get Jaxon Junior's number from Roster
+  const jaxon = ROSTER_EMPLOYEES.find(r =>
+    (r.name || '').toLowerCase().includes('jaxon') &&
+    (r.name || '').toLowerCase().includes('junior')
+  );
+  const jaxonPhone = jaxon ? xii_fmtPhone(jaxon.mobile || jaxon.phone || '') : '';
+  const jaxonLabel = jaxon ? `Jaxon Junior${jaxonPhone ? '' : ' (no number in Roster)'}` : 'Jaxon Junior (not found in Roster)';
+
+  // Meeting info by office
+  const mtg = OFFICE_MEETING_INFO[office] || OFFICE_MEETING_INFO['Orange County'];
+  const meetingText = `Hey ${name}! Welcome aboard 🎉 Your first team meeting is ${mtg.days} from ${mtg.time} at ${mtg.address}. See you there!`;
+
+  // 3-way intro — dynamic via Claude
+  const introPrompt = `Write a warm, brief 3-way SMS introduction. You are Adam Howle, a sales manager at Sunrun. You are introducing a new hire named ${name} to their leader ${leader}. Keep it casual and enthusiastic, under 120 words. Format: address both people, introduce them to each other, express excitement about ${name} joining the team. No hashtags, no emojis except maybe 1.`;
+
+  // SMS to Adam
+  const adamText = `${name} — ${xii_fmtPhone(phone)}`;
+
+  // SMS to Jaxon
+  const jaxonText = `${name} — ${email}`;
+
+  const messages = [
+    {
+      toLabel: name,
+      phone: xii_fmtPhone(phone),
+      text: meetingText,
+      dynamic: false
+    },
+    {
+      toLabel: `${name} + ${leader} (3-way intro)`,
+      phone: xii_fmtPhone(phone),
+      text: introPrompt,
+      dynamic: true
+    },
+    {
+      toLabel: `Adam Howle`,
+      phone: xii_fmtPhone(ADAM_PHONE),
+      text: adamText,
+      dynamic: false
+    },
+    {
+      toLabel: jaxonLabel,
+      phone: jaxonPhone,
+      text: jaxonText,
+      dynamic: false
+    },
+  ];
+
+  xii_sendSMS(messages);
+}
 </script>
+
+<!-- ── XII SMS MODAL ── -->
+<div id="xii-sms-overlay" onclick="if(event.target===this)xii_closeSMS()">
+  <div id="xii-sms-modal">
+    <div class="sms-modal-title">Send Message</div>
+    <div class="sms-modal-label">To</div>
+    <div class="sms-modal-to" id="xii-sms-to">—</div>
+    <div class="sms-modal-label">Message</div>
+    <div class="sms-modal-generating" id="xii-sms-generating">⟳ Generating message…</div>
+    <textarea class="sms-modal-body" id="xii-sms-body" rows="5"></textarea>
+    <div class="sms-modal-actions">
+      <span id="xii-sms-queue-indicator" style="margin-right:auto;font-family:Helvetica Neue,sans-serif;font-size:10px;letter-spacing:1px;color:var(--text-muted);text-transform:uppercase"></span>
+      <button class="sms-cancel-btn" onclick="xii_closeSMS()">Cancel</button>
+      <button class="sms-copy-btn" id="xii-sms-copy-btn" onclick="xii_copyAndNext()">Copy &amp; Next →</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
