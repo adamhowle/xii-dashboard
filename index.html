@@ -5663,31 +5663,7 @@ try { allData = parseCSV(RAW_CSV); applyFilters(); } catch(e) { /* no data yet *
 
 // ── BAKED QTD POINTS DATA ──
 const BAKED_QTDPOINTS = []; // Populated from Google Sheets
-function applyBakedQTDPoints() {
-  BAKED_QTDPOINTS.forEach(r => {
-    const wtd = WTD_MAP[r.id];
-    if (wtd) {
-      wtd.wtd_cs  = r.wtd_cs;
-      wtd.wtd_sra = r.wtd_sra;
-      wtd.wtd_cap = r.wtd_cap;
-      wtd.wtd_ic  = r.wtd_ic;
-    }
-    const qtd = QTD_MAP[r.id];
-    if (qtd) {
-      qtd.qtr_status     = r.qtr_status;
-      qtd.rolling_status = r.rolling_status;
-      qtd.days_since_sra = r.days_since_sra;
-      qtd.counts_club    = r.counts_club;
-      qtd.qtd_sra        = r.qtd_sra;
-      qtd.qtd_cap        = r.qtd_cap;
-      qtd.qtd_ic         = r.qtd_ic;
-      qtd.qtr_sra        = r.qtd_sra;
-      qtd.qtr_cap        = r.qtd_cap;
-      qtd.qtr_ic         = r.qtd_ic;
-    }
-  });
-  buildPerfMaps();
-}
+
 
 // ── INIT ──
 document.getElementById('wtd-f-riverside').classList.remove('active');
@@ -5844,11 +5820,6 @@ function showSyncBanner(msg, isError) {
 async function fetchSheetsData(opts) {
   // opts.skipOnboarding = true  — skip Onboarding re-fetch to preserve _sheetRow
   //                               values needed for checkbox/status write-back.
-  // opts.skipPerfTabs   = true  — skip QTD Points, Export, Report, Rep Detail,
-  //                               Stars fetches on post-sign-in call. Those tabs
-  //                               are populated by CSV upload + baked data.
-  //                               Fetching them on sign-in overwrites that data
-  //                               with whatever is in the sheet, blanking tables.
   opts = opts || {};
   showSyncBanner('Syncing live data...');
   var errors = [];
@@ -5913,13 +5884,7 @@ async function fetchSheetsData(opts) {
   try {
     var qpRes = await fetchWithTimeout(sheetsUrl('QTD Points'));
     if (!qpRes.ok) throw new Error('HTTP ' + qpRes.status);
-    var qpJson = await qpRes.json();
-    // Log headers so we can confirm cs week / sra week column names
-    if (qpJson.values && qpJson.values[0]) {
-      console.log('[QTD Points] headers:', qpJson.values[0]);
-      console.log('[QTD Points] sample row:', qpJson.values[1]);
-    }
-    var qpRows = sheetsRowsToObjects(qpJson.values || []);
+    var qpRows = sheetsRowsToObjects((await qpRes.json()).values || []);
     WTD_EMPLOYEES.length = 0;
     QTD_EMPLOYEES.length = 0;
     var rosterById = Object.fromEntries(ROSTER_EMPLOYEES.map(function(e){ return [e.id, e]; }));
@@ -6056,9 +6021,6 @@ async function fetchSheetsData(opts) {
 
 (async function initDashboard() {
   await fetchSheetsData();
-  applyBakedQTDPoints();
-
-
   // Default both date inputs to today
   var _today = new Date().toISOString().slice(0, 10);
   document.getElementById('wtd-date-input').value = _today;
@@ -7308,7 +7270,7 @@ function initGIS() {
       // Re-fetch all live Sheets tabs now that we have an auth token.
       // skipOnboarding:true preserves ob_employees._sheetRow values so
       // write-back (checkboxes, status, new hires) continues to work.
-      fetchSheetsData({ skipOnboarding: true, skipPerfTabs: true }).then(function() {
+      fetchSheetsData({ skipOnboarding: true }).then(function() {
         buildSIFromRepPerf();
         renderOverview();
         renderWTD();
