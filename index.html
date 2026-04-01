@@ -8,7 +8,7 @@
 :root {
   --cyan-light: #AADDDD;
   --cyan-dark: #5A9EA0;
-  --near-black: #231F20;
+  --near-black: #000000;
   --sand: #F2CF9C;
   --wine: #685236;
   --off-white: #F8F9F9;
@@ -2264,7 +2264,7 @@ function renderCombineTab() {
       const wtdSRA = wtd.wtd_sra || 0;
       const wtdIC = wtd.wtd_ic || 0;
       return `<tr class="${missed ? 'missed-draft' : ''}" style="border-bottom:1px solid rgba(170,221,221,0.07);animation:rowIn .22s ease both;animation-delay:${Math.min(i*0.015,0.35)}s">
-        <td style="padding:11px 12px;font-weight:600;font-size:15px;white-space:nowrap">${r.name}</td>
+        <td class="td-name" style="padding:11px 12px;font-weight:600;font-size:15px;white-space:nowrap;cursor:pointer" data-repid="${r.id}" onclick="openRepModal(this.dataset.repid)">${r.name}</td>
         <td style="text-align:center;padding:11px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:12px;color:var(--text-muted)">${squad}</td>
         <td style="text-align:center;padding:11px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;color:${pitchHrsColor(pitches)}">${pitches}</td>
         <td style="text-align:center;padding:11px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;color:${pitchHrsColor(hrs)}">${hrs}</td>
@@ -2290,7 +2290,7 @@ function renderCombineTab() {
       const pitches = wtd.pitches || 0;
       const hrs = wtd.hours_knocked || 0;
       return `<tr style="border-bottom:1px solid rgba(170,221,221,0.07);animation:rowIn .22s ease both;animation-delay:${Math.min(i*0.015,0.35)}s">
-        <td style="padding:11px 12px;font-weight:600;font-size:15px;white-space:nowrap">${r.name}</td>
+        <td class="td-name" style="padding:11px 12px;font-weight:600;font-size:15px;white-space:nowrap;cursor:pointer" data-repid="${r.id}" onclick="openRepModal(this.dataset.repid)">${r.name}</td>
         <td style="text-align:center;padding:11px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:12px;color:var(--text-muted)">${squad}</td>
         ${barOnlyCell(r.compliance)}
         ${barOnlyCell(r.repBasic)}
@@ -3216,6 +3216,7 @@ function renderRoster(){
   } else {
     data.sort((a,b)=>a.name.localeCompare(b.name));
   }
+  const rosterIsSquadView = rosterSortMode==='squad';
 
   document.getElementById('roster-stats').innerHTML=`
     <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value">${data.length}</div><div class="stat-sub">employees</div></div>
@@ -3230,13 +3231,26 @@ function renderRoster(){
   empty.style.display='none';
   const noSquad = e=>!e.squad||e.squad==="Term'd"||e.squad==='';
 
+  let _lastSquad = null;
   grid.innerHTML=data.map(e=>{
     const oc=OFFICE_COLORS[e.office]||'#888';
     const ns=noSquad(e);
+    let squadHeader = '';
+    if(rosterIsSquadView){
+      const thisSquad = e.squad||'— No Squad —';
+      if(thisSquad !== _lastSquad){
+        _lastSquad = thisSquad;
+        const squadLeader = (SQUAD_DB[thisSquad]||{}).leader||'';
+        squadHeader = `<div style="grid-column:1/-1;background:#111;border-top:1px solid rgba(39,217,217,0.2);border-bottom:1px solid rgba(39,217,217,0.1);padding:10px 18px;display:flex;align-items:baseline;gap:14px;margin-top:4px">
+          <span style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-light)">${thisSquad}</span>
+          ${squadLeader?`<span style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted)">${squadLeader}</span>`:''}
+        </div>`;
+      }
+    }
     const smsHref = e.mobile ? 'sms:'+e.mobile.replace(/[^0-9+]/g,'') : '';
     const mailHref = e.email ? 'mailto:'+e.email : '';
     const cleanMobile = e.mobile ? e.mobile.replace(/[^0-9+]/g,'') : '';
-    return `<div class="roster-card${ns?' needs-squad':''}" data-id="${e.id}">
+    return squadHeader + `<div class="roster-card${ns?' needs-squad':''}" data-id="${e.id}">
       <div class="rc-alert"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 1l5 9H1z"/><line x1="6" y1="5" x2="6" y2="7.5"/><circle cx="6" cy="9" r=".5" fill="currentColor"/></svg> No Squad Assigned</div>
       <div class="rc-name" style="cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)" title="View rep detail">${e.name}</div>
       <div class="rc-role-wrap">
