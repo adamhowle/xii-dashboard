@@ -190,6 +190,54 @@ body.light-mode #panel-onboard-progress .rep-prog-bar { background: rgba(255,255
 
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--near-black);color:var(--off-white);font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:15px;min-height:100vh;overflow-x:hidden;transition:background .2s,color .2s}
+/* ── AUTH GATE ── */
+body.xii-locked { overflow:hidden; }
+body.xii-locked header,
+body.xii-locked .tab-bar,
+body.xii-locked .tab-panel,
+body.xii-locked .footer-bar,
+body.xii-locked #xii-mob-menu { filter:blur(6px); pointer-events:none; user-select:none; }
+#xii-auth-gate {
+  display:none;
+  position:fixed; inset:0; z-index:9999;
+  align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.55);
+}
+#xii-auth-gate.open { display:flex; }
+#xii-auth-box {
+  background:var(--near-black);
+  border:1px solid var(--border);
+  padding:40px 48px;
+  display:flex; flex-direction:column; align-items:center; gap:24px;
+  min-width:280px;
+}
+#xii-auth-logo {
+  font-size:32px; font-weight:900; letter-spacing:-2px;
+  color:var(--off-white); text-transform:lowercase; line-height:1;
+}
+#xii-auth-logo span {
+  font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
+  font-size:9px; font-weight:700; letter-spacing:3px;
+  color:var(--cyan-dark); text-transform:uppercase;
+  display:block; margin-top:4px;
+}
+#xii-auth-signin-btn {
+  background:transparent; border:1px solid var(--cyan-light);
+  color:var(--cyan-light); padding:10px 24px;
+  font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
+  font-size:10px; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; cursor:pointer; transition:all .2s;
+  display:flex; align-items:center; gap:8px;
+}
+#xii-auth-signin-btn:hover { background:var(--cyan-light); color:var(--near-black); }
+#xii-auth-signin-btn:disabled { opacity:0.5; cursor:wait; }
+#xii-auth-error {
+  display:none;
+  font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
+  font-size:11px; letter-spacing:1px; color:#F05252;
+  text-align:center; max-width:240px; line-height:1.6;
+}
+#xii-auth-error.show { display:block; }
 body::before{content:none}
 
 /* HEADER */
@@ -1675,6 +1723,18 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
 </style>
 </head>
 <body>
+
+<!-- ── AUTH GATE OVERLAY ── -->
+<div id="xii-auth-gate">
+  <div id="xii-auth-box">
+    <div id="xii-auth-logo">twelve<span>■ Performance Dashboard</span></div>
+    <button id="xii-auth-signin-btn" onclick="xiiAuthSignIn()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Sign in with Google
+    </button>
+    <div id="xii-auth-error">This dashboard is restricted to Sunrun employees.</div>
+  </div>
+</div>
 
 <header>
   <div class="header-left">
@@ -6139,6 +6199,7 @@ function squadRowToEntry(r) {
   return {
     squad:      squad,
     leader:     String(r['leader'] || ''),
+    email:      String(r['email'] || '').toLowerCase().trim(),
     weekly_sra: parseInt(r['weekly sra goal'] || r['weekly sra'] || r['weekly_sra'] || 0) || 0,
     weekly_ic:  parseInt(r['weekly ic goal']  || r['weekly ic']  || r['weekly_ic']  || 0) || 0,
     qtr_sra:    parseInt(r['quarter sra goal'] || r['qtr sra goal'] || r['qtr sra'] || r['qtr_sra'] || 0) || 0,
@@ -6237,6 +6298,7 @@ async function fetchSheetsData(opts) {
       squads.forEach(function(e) {
         SQUAD_DB[e.squad] = {
           leader:     e.leader,
+          email:      e.email || '',
           weekly_sra: e.weekly_sra,
           weekly_ic:  e.weekly_ic,
           qtr_sra:    e.qtr_sra,
@@ -7669,8 +7731,8 @@ function initGIS() {
       });
     }
   });
-  // Always start unsigned-in — token never persists across page loads
-  updateAuthUI(false);
+  // Only reset to signed-out if gate hasn't already authenticated the user
+  if (!sheetsAuthToken) updateAuthUI(false);
 }
 window.addEventListener('load', function() { setTimeout(initGIS, 500); });
 
@@ -7838,7 +7900,145 @@ async function sheetsSaveNewHire(emp) {
   if (ok) showSyncBanner('✓ New hire saved to Sheets');
 }
 
-// ── HAMBURGER MENU ────────────────────────────────────────────────────────────
+// ── AUTH GATE ─────────────────────────────────────────────────────────────────
+const XII_HARDCODED_EDITORS = ['adambladam@gmail.com'];
+var xiiEditorEmails = []; // populated from Squad Structure sheet after sign-in
+var xiiAccessLevel  = null; // null | 'view' | 'edit'
+
+// On page load — check localStorage for a saved session
+window.addEventListener('DOMContentLoaded', function() {
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem('xii_auth') || 'null'); } catch(e) {}
+  if (saved && saved.email && saved.token && saved.expires > Date.now()) {
+    // Restore session
+    currentUserEmail = saved.email;
+    sheetsAuthToken  = saved.token;
+    xiiAccessLevel   = saved.level;
+    xiiUnlockPage(saved.level);
+    // Re-init GIS silently in background so writes still work
+    updateAuthUI(saved.level === 'edit');
+  } else {
+    // No valid session — show gate
+    document.body.classList.add('xii-locked');
+    document.getElementById('xii-auth-gate').classList.add('open');
+  }
+});
+
+function xiiAuthSignIn() {
+  var btn = document.getElementById('xii-auth-signin-btn');
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+  // Trigger GIS OAuth — the existing initGIS callback handles the token
+  if (!gisTokenClient) {
+    // GIS not ready yet — wait and retry
+    setTimeout(function() { btn.disabled = false; btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Sign in with Google'; }, 1000);
+    return;
+  }
+  // Override the GIS callback temporarily to go through our gate check
+  gisTokenClient.callback = async function(resp) {
+    if (resp.error) {
+      xiiAuthFailed();
+      return;
+    }
+    sheetsAuthToken = resp.access_token;
+    // Get user email
+    try {
+      var res   = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { 'Authorization': 'Bearer ' + resp.access_token }
+      });
+      var info  = await res.json();
+      var email = (info.email || '').toLowerCase().trim();
+      currentUserEmail = email;
+
+      // Check access level
+      var level = await xiiCheckAccess(email, resp.access_token);
+      if (!level) {
+        xiiAuthFailed();
+        sheetsAuthToken = null;
+        return;
+      }
+      xiiAccessLevel = level;
+
+      // Save to localStorage (token expires in ~1hr but we keep email+level longer)
+      try {
+        localStorage.setItem('xii_auth', JSON.stringify({
+          email:   email,
+          token:   resp.access_token,
+          level:   level,
+          expires: Date.now() + 55 * 60 * 1000 // 55 min
+        }));
+      } catch(e) {}
+
+      xiiUnlockPage(level);
+      updateAuthUI(level === 'edit');
+      showSyncBanner('Signed in as ' + email);
+      flushWriteQueue();
+      fetchSheetsData({ skipOnboarding: false }).then(function() {
+        // After sheet data loads, refresh editor list from Squad Structure
+        xiiRefreshEditorList();
+        buildSIFromRepPerf();
+        renderOverview(); renderWTD(); renderQTD();
+        renderRankings(); renderRoster(); updateFooter();
+      });
+    } catch(e) {
+      console.error('Auth error', e);
+      xiiAuthFailed();
+    }
+  };
+  gisTokenClient.requestAccessToken({ prompt: 'select_account' });
+}
+
+async function xiiCheckAccess(email, token) {
+  // Hard block: must be @sunrun.com OR a hardcoded editor
+  var isSunrun = email.endsWith('@sunrun.com');
+  var isHardcoded = XII_HARDCODED_EDITORS.includes(email);
+  if (!isSunrun && !isHardcoded) return null; // blocked
+
+  // Check editor list: hardcoded backup OR Squad Structure emails
+  var isEditor = isHardcoded || xiiEditorEmails.includes(email);
+
+  // If not yet an editor by cached list, try fetching Squad Structure now
+  if (!isEditor && token) {
+    try {
+      var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEETS_ID
+              + '/values/' + encodeURIComponent('Squad Structure')
+              + '?key=' + SHEETS_API_KEY;
+      var res  = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+      var json = await res.json();
+      var rows = sheetsRowsToObjects(json.values || []).map(squadRowToEntry).filter(Boolean);
+      xiiEditorEmails = rows.map(function(r) { return r.email; }).filter(Boolean);
+      isEditor = XII_HARDCODED_EDITORS.includes(email) || xiiEditorEmails.includes(email);
+    } catch(e) { console.warn('Editor list fetch failed', e); }
+  }
+
+  return isEditor ? 'edit' : 'view';
+}
+
+function xiiRefreshEditorList() {
+  // After full sheet load, rebuild editor list from SQUAD_DB
+  xiiEditorEmails = Object.values(SQUAD_DB)
+    .map(function(s) { return (s.email || '').toLowerCase().trim(); })
+    .filter(Boolean);
+}
+
+function xiiUnlockPage(level) {
+  document.body.classList.remove('xii-locked');
+  document.getElementById('xii-auth-gate').classList.remove('open');
+  if (level === 'edit') {
+    // Auto-trigger sheets sync for editors
+    updateAuthUI(true);
+  }
+}
+
+function xiiAuthFailed() {
+  var btn = document.getElementById('xii-auth-signin-btn');
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Sign in with Google';
+  document.getElementById('xii-auth-error').classList.add('show');
+}
+
+// Also store email field in SQUAD_DB when squads load
+// ── AUTH GATE END ──────────────────────────────────────────────────────────────
 function xiiToggleMenu() {
   const menu = document.getElementById('xii-mob-menu');
   const btn  = document.getElementById('xii-hamburger-btn');
