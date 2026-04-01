@@ -1577,7 +1577,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
     </div>
     <div class="overview-date-bar" style="padding-bottom:12px">
       <div class="overview-date-group">
-        <span class="overview-date-label">CSV Date</span>
+        <span class="overview-date-label">Data Date</span>
         <input type="date" class="overview-date-input" id="wtd-date-input" onchange="renderOverview()">
       </div>
       <span class="overview-date-meta" id="wtd-date-meta">— select date —</span>
@@ -1591,7 +1591,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
     </div>
     <div class="overview-date-bar" style="padding-bottom:12px">
       <div class="overview-date-group">
-        <span class="overview-date-label">CSV Date</span>
+        <span class="overview-date-label">Data Date</span>
         <input type="date" class="overview-date-input" id="qtd-date-input" onchange="renderOverview()">
       </div>
       <span class="overview-date-meta" id="qtd-date-meta">— select date —</span>
@@ -2218,7 +2218,11 @@ function renderCombineTab() {
 
   // ── Helper: bar-only cell ──
   function barOnlyCell(pctStr) {
-    const val = parseFloat(pctStr) || 0;
+    let val = parseFloat(pctStr) || 0;
+    // Google Sheets UNFORMATTED_VALUE returns percentage-formatted cells as decimals (0–1)
+    // e.g. 25% in sheet → 0.25 from API, 100% → 1, 50% → 0.5
+    // Values already > 1 are treated as already-multiplied (e.g. 25, 50, 100)
+    if (val > 0 && val <= 1) val = val * 100;
     const pct = Math.min(val, 100);
     const c = barColor(pct);
     return `<td class="bar-only-cell" style="padding:11px 12px">
@@ -2493,8 +2497,9 @@ function renderOverview(){
       calcPace(wtdActual[c], wtdPace), 'wtd'
     )).join('');
 
+  // QTD Points sheet has no cumulative CS column — only SRA, CAP, IC are quarterly totals
   document.getElementById('qtd-progress').innerHTML =
-    ['CS','SRA','CAP','IC'].map(c => buildProgressCard(
+    ['SRA','CAP','IC'].map(c => buildProgressCard(
       c, getTarget('qtd', c), qtdActual[c],
       calcPace(qtdActual[c], qtdPace), 'qtd'
     )).join('');
@@ -2548,7 +2553,7 @@ function renderOverview(){
     )).join('');
 
   document.getElementById('qtd-progress-compare').innerHTML =
-    ['CS','SRA','CAP','IC'].map(c => buildProgressCard(
+    ['SRA','CAP','IC'].map(c => buildProgressCard(
       c, getTarget('qtd', c, ovCompareOffice), cQtdActual[c],
       calcPace(cQtdActual[c], qtdPace), 'qtd-cmp'
     )).join('');
@@ -5839,17 +5844,10 @@ async function fetchSheetsData(opts) {
     if (!rRes.ok) throw new Error('HTTP ' + rRes.status);
     var rJson = await rRes.json();
     var rValues = rJson.values || [];
-    // Log actual headers so we can confirm column name match
-    if (rValues.length > 0) {
-      console.log('[Roster] headers:', rValues[0]);
-      console.log('[Roster] sample row:', rValues[1]);
-    } else {
-      console.log('[Roster] WARNING: sheet returned no values');
-    }
+
     var rows  = sheetsRowsToObjects(rValues)
                   .map(rosterRowToEmployee)
                   .filter(function(e) { return e.id && e.name; });
-    console.log('[Roster] rows after filter:', rows.length, rows[0]);
     if (rows.length > 0) {
       ROSTER_EMPLOYEES.length = 0;
       rows.forEach(function(e) { ROSTER_EMPLOYEES.push(e); });
@@ -5901,7 +5899,13 @@ async function fetchSheetsData(opts) {
   try {
     var qpRes = await fetchWithTimeout(sheetsUrl('QTD Points'));
     if (!qpRes.ok) throw new Error('HTTP ' + qpRes.status);
-    var qpRows = sheetsRowsToObjects((await qpRes.json()).values || []);
+    var qpJson = await qpRes.json();
+    // Log headers so we can confirm cs week / sra week column names
+    if (qpJson.values && qpJson.values[0]) {
+      console.log('[QTD Points] headers:', qpJson.values[0]);
+      console.log('[QTD Points] sample row:', qpJson.values[1]);
+    }
+    var qpRows = sheetsRowsToObjects(qpJson.values || []);
     WTD_EMPLOYEES.length = 0;
     QTD_EMPLOYEES.length = 0;
     var rosterById = Object.fromEntries(ROSTER_EMPLOYEES.map(function(e){ return [e.id, e]; }));
@@ -6027,15 +6031,6 @@ async function fetchSheetsData(opts) {
     if (nhRows.length) { NEW_HIRE_EMPLOYEES.length = 0; nhRows.forEach(function(e){ NEW_HIRE_EMPLOYEES.push(e); }); }
   } catch(e) { errors.push('New Hires: ' + e.message); }
 
-  // ── DIAGNOSTICS ─────────────────────────────────────────────────────────────
-  console.log('[Sheets] fetchSheetsData complete. skipPerfTabs=' + opts.skipPerfTabs);
-  console.log('[Sheets] ROSTER_EMPLOYEES:', ROSTER_EMPLOYEES.length);
-  console.log('[Sheets] WTD_EMPLOYEES:', WTD_EMPLOYEES.length);
-  console.log('[Sheets] QTD_EMPLOYEES:', QTD_EMPLOYEES.length);
-  console.log('[Sheets] rankingsData:', rankingsData.length);
-  console.log('[Sheets] COMBINE2_EMPLOYEES:', COMBINE2_EMPLOYEES.length);
-  console.log('[Sheets] NEW_HIRE_EMPLOYEES:', NEW_HIRE_EMPLOYEES.length);
-  console.log('[Sheets] errors:', errors);
 
   if (errors.length) {
     showSyncBanner('Sync issues: ' + errors.join(' / '), true);
@@ -6049,27 +6044,11 @@ async function fetchSheetsData(opts) {
   await fetchSheetsData();
   applyBakedQTDPoints();
 
-  // ── VISIBLE DIAGNOSTIC — remove once confirmed working ──
-  var diagMsg = 'DIAG: Roster=' + ROSTER_EMPLOYEES.length
-    + ' WTD=' + WTD_EMPLOYEES.length
-    + ' QTD=' + QTD_EMPLOYEES.length
-    + ' Rankings=' + rankingsData.length
-    + ' Combine=' + COMBINE2_EMPLOYEES.length
-    + ' NewHires=' + NEW_HIRE_EMPLOYEES.length;
-  console.log(diagMsg);
-  var diagEl = document.createElement('div');
-  diagEl.id = 'diag-banner';
-  diagEl.style.cssText = 'position:fixed;bottom:60px;left:16px;right:16px;z-index:9999;padding:10px 16px;background:rgba(0,0,0,0.85);color:#27d9d9;font-family:monospace;font-size:11px;border:1px solid rgba(39,217,217,0.4);border-radius:3px;white-space:pre-wrap;';
-  diagEl.textContent = diagMsg;
-  document.body.appendChild(diagEl);
-  setTimeout(function(){ var el=document.getElementById('diag-banner'); if(el) el.remove(); }, 20000);
-  // ── END DIAGNOSTIC ──
-  if (!document.getElementById('wtd-date-input').value) {
-    document.getElementById('wtd-date-input').value = '2026-03-29';
-  }
-  if (!document.getElementById('qtd-date-input').value) {
-    document.getElementById('qtd-date-input').value = '2026-03-29';
-  }
+
+  // Default both date inputs to today
+  var _today = new Date().toISOString().slice(0, 10);
+  document.getElementById('wtd-date-input').value = _today;
+  document.getElementById('qtd-date-input').value = _today;
   buildSIFromRepPerf();
   renderRankings();
   renderOverview();
