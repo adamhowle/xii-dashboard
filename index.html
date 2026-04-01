@@ -5888,25 +5888,50 @@ async function fetchSheetsData(opts) {
   }
 
   // ── QTD Points ──────────────────────────────────────────────────────────────
-  // Skip on post-sign-in re-fetch: WTD/QTD data comes from CSV uploads and
-  // baked BAKED_QTDPOINTS. Fetching from Sheets here overwrites that data
-  // with whatever is in the sheet (often zeroed out), blanking WTD/QTD tables.
+  // On initial page load (no skipPerfTabs), seed WTD_EMPLOYEES and QTD_EMPLOYEES
+  // directly from this sheet tab — there is no longer any baked fallback data.
   if (!opts.skipPerfTabs) try {
     var qpRes = await fetchWithTimeout(sheetsUrl('QTD Points'));
     if (!qpRes.ok) throw new Error('HTTP ' + qpRes.status);
     var qpRows = sheetsRowsToObjects((await qpRes.json()).values || []);
+    // Rebuild both employee arrays fresh from this sheet
+    WTD_EMPLOYEES.length = 0;
+    QTD_EMPLOYEES.length = 0;
+    var rosterById = Object.fromEntries(ROSTER_EMPLOYEES.map(function(e){ return [e.id, e]; }));
     qpRows.forEach(function(r) {
       var id = String(r['employee id'] || r['id'] || '').trim();
       if (!id || !/^\d+$/.test(id)) return;
-      var wtd = WTD_MAP[id]; var qtd = QTD_MAP[id];
-      // qtd_cs: use 'cs qtr'/'cs_qtr' if the column exists (Phase 2).
-      // Fall back to wtd_cs so office aggregation on Overview/QTD shows
-      // something meaningful until a cumulative CS column is added.
+      var ro = rosterById[id] || {};
       var qtdCs = csvNum(r['cs qtr'] || r['cs_qtr'] || 0) || csvNum(r['cs week'] || 0);
-      var entry = { id, wtd_cs: csvNum(r['cs week']), wtd_sra: csvNum(r['sra week']), wtd_cap: csvNum(r['cap week']), wtd_ic: csvNum(r['ic week']), qtd_cs: qtdCs, qtd_sra: csvNum(r['sra qtr']), qtd_cap: csvNum(r['cap qtr']), qtd_ic: csvNum(r['ic qtr']), qtr_status: String(r['qtr status'] || ''), rolling_status: String(r['rolling status'] || ''), days_since_sra: csvNum(r['days since last sra']) };
-      if (wtd) { wtd.wtd_cs = entry.wtd_cs; wtd.wtd_sra = entry.wtd_sra; wtd.wtd_cap = entry.wtd_cap; wtd.wtd_ic = entry.wtd_ic; } else { WTD_MAP[id] = entry; }
-      if (qtd) { qtd.qtd_cs = entry.qtd_cs; qtd.qtd_sra = entry.qtd_sra; qtd.qtd_cap = entry.qtd_cap; qtd.qtd_ic = entry.qtd_ic; qtd.qtr_status = entry.qtr_status; qtd.rolling_status = entry.rolling_status; qtd.days_since_sra = entry.days_since_sra; } else { QTD_MAP[id] = entry; }
+      var entry = {
+        id:             id,
+        name:           ro.name   || id,
+        squad:          ro.squad  || '',
+        office:         ro.office || '',
+        status:         ro.status || '',
+        wtd_ac:         0, knocks: 0, pitches: 0, hours_knocked: 0,
+        wtd_cs:         csvNum(r['cs week']),
+        wtd_sra:        csvNum(r['sra week']),
+        wtd_cap:        csvNum(r['cap week']),
+        wtd_ic:         csvNum(r['ic week']),
+        qtd_cs:         qtdCs,
+        qtd_sra:        csvNum(r['sra qtr']),
+        qtd_cap:        csvNum(r['cap qtr']),
+        qtd_ic:         csvNum(r['ic qtr']),
+        qtr_sra:        csvNum(r['sra qtr']),
+        qtr_cap:        csvNum(r['cap qtr']),
+        qtr_ic:         csvNum(r['ic qtr']),
+        qtr_status:     String(r['qtr status']      || ''),
+        rolling_status: String(r['rolling status']  || ''),
+        days_since_sra: csvNum(r['days since last sra']),
+        status_change:  '',
+        rec_points:     null,
+        rec_stars:      ''
+      };
+      WTD_EMPLOYEES.push(entry);
+      QTD_EMPLOYEES.push(Object.assign({}, entry));
     });
+    buildPerfMaps();
   } catch(e) { errors.push('QTD Points: ' + e.message); }
 
   // ── Export (Rankings) ───────────────────────────────────────────────────────
@@ -5929,8 +5954,19 @@ async function fetchSheetsData(opts) {
       var id = String(r['client user id'] || r['user id'] || '').trim();
       if (!id || !/^\d+$/.test(id)) return;
       var wtd = WTD_MAP[id];
-      if (wtd) { wtd.wtd_ac = csvNum(r['acs']); wtd.pitches = csvNum(r['pitches']); wtd.knocks = csvNum(r['knocks']); wtd.hours_knocked = csvNum(r['hours knocked']); }
-      else { WTD_MAP[id] = { id, wtd_ac: csvNum(r['acs']), pitches: csvNum(r['pitches']), knocks: csvNum(r['knocks']), hours_knocked: csvNum(r['hours knocked']) }; }
+      if (wtd) {
+        wtd.wtd_ac        = csvNum(r['acs']);
+        wtd.pitches       = csvNum(r['pitches']);
+        wtd.knocks        = csvNum(r['knocks']);
+        wtd.hours_knocked = csvNum(r['hours knocked']);
+      } else {
+        var ro = (typeof rosterById !== 'undefined' && rosterById[id]) || {};
+        var newEntry = { id, name: ro.name||id, squad: ro.squad||'', office: ro.office||'', status: ro.status||'',
+          wtd_ac: csvNum(r['acs']), pitches: csvNum(r['pitches']), knocks: csvNum(r['knocks']),
+          hours_knocked: csvNum(r['hours knocked']), wtd_cs:0, wtd_wc:0, wtd_sra:0, wtd_cap:0, wtd_ic:0, qtr_status:'' };
+        WTD_EMPLOYEES.push(newEntry);
+        WTD_MAP[id] = newEntry;
+      }
     });
   } catch(e) { errors.push('Report: ' + e.message); }
 
