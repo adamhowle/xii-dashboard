@@ -1492,6 +1492,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
 #ob-addModal .btn-outline:hover { border-color:var(--cyan-light); color:var(--cyan-light); }
 </style>
 
+<style>
 /* ── HAMBURGER MENU (mobile only) ──────────────────────────────────────────── */
 .xii-hamburger-btn {
   display: none; /* hidden on desktop */
@@ -3948,8 +3949,8 @@ function ob_populateFilters() {
       offices.map(o => `<option value="${o}"${o === curOff ? ' selected' : ''}>${o}</option>`).join('');
   }
 
-  // Leaders — built from squad/leader field
-  const leaders = [...new Set(ob_employees.map(e => (e.squad || e.leader || '').trim()).filter(Boolean))].sort();
+  // Leaders — built from leader field (squad is fallback only if no leader set)
+  const leaders = [...new Set(ob_employees.map(e => (e.leader || e.squad || '').trim()).filter(Boolean))].sort();
   const ldrSel = document.getElementById('ob-filterLeader');
   if (ldrSel) {
     const curLdr = ldrSel.value;
@@ -4026,7 +4027,7 @@ function ob_getFiltered() {
       if (fStat !== 'Other' && s !== fStat.toUpperCase()) return false;
     }
     if (fOffice && emp.office !== fOffice) return false;
-    if (fLeader && (emp.squad || emp.leader || '').trim() !== fLeader) return false;
+    if (fLeader && (emp.leader || emp.squad || '').trim() !== fLeader) return false;
     if (fReferral && (emp.referral || '').trim() !== fReferral) return false;
     if (fProg) {
       const p = ob_getProgress(emp);
@@ -5015,11 +5016,14 @@ function renderTable() {
     const icPctRound  = Math.round(icPct);
 
     // + prefix: show only when value meets/exceeds qualifier threshold
+    // fmtNum already prepends + on positive values — strip it, then re-add styled + only when qualifying
+    const sraRaw = fmtNum(row['QSRA']).replace(/^\+/, '');
+    const icRaw  = fmtNum(row['QIC']).replace(/^\+/, '');
     const sraDisplay = (row['QSRA'] !== '' && row['QSRA'] != null)
-      ? (sraVal >= 7 ? `<span style="color:var(--cyan-light);font-weight:700">+</span>${fmtNum(row['QSRA'])}` : fmtNum(row['QSRA']))
+      ? (sraVal >= 7 ? `<span style="color:var(--cyan-light);font-weight:700">+</span>${sraRaw}` : sraRaw)
       : '—';
     const icDisplay  = (row['QIC']  !== '' && row['QIC']  != null)
-      ? (icVal  >= 3 ? `<span style="color:#2DC48E;font-weight:700">+</span>${fmtNum(row['QIC'])}` : fmtNum(row['QIC']))
+      ? (icVal  >= 3 ? `<span style="color:#2DC48E;font-weight:700">+</span>${icRaw}` : icRaw)
       : '—';
 
     return `<tr style="animation-delay:${Math.min(i*0.02, 0.5)}s" data-id="${row._id}">
