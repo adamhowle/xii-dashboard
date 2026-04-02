@@ -791,26 +791,10 @@ body::before{
 </div>
 
 <script>
-const SHEETS_ID = '1Awy-KgfNtf8IBAZf-nY8pmv26n0juNk28IRTfN0usn4';
-const OAUTH_CID = '824495442632-o4v639jl9rcsj7dq2fgvfcr6joj98s2c.apps.googleusercontent.com';
-const SHEET_TAB = 'Onboarding';
+// ── Apps Script endpoint — no OAuth needed for recruits ──
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxj0wk-Z3F2cE1HvsFUJDhmXrKCBOmWOH87G3nsFxtILKYqc2gwak0rdK5nTdsAjK7Hrg/exec';
 
-let gisClient = null, authToken = null;
-
-function initGIS() {
-  if (!window.google || !google.accounts) return;
-  gisClient = google.accounts.oauth2.initTokenClient({
-    client_id: OAUTH_CID,
-    scope: 'https://www.googleapis.com/auth/spreadsheets',
-    prompt: '',
-    callback: function(r) {
-      if (r.error) { showGerr('Google sign-in failed. Please try again.'); resetBtn(); return; }
-      authToken = r.access_token;
-      doSubmit();
-    }
-  });
-}
-
+// Phone formatter
 document.getElementById('rm').addEventListener('input', function() {
   let v = this.value.replace(/\D/g,'');
   if (v.length >= 6) v = '(' + v.slice(0,3) + ') ' + v.slice(3,6) + '-' + v.slice(6,10);
@@ -853,12 +837,7 @@ function submitForm() {
   if (!validate()) { document.getElementById('fs').scrollIntoView({behavior:'smooth'}); return; }
   const btn = document.getElementById('sb');
   btn.classList.add('loading'); btn.disabled = true;
-  if (authToken) { doSubmit(); return; }
-  if (gisClient) { gisClient.requestAccessToken({prompt:''}); return; }
-  setTimeout(function() {
-    if (gisClient) gisClient.requestAccessToken({prompt:''});
-    else { showGerr('Sign-in unavailable. Check your connection.'); resetBtn(); }
-  }, 1200);
+  doSubmit();
 }
 
 async function doSubmit() {
@@ -869,42 +848,33 @@ async function doSubmit() {
   const recruiter = document.getElementById('rr').value.trim();
   const dk        = document.querySelector('input[name="dk"]:checked').value;
   const now       = new Date().toISOString().replace('T',' ').slice(0,19);
-  // Columns match sheetsSaveNewHire() in the XII dashboard exactly:
-  // status | name | mobile | referral | leader | squad | office | homeEmail | address | inputDate | interviewDate | infoCall | jobOffer | i9 | bgClear | pronto | skool | squadAssign | bootcamp | startDate | notes
-  const row = [
-    'Pending',       // status
-    name,            // name
-    mobile,          // mobile
-    recruiter,       // referral
-    '',              // leader
-    '',              // squad
-    'Orange County', // office
-    email,           // homeEmail
-    address,         // address
-    now,             // inputDate
-    '',              // interviewDate
-    'FALSE','FALSE','FALSE','FALSE','FALSE','FALSE','FALSE','FALSE', // checklist all false
-    '',              // startDate
-    'D2D Experience: ' + dk + ' | Via recruit form'  // notes
-  ];
+
+  const payload = {
+    status:    'Pending',
+    name:      name,
+    mobile:    mobile,
+    email:     email,
+    address:   address,
+    referral:  recruiter,
+    office:    'Orange County',
+    inputDate: now,
+    notes:     'D2D Experience: ' + dk + ' | Via recruit form'
+  };
+
   try {
-    const range = encodeURIComponent(SHEET_TAB + '!A1');
-    const url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEETS_ID
-              + '/values/' + range + ':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS';
-    const res = await fetch(url, {
-      method:'POST',
-      headers:{'Authorization':'Bearer '+authToken,'Content-Type':'application/json'},
-      body: JSON.stringify({values:[row]})
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
     });
-    if (res.status === 401) { authToken = null; gisClient.requestAccessToken({prompt:''}); return; }
-    if (!res.ok) {
-      const err = await res.json().catch(function(){return{};});
-      showGerr('Save failed: '+((err.error&&err.error.message)||res.status)+'. Please try again.');
+    const data = await res.json().catch(function(){ return {result:'success'}; });
+    if (data.result === 'error') {
+      showGerr('Save failed: ' + data.message + '. Please try again.');
       resetBtn(); return;
     }
     showSuccess(name);
   } catch(e) {
-    showGerr('Network error: '+e.message+'. Check your connection.'); resetBtn();
+    showGerr('Network error: ' + e.message + '. Check your connection.');
+    resetBtn();
   }
 }
 
@@ -930,6 +900,5 @@ function resetForm() {
   window.scrollTo({top:0});
 }
 </script>
-<script src="https://accounts.google.com/gsi/client" async defer onload="initGIS()"></script>
 </body>
 </html>
