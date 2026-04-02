@@ -1524,6 +1524,44 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
 
 
 /* ── OB MODAL (global, not scoped) ── */
+/* ── SUNRUN REFERRAL BUTTON ── */
+#panel-onboard-employee .btn-sunrun {
+  background: transparent;
+  border: 1px solid rgba(242,207,156,0.4);
+  color: var(--sand);
+  font-family: Helvetica Neue,Helvetica,Arial,sans-serif;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 5px 10px; cursor: pointer;
+  margin-right: 6px;
+  transition: all .15s;
+}
+#panel-onboard-employee .btn-sunrun:hover {
+  background: rgba(242,207,156,0.1);
+  border-color: var(--sand);
+}
+
+/* ── SUNRUN PANEL MODAL ── */
+#ob-sunrunModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.72); z-index:1000; align-items:center; justify-content:center; padding:40px 20px; }
+#ob-sunrunModal.open { display:flex; }
+#ob-sunrunModal .sr-modal { background:#1e1b1c; border:1px solid rgba(242,207,156,0.25); padding:28px 32px; width:100%; max-width:500px; max-height:90vh; overflow-y:auto; position:relative; }
+#ob-sunrunModal .sr-title { font-size:10px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--sand); margin-bottom:6px; }
+#ob-sunrunModal .sr-name { font-size:20px; font-weight:600; color:var(--off-white); margin-bottom:20px; letter-spacing:-.3px; }
+#ob-sunrunModal .sr-link { display:block; font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--cyan-dark); margin-bottom:20px; text-decoration:none; }
+#ob-sunrunModal .sr-link:hover { color:var(--cyan-light); }
+#ob-sunrunModal .sr-field { margin-bottom:14px; }
+#ob-sunrunModal .sr-field-label { font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--cyan-dark); margin-bottom:5px; }
+#ob-sunrunModal .sr-field-row { display:flex; align-items:center; gap:8px; }
+#ob-sunrunModal .sr-field-val { flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(170,221,221,0.15); color:var(--off-white); font-family:Helvetica Neue,Helvetica,Arial,sans-serif; font-size:14px; padding:9px 12px; }
+#ob-sunrunModal .sr-copy-btn { background:transparent; border:1px solid rgba(170,221,221,0.25); color:var(--cyan-dark); font-family:Helvetica Neue,Helvetica,Arial,sans-serif; font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:9px 12px; cursor:pointer; white-space:nowrap; transition:all .15s; flex-shrink:0; }
+#ob-sunrunModal .sr-copy-btn:hover { background:rgba(170,221,221,0.08); color:var(--cyan-light); border-color:rgba(170,221,221,0.5); }
+#ob-sunrunModal .sr-copy-btn.copied { color:var(--green); border-color:rgba(45,196,142,0.5); background:rgba(45,196,142,0.08); }
+#ob-sunrunModal .sr-divider { height:1px; background:rgba(170,221,221,0.1); margin:20px 0; }
+#ob-sunrunModal .sr-actions { display:flex; justify-content:space-between; align-items:center; margin-top:20px; flex-wrap:wrap; gap:10px; }
+#ob-sunrunModal .sr-open-btn { background:var(--sand); color:var(--near-black); border:none; font-family:Helvetica Neue,Helvetica,Arial,sans-serif; font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:12px 20px; cursor:pointer; transition:opacity .15s; }
+#ob-sunrunModal .sr-open-btn:hover { opacity:.85; }
+#ob-sunrunModal .sr-close-btn { background:transparent; color:var(--btn-idle); border:1px solid var(--btn-border-idle); font-family:Helvetica Neue,Helvetica,Arial,sans-serif; font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:12px 20px; cursor:pointer; }
+
 #ob-addModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:1000; align-items:center; justify-content:center; overflow-y:auto; padding:40px 20px; }
 #ob-addModal.open { display:flex; }
 #ob-addModal .modal { background:#2d2829; border:0.5px solid var(--border); padding:28px 32px; width:100%; max-width:560px; max-height:90vh; overflow-y:auto; position:relative; }
@@ -4303,6 +4341,7 @@ function ob_renderTable() {
       </td>
       <td class="editable" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;color:var(--text-muted);font-size:13px;" data-eid="${emp.id}" data-field="notes" onclick="ob_editCell(this,this.dataset.eid,this.dataset.field)">${emp.notes || '—'}</td>
       <td style="text-align:right;white-space:nowrap;">
+        <button class="btn-sunrun" data-eid="${emp.id}" onclick="event.stopPropagation();ob_openSunrunPanel(this.dataset.eid)" title="Copy to Sunrun form">☀ Sunrun</button>
         <button class="btn-delete" data-eid="${emp.id}" onclick="ob_deleteEmployee(this.dataset.eid)">🗑 Remove</button>
       </td>
     </tr>`;
@@ -4628,6 +4667,70 @@ function ob_commitEdit(input, id, field) {
 // ── ADD EMPLOYEE ──────────────────────────────────────────────────────────────
 function ob_openAddModal() { document.getElementById('ob-addModal').classList.add('open'); }
 function ob_closeAddModal() { document.getElementById('ob-addModal').classList.remove('open'); }
+
+// ── SUNRUN REFERRAL PANEL ────────────────────────────────────────────────────
+function ob_openSunrunPanel(eid) {
+  const emp = ob_employees.find(e => String(e.id) === String(eid));
+  if (!emp) return;
+
+  // Split name into first/last
+  const nameParts = (emp.name || '').trim().split(/\s+/);
+  const first = nameParts[0] || '';
+  const last  = nameParts.slice(1).join(' ') || '';
+
+  // Map office to Sunrun dropdown value
+  const officeMap = {
+    'Orange County': 'Orange County',
+    'Newport Beach':  'Newport Beach',
+    'Riverside':      'Riverside',
+  };
+  const office = officeMap[emp.office] || 'Orange County';
+
+  document.getElementById('sr-rec-name').textContent = emp.name || '';
+  document.getElementById('sr-first').textContent    = first;
+  document.getElementById('sr-last').textContent     = last;
+  document.getElementById('sr-email').textContent    = emp.homeEmail || emp.email || '—';
+  document.getElementById('sr-phone').textContent    = emp.mobile || '—';
+  document.getElementById('sr-office').textContent   = office;
+  document.getElementById('sr-referral').textContent = emp.referral || '—';
+  document.getElementById('sr-address').textContent  = emp.address || '—';
+
+  document.getElementById('ob-sunrunModal').classList.add('open');
+}
+
+function ob_closeSunrunPanel() {
+  document.getElementById('ob-sunrunModal').classList.remove('open');
+  // Reset all copy buttons
+  document.querySelectorAll('.sr-copy-btn').forEach(b => b.classList.remove('copied'));
+}
+
+function ob_srCopy(fieldId, btn) {
+  const el = document.getElementById(fieldId);
+  const text = el ? el.textContent.trim() : '';
+  if (!text || text === '—') return;
+  navigator.clipboard.writeText(text).then(function() {
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(function() {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(function() {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(function() {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
 
 function ob_addEmployee() {
   const name = document.getElementById('ob-f-name').value.trim();
@@ -6910,6 +7013,89 @@ document.addEventListener('keydown', function(e) {
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="ob_closeAddModal()">Cancel</button>
       <button class="btn" onclick="ob_addEmployee()">Add New Hire</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SUNRUN REFERRAL PANEL ── -->
+<div id="ob-sunrunModal">
+  <div class="sr-modal">
+    <div class="sr-title">☀ Sunrun Referral Form</div>
+    <div class="sr-name" id="sr-rec-name"></div>
+    <a class="sr-link" href="https://form.jotform.com/amberhelgesen/sunrunreferrals" target="_blank">
+      → Open Sunrun Form in new tab first, then copy fields below
+    </a>
+
+    <div class="sr-field">
+      <div class="sr-field-label">First Name</div>
+      <div class="sr-field-row">
+        <div class="sr-field-val" id="sr-first"></div>
+        <button class="sr-copy-btn" onclick="ob_srCopy('sr-first',this)">Copy</button>
+      </div>
+    </div>
+
+    <div class="sr-field">
+      <div class="sr-field-label">Last Name</div>
+      <div class="sr-field-row">
+        <div class="sr-field-val" id="sr-last"></div>
+        <button class="sr-copy-btn" onclick="ob_srCopy('sr-last',this)">Copy</button>
+      </div>
+    </div>
+
+    <div class="sr-field">
+      <div class="sr-field-label">Email Address</div>
+      <div class="sr-field-row">
+        <div class="sr-field-val" id="sr-email"></div>
+        <button class="sr-copy-btn" onclick="ob_srCopy('sr-email',this)">Copy</button>
+      </div>
+    </div>
+
+    <div class="sr-field">
+      <div class="sr-field-label">Phone Number</div>
+      <div class="sr-field-row">
+        <div class="sr-field-val" id="sr-phone"></div>
+        <button class="sr-copy-btn" onclick="ob_srCopy('sr-phone',this)">Copy</button>
+      </div>
+    </div>
+
+    <div class="sr-field">
+      <div class="sr-field-label">Closest Sunrun Office</div>
+      <div class="sr-field-row">
+        <div class="sr-field-val" id="sr-office"></div>
+        <button class="sr-copy-btn" onclick="ob_srCopy('sr-office',this)">Copy</button>
+      </div>
+    </div>
+
+    <div class="sr-field">
+      <div class="sr-field-label">Referred / Recommended By</div>
+      <div class="sr-field-row">
+        <div class="sr-field-val" id="sr-referral"></div>
+        <button class="sr-copy-btn" onclick="ob_srCopy('sr-referral',this)">Copy</button>
+      </div>
+    </div>
+
+    <div class="sr-field">
+      <div class="sr-field-label">Worked with Sunrun Before?</div>
+      <div class="sr-field-row">
+        <div class="sr-field-val">No</div>
+        <button class="sr-copy-btn" onclick="ob_srCopy('sr-sunrun-prev',this)"><span id="sr-sunrun-prev" style="display:none">No</span>Copy</button>
+      </div>
+    </div>
+
+    <div class="sr-field">
+      <div class="sr-field-label">Home Address</div>
+      <div class="sr-field-row">
+        <div class="sr-field-val" id="sr-address"></div>
+        <button class="sr-copy-btn" onclick="ob_srCopy('sr-address',this)">Copy</button>
+      </div>
+    </div>
+
+    <div class="sr-divider"></div>
+    <div class="sr-actions">
+      <a href="https://form.jotform.com/amberhelgesen/sunrunreferrals" target="_blank">
+        <button class="sr-open-btn">☀ Open Sunrun Form</button>
+      </a>
+      <button class="sr-close-btn" onclick="ob_closeSunrunPanel()">Close</button>
     </div>
   </div>
 </div>
