@@ -4309,6 +4309,9 @@ function ob_renderTable() {
     const dupeTag = isDupe ? `<span class="dupe-badge">dupe</span>` : '';
     return `
     <tr class="${isDupe ? 'is-dupe' : ''}">
+      <td style="text-align:center;white-space:nowrap;padding:4px 8px;">
+        <button class="btn-sunrun" data-eid="${emp.id}" onclick="event.stopPropagation();ob_openSunrunPanel(this.dataset.eid)" title="Submit to Sunrun">RUNX</button>
+      </td>
       <td class="editable" data-eid="${emp.id}" onclick="ob_editStatusCell(this,this.dataset.eid)">${ob_statusBadge(emp.status)}</td>
       <td class="name-cell editable" data-eid="${emp.id}" data-field="name" onclick="ob_editCell(this,this.dataset.eid,this.dataset.field)">${ob_cap(emp.name)}${dupeTag}</td>
       <td class="editable" style="font-family:monospace;font-size:13px;" data-eid="${emp.id}" data-field="mobile" onclick="ob_editCell(this,this.dataset.eid,this.dataset.field)">
@@ -4341,7 +4344,6 @@ function ob_renderTable() {
       </td>
       <td class="editable" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;color:var(--text-muted);font-size:13px;" data-eid="${emp.id}" data-field="notes" onclick="ob_editCell(this,this.dataset.eid,this.dataset.field)">${emp.notes || '—'}</td>
       <td style="text-align:right;white-space:nowrap;">
-        <button class="btn-sunrun" data-eid="${emp.id}" onclick="event.stopPropagation();ob_openSunrunPanel(this.dataset.eid)" title="Copy to Sunrun form">☀ Sunrun</button>
         <button class="btn-delete" data-eid="${emp.id}" onclick="ob_deleteEmployee(this.dataset.eid)">🗑 Remove</button>
       </td>
     </tr>`;
@@ -4669,7 +4671,10 @@ function ob_openAddModal() { document.getElementById('ob-addModal').classList.ad
 function ob_closeAddModal() { document.getElementById('ob-addModal').classList.remove('open'); }
 
 // ── SUNRUN REFERRAL PANEL ────────────────────────────────────────────────────
+let ob_srCurrentEid = null;
+
 function ob_openSunrunPanel(eid) {
+  ob_srCurrentEid = eid;
   const emp = ob_employees.find(e => String(e.id) === String(eid));
   if (!emp) return;
 
@@ -4700,8 +4705,27 @@ function ob_openSunrunPanel(eid) {
 
 function ob_closeSunrunPanel() {
   document.getElementById('ob-sunrunModal').classList.remove('open');
-  // Reset all copy buttons
-  document.querySelectorAll('.sr-copy-btn').forEach(b => b.classList.remove('copied'));
+  ob_srCurrentEid = null;
+  document.querySelectorAll('.sr-copy-btn').forEach(b => {
+    b.textContent = 'Copy';
+    b.classList.remove('copied');
+  });
+}
+
+function ob_srOpenAndMark() {
+  // Open Sunrun form in a new popup window
+  window.open(
+    'https://form.jotform.com/amberhelgesen/sunrunreferrals',
+    'sunrun_form',
+    'width=900,height=800,left=100,top=100,resizable=yes,scrollbars=yes'
+  );
+  // Mark Job Offer as TRUE for this recruit if not already set
+  if (ob_srCurrentEid) {
+    const emp = ob_employees.find(e => String(e.id) === String(ob_srCurrentEid));
+    if (emp && !emp.jobOffer) {
+      ob_toggleCheck(String(ob_srCurrentEid), 'jobOffer');
+    }
+  }
 }
 
 function ob_srCopy(fieldId, btn) {
@@ -6884,6 +6908,7 @@ document.addEventListener('keydown', function(e) {
   <table id="ob-mainTable">
     <thead>
       <tr>
+        <th style="cursor:default;text-align:center;color:var(--sand);letter-spacing:1px;">RUNX</th>
         <th onclick="ob_sortBy('status')" data-col="status">Status<i class="sort-icon"></i></th>
         <th onclick="ob_sortBy('name')" data-col="name">Name<i class="sort-icon"></i></th>
         <th onclick="ob_sortBy('mobile')" data-col="mobile">Mobile<i class="sort-icon"></i></th>
@@ -7092,9 +7117,7 @@ document.addEventListener('keydown', function(e) {
 
     <div class="sr-divider"></div>
     <div class="sr-actions">
-      <a href="https://form.jotform.com/amberhelgesen/sunrunreferrals" target="_blank">
-        <button class="sr-open-btn">☀ Open Sunrun Form</button>
-      </a>
+      <button class="sr-open-btn" onclick="ob_srOpenAndMark()">Open Sunrun Form</button>
       <button class="sr-close-btn" onclick="ob_closeSunrunPanel()">Close</button>
     </div>
   </div>
