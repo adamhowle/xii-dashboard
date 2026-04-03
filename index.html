@@ -1540,6 +1540,11 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
   background: rgba(242,207,156,0.1);
   border-color: var(--sand);
 }
+#panel-onboard-employee .btn-sunrun--dim {
+  opacity: 0.22;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 
 /* ── SUNRUN PANEL MODAL ── */
 #ob-sunrunModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.72); z-index:1000; align-items:center; justify-content:center; padding:40px 20px; }
@@ -4310,7 +4315,7 @@ function ob_renderTable() {
     return `
     <tr class="${isDupe ? 'is-dupe' : ''}">
       <td style="text-align:center;white-space:nowrap;padding:4px 8px;">
-        <button class="btn-sunrun" data-eid="${emp.id}" onclick="event.stopPropagation();ob_openSunrunPanel(this.dataset.eid)" title="Submit to Sunrun">RUNX</button>
+        <button class="btn-sunrun${emp.i9 ? ' btn-sunrun--dim' : ''}" data-eid="${emp.id}" onclick="event.stopPropagation();${emp.i9 ? '' : 'ob_openSunrunPanel(this.dataset.eid)'}" title="${emp.i9 ? 'I9 complete \u2014 already submitted' : 'Submit to Sunrun'}"${emp.i9 ? ' disabled' : ''}>CONVEY</button>
       </td>
       <td class="editable" data-eid="${emp.id}" onclick="ob_editStatusCell(this,this.dataset.eid)">${ob_statusBadge(emp.status)}</td>
       <td class="name-cell editable" data-eid="${emp.id}" data-field="name" onclick="ob_editCell(this,this.dataset.eid,this.dataset.field)">${ob_cap(emp.name)}${dupeTag}</td>
@@ -6908,7 +6913,7 @@ document.addEventListener('keydown', function(e) {
   <table id="ob-mainTable">
     <thead>
       <tr>
-        <th style="cursor:default;text-align:center;color:var(--sand);letter-spacing:1px;">RUNX</th>
+        <th style="cursor:default;text-align:center;color:var(--sand);letter-spacing:1px;">Convey</th>
         <th onclick="ob_sortBy('status')" data-col="status">Status<i class="sort-icon"></i></th>
         <th onclick="ob_sortBy('name')" data-col="name">Name<i class="sort-icon"></i></th>
         <th onclick="ob_sortBy('mobile')" data-col="mobile">Mobile<i class="sort-icon"></i></th>
