@@ -3767,94 +3767,95 @@ const ROSTER_IGNORED_IDS = new Set();
 function checkUnmatchedReps() {
   const banner = document.getElementById('roster-unmatched-banner');
   if (!banner) return;
-
   const rosterIds = new Set(ROSTER_EMPLOYEES.map(e => String(e.id)));
-
-  // Find reps in WTD_EMPLOYEES with any WTD activity this week who are not on the roster
   const unmatched = WTD_EMPLOYEES.filter(e => {
     if (ROSTER_IGNORED_IDS.has(String(e.id))) return false;
     if (rosterIds.has(String(e.id))) return false;
-    const hasActivity = (e.wtd_cs || 0) + (e.wtd_sra || 0) + (e.wtd_cap || 0) + (e.wtd_ic || 0) + (e.wtd_ac || 0) > 0;
-    return hasActivity;
+    return (e.wtd_cs||0)+(e.wtd_sra||0)+(e.wtd_cap||0)+(e.wtd_ic||0)+(e.wtd_ac||0) > 0;
   });
-
-  if (!unmatched.length) {
-    banner.style.display = 'none';
-    banner.innerHTML = '';
-    return;
-  }
-
+  if (!unmatched.length) { banner.style.display='none'; banner.innerHTML=''; return; }
   banner.style.display = 'block';
   banner.innerHTML = unmatched.map(e => {
-    const name = e.name || ('ID ' + e.id);
+    const rkEntry = RANKINGS_MAP[String(e.id)] || {};
+    const rawName = e.name || '';
+    const name = (rawName && !/^\d+$/.test(rawName)) ? rawName
+               : (rkEntry.name) ? rkEntry.name
+               : ('Employee ' + e.id);
     const stats = [
-      e.wtd_cs  ? `CS ${e.wtd_cs}`  : '',
-      e.wtd_sra ? `SRA ${e.wtd_sra}` : '',
-      e.wtd_cap ? `CAP ${e.wtd_cap}` : '',
-      e.wtd_ic  ? `IC ${e.wtd_ic}`  : '',
-      e.wtd_ac  ? `AC ${e.wtd_ac}`  : '',
-    ].filter(Boolean).join(' · ');
-    return `<div id="unmatched-${e.id}" style="
-      display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-      margin:10px 0;padding:12px 16px;
-      border:1px solid rgba(240,82,82,0.45);
-      background:rgba(240,82,82,0.07);
-      font-family:Helvetica Neue,Helvetica,Arial,sans-serif;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F05252" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      <span style="font-size:12px;font-weight:600;color:#F05252;letter-spacing:.5px;">WARNING</span>
-      <span style="font-size:13px;color:var(--off-white);flex:1;min-width:180px;">
-        <strong>${name}</strong> has WTD activity (${stats}) but is not on the current roster.
-      </span>
-      <button onclick="rosterUnmatchedAdd('${e.id}')" style="
-        background:var(--cyan-light);color:var(--near-black);border:none;
-        font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
-        font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
-        padding:7px 14px;cursor:pointer;">Add to Roster</button>
-      <button onclick="rosterUnmatchedIgnore('${e.id}')" style="
-        background:transparent;color:var(--text-muted);
-        border:1px solid rgba(248,249,249,0.2);
-        font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
-        font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
-        padding:7px 14px;cursor:pointer;">Ignore</button>
-    </div>`;
+      e.wtd_cs  ? 'CS '  + e.wtd_cs  : '',
+      e.wtd_sra ? 'SRA ' + e.wtd_sra : '',
+      e.wtd_cap ? 'CAP ' + e.wtd_cap : '',
+      e.wtd_ic  ? 'IC '  + e.wtd_ic  : '',
+      e.wtd_ac  ? 'AC '  + e.wtd_ac  : '',
+    ].filter(Boolean).join(' \u00b7 ');
+    const eid = String(e.id);
+    return '<div id="unmatched-' + eid + '" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:10px 0;padding:12px 16px;border:1px solid rgba(240,82,82,0.45);background:rgba(240,82,82,0.07);font-family:Helvetica Neue,Helvetica,Arial,sans-serif;">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F05252" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      + '<span style="font-size:12px;font-weight:600;color:#F05252;letter-spacing:.5px;">WARNING</span>'
+      + '<span style="font-size:13px;color:var(--off-white);flex:1;min-width:180px;"><strong>' + name + '</strong> has WTD activity (' + stats + ') but is not on the current roster.</span>'
+      + '<button onclick="rosterUnmatchedAdd(\'' + eid + '\')" style="background:var(--cyan-light);color:var(--near-black);border:none;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:7px 14px;cursor:pointer;">Add to Roster</button>'
+      + '<button onclick="rosterUnmatchedIgnore(\'' + eid + '\')" style="background:transparent;color:var(--text-muted);border:1px solid rgba(248,249,249,0.2);font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:7px 14px;cursor:pointer;">Ignore</button>'
+      + '</div>';
   }).join('');
 }
 
-function rosterUnmatchedIgnore(id) {
+function rosterUnmatchedDismiss(id) {
   ROSTER_IGNORED_IDS.add(String(id));
   const el = document.getElementById('unmatched-' + id);
   if (el) el.remove();
-  // Hide banner if no warnings left
   const banner = document.getElementById('roster-unmatched-banner');
   if (banner && !banner.querySelector('[id^="unmatched-"]')) banner.style.display = 'none';
+}
+
+function rosterUnmatchedIgnore(id) {
+  rosterUnmatchedDismiss(id);
 }
 
 function rosterUnmatchedAdd(id) {
   const emp = WTD_EMPLOYEES.find(e => String(e.id) === String(id));
   if (!emp) return;
-  // Pre-fill the Add Existing Employee modal with what we know
-  document.getElementById('modal-name').value   = emp.name   || '';
+  const rkEntry = RANKINGS_MAP[String(id)] || {};
+  const rawName = emp.name || '';
+  const bestName = (rawName && !/^\d+$/.test(rawName)) ? rawName
+                 : (rkEntry.name) ? rkEntry.name : '';
+  document.getElementById('modal-name').value   = bestName;
   document.getElementById('modal-mobile').value = emp.mobile || '';
   document.getElementById('modal-office').value = emp.office || '';
   document.getElementById('modal-squad').value  = emp.squad  || '';
+  if (document.getElementById('modal-email')) document.getElementById('modal-email').value = '';
+  if (document.getElementById('modal-role'))  document.getElementById('modal-role').value  = '';
   document.getElementById('rc-add-modal').style.display = 'flex';
-  // When saved, also dismiss the warning
-  const origSave = window._origSaveNewEmployee || saveNewEmployee;
-  window._origSaveNewEmployee = origSave;
   window._pendingUnmatchedId = String(id);
 }
 
-// Wrap saveNewEmployee to also dismiss the warning card after saving
-const _origSaveNewEmployee = saveNewEmployee;
-function saveNewEmployee() {
-  _origSaveNewEmployee();
+function saveNewEmployee(){
+  const name = document.getElementById('modal-name').value.trim();
+  if(!name){alert('Name is required.');return;}
+  const newEmp = {
+    id:     'new_'+Date.now(),
+    name,
+    role:   document.getElementById('modal-role').value,
+    office: document.getElementById('modal-office').value,
+    squad:  document.getElementById('modal-squad').value.trim(),
+    mobile: document.getElementById('modal-mobile').value.trim(),
+    email:  document.getElementById('modal-email') ? document.getElementById('modal-email').value.trim() : '',
+    status: 'Active'
+  };
+  ROSTER_EMPLOYEES.unshift(newEmp);
+  closeAddModal();
+  rosterSortMode='name';
+  document.getElementById('roster-sort-name').classList.add('active');
+  document.getElementById('roster-sort-squad').classList.remove('active');
+  // Write to Sheets Roster tab — columns: Employee ID, Name, Role, Office, Squad, Status, Mobile, Email, Address
+  var row = ['', newEmp.name, newEmp.role||'Sales Manager', newEmp.office||'', newEmp.squad||'', 'Active', newEmp.mobile||'', newEmp.email||'', ''];
+  sheetsAppendRow('Roster', row).then(function(ok){ if(ok) showSyncBanner('\u2713 ' + newEmp.name + ' added to Roster'); });
+  // Dismiss the warning card if triggered from a warning button
   if (window._pendingUnmatchedId) {
-    ROSTER_IGNORED_IDS.add(window._pendingUnmatchedId);
-    const el = document.getElementById('unmatched-' + window._pendingUnmatchedId);
-    if (el) el.remove();
+    rosterUnmatchedDismiss(window._pendingUnmatchedId);
     window._pendingUnmatchedId = null;
-    checkUnmatchedReps();
   }
+  renderRoster();
+  document.getElementById('roster-grid').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 function renderRoster(){
@@ -4019,31 +4020,6 @@ function openAddModal(){
 
 function closeAddModal(){
   document.getElementById('rc-add-modal').style.display='none';
-}
-
-function saveNewEmployee(){
-  const name = document.getElementById('modal-name').value.trim();
-  if(!name){alert('Name is required.');return;}
-  const newEmp = {
-    id: 'new_'+Date.now(),
-    name,
-    role:   document.getElementById('modal-role').value,
-    office: document.getElementById('modal-office').value,
-    squad:  document.getElementById('modal-squad').value.trim(),
-    mobile: document.getElementById('modal-mobile').value.trim(),
-    email:  document.getElementById('modal-email').value.trim(),
-    status: 'Active'
-  };
-  ROSTER_EMPLOYEES.unshift(newEmp);
-  closeAddModal();
-  // Switch to name sort so new emp appears predictably
-  rosterSortMode='name';
-  document.getElementById('roster-sort-name').classList.add('active');
-  document.getElementById('roster-sort-squad').classList.remove('active');
-  renderRoster();
-  // WTD/QTD will show this employee (with 0 perf values) on next render
-  // Scroll to top of grid
-  document.getElementById('roster-grid').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 // ── EXPORT CSV ──
