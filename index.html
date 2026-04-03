@@ -2193,6 +2193,20 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
   if (typeof gc_build === 'function') gc_build();
 </script>
 
+<!-- ── SQUAD SNAPSHOT MODAL ── -->
+<div id="squad-snapshot-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:2000;align-items:center;justify-content:center;padding:24px;" onclick="if(event.target===this)closeSquadSnapshot()">
+  <div id="squad-snapshot-inner" style="background:#0e0c0d;border:1px solid rgba(170,221,221,0.22);width:100%;max-width:1400px;max-height:92vh;overflow:auto;position:relative;padding:28px 32px 24px;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;gap:16px;">
+      <div>
+        <div id="squad-snapshot-title" style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:22px;font-weight:700;letter-spacing:-0.3px;color:var(--off-white)"></div>
+        <div id="squad-snapshot-subtitle" style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);margin-top:4px;"></div>
+      </div>
+      <button onclick="closeSquadSnapshot()" style="background:transparent;border:1px solid rgba(248,249,249,0.2);color:var(--text-muted);font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:7px 14px;cursor:pointer;flex-shrink:0;">✕ Close</button>
+    </div>
+    <div id="squad-snapshot-body"></div>
+  </div>
+</div>
+
 <div class="tab-panel" id="panel-roster">
   <div class="stats-bar" id="roster-stats"></div>
   <div class="roster-controls">
@@ -3421,7 +3435,7 @@ function renderWTD(){
       const isActive = wtdSquadFilter === squadName;
       const clickStyle = squadName ? 'cursor:pointer;' : '';
       const activeStyle = isActive ? 'outline:1px solid rgba(39,217,217,0.4);' : '';
-      return `<tr class="group-header" style="${clickStyle}${activeStyle}" data-squad="${squadName}" onclick="if(this.dataset.squad){wtdSetSquad(this.dataset.squad)}"><td colspan="11">${r.label}${isActive ? ' <span style="font-size:10px;letter-spacing:1.5px;color:rgba(39,217,217,0.7);margin-left:12px">▶ ISOLATED — click to clear</span>' : ''}</td></tr>` +
+      return `<tr class="group-header" style="${clickStyle}${activeStyle}" data-squad="${squadName}" onclick="if(this.dataset.squad){wtdSetSquad(this.dataset.squad)}"><td colspan="11">${r.label}${isActive ? ' <span style="font-size:10px;letter-spacing:1.5px;color:rgba(39,217,217,0.7);margin-left:12px">▶ ISOLATED — click to clear</span>' : ''}<button onclick="event.stopPropagation();openSquadSnapshot('${squadName}','wtd')" title="Squad snapshot" style="float:right;background:transparent;border:1px solid rgba(170,221,221,0.3);color:var(--cyan-dark);font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;cursor:pointer;margin-top:-2px;">⊞ Snapshot</button></td></tr>` +
       `<tr class="col-header">
         <td onclick="wtdSort('name')">Name <span class="sa">↕</span></td>
         <td class="col-wtd-ac" style="text-align:center" onclick="wtdSort('wtd_ac')">AC <span class="sa">↕</span></td>
@@ -3648,7 +3662,7 @@ function renderQTD(){
       const isActive = qtdSquadFilter === squadName;
       const clickStyle = squadName ? 'cursor:pointer;' : '';
       const activeStyle = isActive ? 'outline:1px solid rgba(39,217,217,0.4);' : '';
-      return `<tr class="group-header" style="${clickStyle}${activeStyle}" data-squad="${squadName}" onclick="if(this.dataset.squad){qtdSetSquad(this.dataset.squad)}"><td colspan="12">${r.label}${isActive ? ' <span style="font-size:10px;letter-spacing:1.5px;color:rgba(39,217,217,0.7);margin-left:12px">▶ ISOLATED — click to clear</span>' : ''}</td></tr>` +
+      return `<tr class="group-header" style="${clickStyle}${activeStyle}" data-squad="${squadName}" onclick="if(this.dataset.squad){qtdSetSquad(this.dataset.squad)}"><td colspan="12">${r.label}${isActive ? ' <span style="font-size:10px;letter-spacing:1.5px;color:rgba(39,217,217,0.7);margin-left:12px">▶ ISOLATED — click to clear</span>' : ''}<button onclick="event.stopPropagation();openSquadSnapshot('${squadName}','qtd')" title="Squad snapshot" style="float:right;background:transparent;border:1px solid rgba(170,221,221,0.3);color:var(--cyan-dark);font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;cursor:pointer;margin-top:-2px;">⊞ Snapshot</button></td></tr>` +
       `<tr class="col-header">
         <td onclick="qtdSort('name')">Name <span class="sa">↕</span></td>
         <td class="col-qtd-sra" style="text-align:center" onclick="qtdSort('qtr_sra')">SRA <span class="sa">↕</span></td>
@@ -4020,6 +4034,69 @@ function openAddModal(){
 
 function closeAddModal(){
   document.getElementById('rc-add-modal').style.display='none';
+}
+// ── SQUAD SNAPSHOT MODAL ──────────────────────────────────────────────────────
+function closeSquadSnapshot() {
+  document.getElementById('squad-snapshot-modal').style.display = 'none';
+}
+
+function openSquadSnapshot(squadKey, tab) {
+  const rosterMembers = ROSTER_EMPLOYEES.filter(e => e.squad === squadKey);
+  if (!rosterMembers.length) return;
+  const modal    = document.getElementById('squad-snapshot-modal');
+  const title    = document.getElementById('squad-snapshot-title');
+  const subtitle = document.getElementById('squad-snapshot-subtitle');
+  const body     = document.getElementById('squad-snapshot-body');
+  const sqCfg    = SQUAD_DB[squadKey] || {};
+  const leader   = sqCfg.leader || '';
+  const sorted   = [...rosterMembers].sort((a, b) => {
+    if (a.name === leader) return -1;
+    if (b.name === leader) return 1;
+    if (tab === 'wtd') return ((WTD_MAP[b.id]||{}).wtd_sra||0) - ((WTD_MAP[a.id]||{}).wtd_sra||0);
+    return ((QTD_MAP[b.id]||{}).qtr_sra||0) - ((QTD_MAP[a.id]||{}).qtr_sra||0);
+  });
+  const n  = sorted.length;
+  const fs = n <= 10 ? 14 : n <= 15 ? 12 : n <= 20 ? 11 : n <= 28 ? 10 : 9;
+  const pad = fs <= 10 ? '6px 10px' : '8px 14px';
+  const hS  = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+(fs-2)+'px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);padding:'+pad+';text-align:center;border-bottom:1px solid rgba(170,221,221,0.18);white-space:nowrap;';
+  const hNS = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+(fs-2)+'px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);padding:'+pad+';text-align:left;border-bottom:1px solid rgba(170,221,221,0.18);';
+  const tS  = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+fs+'px;padding:'+pad+';border-bottom:1px solid rgba(170,221,221,0.06);text-align:center;color:var(--off-white);';
+  const tNS = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+fs+'px;font-weight:600;padding:'+pad+';border-bottom:1px solid rgba(170,221,221,0.06);text-align:left;color:var(--off-white);white-space:nowrap;';
+  function cls(val, goal) {
+    if (!val||val===0) return 'color:rgba(248,249,249,0.15)';
+    if (val > goal)    return 'color:var(--v-exceeds);text-shadow:0 0 8px var(--v-exceeds-glow)';
+    return 'color:var(--off-white)';
+  }
+  function rk(id, fallback) {
+    const r = (fallback && fallback.exp_rank) ? fallback.exp_rank : ((RANKINGS_MAP[id]||{}).currentRank||'');
+    return r ? rkRankBadge(r) : '<span style="color:rgba(248,249,249,.25)">—</span>';
+  }
+  let headerRow, rows;
+  if (tab === 'wtd') {
+    const week = document.getElementById('wtd-date-input')?.value || '';
+    subtitle.textContent = 'WTD Detail' + (week ? '  ·  Week of ' + week : '');
+    const tot = sorted.reduce((t,e)=>{ const w=WTD_MAP[e.id]||{}; t.ac+=w.wtd_ac||0;t.cs+=w.wtd_cs||0;t.sra+=w.wtd_sra||0;t.cap+=w.wtd_cap||0;t.ic+=w.wtd_ic||0;t.kn+=w.knocks||0; return t; },{ac:0,cs:0,sra:0,cap:0,ic:0,kn:0});
+    headerRow = '<tr><th style="'+hNS+'">Name</th><th style="'+hS+'">AC</th><th style="'+hS+'">CS</th><th style="'+hS+'">SRA</th><th style="'+hS+'">CAP</th><th style="'+hS+'">IC</th><th style="'+hS+'">Knocks</th><th style="'+hS+'">Rank</th></tr>';
+    const totRow = '<tr style="background:rgba(39,217,217,0.05)"><td style="'+tNS+'font-weight:700;color:var(--cyan-dark)">TOTALS</td><td style="'+tS+'font-weight:700">'+(tot.ac||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.cs||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.sra||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.cap||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.ic||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.kn||'—')+'</td><td style="'+tS+'"></td></tr>';
+    rows = sorted.map(e => {
+      const w = WTD_MAP[e.id]||{};
+      const il = e.name===leader;
+      return '<tr><td style="'+tNS+(il?'color:var(--cyan-light);':'')+'">'+(e.name)+(il?' <span style="font-size:9px;letter-spacing:1px;color:var(--cyan-dark)">LEADER</span>':'')+'</td><td style="'+tS+cls(w.wtd_ac,WTD_GOALS.ac)+'">'+(w.wtd_ac||'—')+'</td><td style="'+tS+cls(w.wtd_cs,WTD_GOALS.cs)+'">'+(w.wtd_cs||'—')+'</td><td style="'+tS+cls(w.wtd_sra,WTD_GOALS.sra)+'">'+(w.wtd_sra||'—')+'</td><td style="'+tS+cls(w.wtd_cap,WTD_GOALS.cap)+'">'+(w.wtd_cap||'—')+'</td><td style="'+tS+cls(w.wtd_ic,WTD_GOALS.ic)+'">'+(w.wtd_ic||'—')+'</td><td style="'+tS+(w.knocks?'color:var(--off-white)':'color:rgba(248,249,249,0.15)')+'">'+(w.knocks||'—')+'</td><td style="'+tS+'">'+rk(e.id,w)+'</td></tr>';
+    }).join('') + totRow;
+  } else {
+    subtitle.textContent = 'QTD Detail';
+    const tot = sorted.reduce((t,e)=>{ const q=QTD_MAP[e.id]||{}; t.sra+=q.qtr_sra||0;t.cap+=q.qtr_cap||0;t.ic+=q.qtr_ic||0; return t; },{sra:0,cap:0,ic:0});
+    headerRow = '<tr><th style="'+hNS+'">Name</th><th style="'+hS+'">SRA</th><th style="'+hS+'">CAP</th><th style="'+hS+'">IC</th><th style="'+hS+'">Activity</th><th style="'+hS+'">Rank</th></tr>';
+    const totRow = '<tr style="background:rgba(39,217,217,0.05)"><td style="'+tNS+'font-weight:700;color:var(--cyan-dark)">TOTALS</td><td style="'+tS+'font-weight:700">'+(tot.sra||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.cap||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.ic||'—')+'</td><td style="'+tS+'"></td><td style="'+tS+'"></td></tr>';
+    rows = sorted.map(e => {
+      const q = QTD_MAP[e.id]||{};
+      const il = e.name===leader;
+      return '<tr><td style="'+tNS+(il?'color:var(--cyan-light);':'')+'">'+(e.name)+(il?' <span style="font-size:9px;letter-spacing:1px;color:var(--cyan-dark)">LEADER</span>':'')+'</td><td style="'+tS+'">'+(q.qtr_sra||'—')+'</td><td style="'+tS+'">'+(q.qtr_cap||'—')+'</td><td style="'+tS+'">'+(q.qtr_ic||'—')+'</td><td style="'+tS+'"><span style="font-size:'+(fs-1)+'px;color:var(--text-muted)">'+(q.status||'—')+'</span></td><td style="'+tS+'">'+rk(e.id,q)+'</td></tr>';
+    }).join('') + totRow;
+  }
+  title.textContent = squadKey;
+  body.innerHTML = '<table style="width:100%;border-collapse:collapse;">'+headerRow+'<tbody>'+rows+'</tbody></table>';
+  modal.style.display = 'flex';
 }
 
 // ── EXPORT CSV ──
