@@ -1814,6 +1814,15 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
   #panel-onboard-progress .dash-search { max-width: 100%; width: 100%; }
   #panel-onboard-progress .dash-filter-group { flex-wrap: wrap; gap: 6px; }
 
+
+  /* Game Changers — mobile layout */
+  #panel-game-changers { padding: 0; }
+  #gc-main-table td, #gc-main-table th { padding: 10px 8px; }
+  #gc-main-table .td-name { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+  #gc-main-table th:nth-child(4), #gc-main-table th:nth-child(5), #gc-main-table td:nth-child(4), #gc-main-table td:nth-child(5) { display: none; }
+  #gc-main-table td:nth-child(2) { width: auto; padding: 10px 6px; }
+  #gc-main-table td:nth-child(3), #gc-main-table th:nth-child(3) { width: 48px; font-size: 14px; padding: 10px 4px; }
+  #panel-game-changers .filter-bar { padding: 10px 12px; gap: 6px; flex-wrap: wrap; }
   /* ── Onboard Employee — show full form directly on mobile ── */
   #panel-onboard-employee > div > *:not(#ob-mobile-form-wrap):not(#ob-addModal):not(#ob-sunrunModal):not(.modal-overlay){display:none !important;}
   #ob-mobile-form-wrap{display:block !important;}
