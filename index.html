@@ -1096,6 +1096,38 @@ body.light-mode #panel-status-incentive .filter-btn.active{
     gap: 8px;
     width: clamp(140px, 16vw, 240px);
   }
+#panel-game-changers .progress-stack{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+#panel-game-changers .td-progress{ width: 99%; }
+#panel-game-changers .prog-label{
+    font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
+    font-size: clamp(9px, 0.75vw, 11px);
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--cyan-dark); width: 26px; flex-shrink: 0; line-height: 1;
+  }
+#panel-game-changers .prog-track{
+    flex: 1; height: 5px; background: rgba(170,221,221,0.1);
+    border-radius: 3px; overflow: hidden; position: relative;
+  }
+#panel-game-changers .prog-bar{
+    height: 100%; border-radius: 3px;
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+#panel-game-changers .prog-bar.sra-bar{ background: var(--cyan-light); }
+#panel-game-changers .prog-bar.sra-bar.complete{ background: #6ee7c7; box-shadow: 0 0 8px rgba(110,231,199,0.6); }
+#panel-game-changers .prog-bar.ic-bar{ background: var(--sand); }
+#panel-game-changers .prog-bar.ic-bar.complete{ background: #f9e08c; box-shadow: 0 0 8px rgba(242,207,156,0.6); }
+#panel-game-changers .prog-pct{
+    font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
+    font-size: clamp(10px, 0.85vw, 12px); color: rgba(241,242,242,0.35);
+    width: 32px; text-align: right; flex-shrink: 0; line-height: 1;
+  }
+#panel-game-changers .prog-pct.complete{ color: #6ee7c7; }
+#panel-game-changers .prog-row{ display: flex; align-items: center; gap: 10px; }
 #panel-status-incentive .prog-row{
     display: flex;
     align-items: center;
@@ -2134,7 +2166,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
     <table id="gc-main-table">
       <thead><tr>
         <th onclick="gc_sortBy('Name')">Name <span class="sa">↕</span></th>
-        <th style="text-align:left;white-space:nowrap;cursor:default;color:var(--cyan-dark)">Progress <span style="opacity:.45;font-size:.75em;letter-spacing:1px">SRA /7 · IC /3</span></th>
+        <th style="text-align:left;white-space:nowrap;cursor:default;color:var(--cyan-dark)">Progress <span style="opacity:.45;font-size:.75em;letter-spacing:1px">SRA /10 · IC /10</span></th>
         <th onclick="gc_sortBy('QSRA')" style="text-align:center">QSRA <span class="sa">↕</span></th>
         <th onclick="gc_sortBy('QIC')" style="text-align:center">QIC <span class="sa">↕</span></th>
         <th onclick="gc_sortBy('Office')">Office <span class="sa">↕</span></th>
@@ -5682,28 +5714,26 @@ function gc_renderTable() {
     const officeColor = SI_OFFICE_COLORS[row['Office']] || '#AADDDD';
     const sraVal = parseFloat(row['QSRA']) || 0;
     const icVal  = parseFloat(row['QIC'])  || 0;
-    const sraPct = Math.min(sraVal / 7 * 100, 100);
-    const icPct  = Math.min(icVal  / 3 * 100, 100);
+    const sraPct = Math.min(sraVal / 10 * 100, 100);
+    const icPct  = Math.min(icVal  / 10 * 100, 100);
     const sraComplete = sraPct >= 100;
     const icComplete  = icPct  >= 100;
 
-    const sraRaw = (row['QSRA'] !== '' && row['QSRA'] != null) ? String(parseFloat(row['QSRA'])||0) : '—';
-    const icRaw  = (row['QIC']  !== '' && row['QIC']  != null) ? String(parseFloat(row['QIC']) ||0) : '—';
-    const sraDisplay = sraRaw === '—' ? '—' : (sraVal >= 7 ? `<span style="color:var(--cyan-light);font-weight:700">+</span>${sraRaw}` : sraRaw);
-    const icDisplay  = icRaw  === '—' ? '—' : (icVal  >= 3 ? `<span style="color:#2DC48E;font-weight:700">+</span>${icRaw}`  : icRaw);
+    const sraDisplay = (row['QSRA'] !== '' && row['QSRA'] != null) ? String(parseFloat(row['QSRA'])||0) : '—';
+    const icDisplay  = (row['QIC']  !== '' && row['QIC']  != null) ? String(parseFloat(row['QIC']) ||0) : '—';
 
     return `<tr style="animation-delay:${Math.min(i*0.02,0.5)}s" data-id="${row._id}">
       <td class="td-name">${row['Name']}</td>
-      <td class="td-progress">
-        <div class="progress-stack">
+      <td class="td-progress" style="width:100%">
+        <div class="progress-stack" style="width:100%;max-width:100%">
           <div class="prog-row">
             <span class="prog-label">SRA</span>
-            <div class="prog-track"><div class="prog-bar sra-bar${sraComplete?' complete':''}" style="width:${sraPct}%"></div></div>
+            <div class="prog-track" style="flex:1"><div class="prog-bar sra-bar${sraComplete?' complete':''}" style="width:${sraPct}%"></div></div>
             <span class="prog-pct${sraComplete?' complete':''}">${Math.round(sraPct)}%</span>
           </div>
           <div class="prog-row">
             <span class="prog-label">IC</span>
-            <div class="prog-track"><div class="prog-bar ic-bar${icComplete?' complete':''}" style="width:${icPct}%"></div></div>
+            <div class="prog-track" style="flex:1"><div class="prog-bar ic-bar${icComplete?' complete':''}" style="width:${icPct}%"></div></div>
             <span class="prog-pct${icComplete?' complete':''}">${Math.round(icPct)}%</span>
           </div>
         </div>
