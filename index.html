@@ -5728,13 +5728,17 @@ function gc_renderTable() {
         <div class="progress-stack" style="width:100%;max-width:100%">
           <div class="prog-row">
             <span class="prog-label">SRA</span>
-            <div class="prog-track" style="flex:1"><div class="prog-bar sra-bar${sraComplete?' complete':''}" style="width:${sraPct}%"></div></div>
-            <span class="prog-pct${sraComplete?' complete':''}">${Math.round(sraPct)}%</span>
+            <div class="prog-track" style="flex:1;height:5px;background:rgba(170,221,221,0.1);border-radius:3px;overflow:hidden;position:relative;">
+              <div style="width:${sraPct}%;height:100%;border-radius:3px;background:${sraComplete?'#6ee7c7':'var(--cyan-light)'};${sraComplete?'box-shadow:0 0 8px rgba(110,231,199,0.6)':''};transition:width 0.6s cubic-bezier(0.16,1,0.3,1);"></div>
+            </div>
+            <span style="font-family:Helvetica Neue,sans-serif;font-size:11px;color:${sraComplete?'#6ee7c7':'rgba(241,242,242,0.35)'};width:32px;text-align:right;flex-shrink:0;">${Math.round(sraPct)}%</span>
           </div>
           <div class="prog-row">
             <span class="prog-label">IC</span>
-            <div class="prog-track" style="flex:1"><div class="prog-bar ic-bar${icComplete?' complete':''}" style="width:${icPct}%"></div></div>
-            <span class="prog-pct${icComplete?' complete':''}">${Math.round(icPct)}%</span>
+            <div class="prog-track" style="flex:1;height:5px;background:rgba(170,221,221,0.1);border-radius:3px;overflow:hidden;position:relative;">
+              <div style="width:${icPct}%;height:100%;border-radius:3px;background:${icComplete?'#f9e08c':'var(--sand)'};${icComplete?'box-shadow:0 0 8px rgba(242,207,156,0.6)':''};transition:width 0.6s cubic-bezier(0.16,1,0.3,1);"></div>
+            </div>
+            <span style="font-family:Helvetica Neue,sans-serif;font-size:11px;color:${icComplete?'#f9e08c':'rgba(241,242,242,0.35)'};width:32px;text-align:right;flex-shrink:0;">${Math.round(icPct)}%</span>
           </div>
         </div>
       </td>
