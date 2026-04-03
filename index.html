@@ -1728,7 +1728,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
   #wtd-squad-select,#qtd-squad-select{display:none;}
 
   /* ── WTD / QTD — hide table, show mobile card list ── */
-  .table-wrap{display:none !important;}
+  #panel-wtd .table-wrap, #panel-qtd .table-wrap{display:none !important;}
   #wtd-mobile-list,#qtd-mobile-list{display:block !important;}
 
   /* ── Rankings — horizontal scroll table ── */
@@ -5266,24 +5266,6 @@ function reapplyRepPerfAuthority() {
 // QSRA + QIC come from QTD_MAP. Name/Office/Combine from ROSTER_EMPLOYEES.
 function buildSIFromRepPerf() {
   const rosterById = Object.fromEntries(ROSTER_EMPLOYEES.map(e => [e.id, e]));
-
-  // ── DIAGNOSTIC — open browser console to see these ──
-  console.log('[SI] RANKINGS_MAP size:', Object.keys(RANKINGS_MAP).length);
-  console.log('[SI] ROSTER_EMPLOYEES size:', ROSTER_EMPLOYEES.length);
-  console.log('[SI] Sample RANKINGS_MAP IDs:', Object.keys(RANKINGS_MAP).slice(0, 5));
-  console.log('[SI] Sample ROSTER IDs:', ROSTER_EMPLOYEES.slice(0, 5).map(e => e.id));
-  const noStatusIds = Object.entries(RANKINGS_MAP)
-    .filter(([id, r]) => (r.currentRank || '').toUpperCase() === 'NO STATUS')
-    .map(([id]) => id);
-  console.log('[SI] NO STATUS count in Rankings:', noStatusIds.length);
-  console.log('[SI] Sample NO STATUS IDs:', noStatusIds.slice(0, 5));
-  const matchedInRoster = noStatusIds.filter(id => rosterById[id]);
-  console.log('[SI] Of those, matched in Roster:', matchedInRoster.length);
-  if (noStatusIds.length > 0 && matchedInRoster.length === 0) {
-    console.warn('[SI] ID TYPE CHECK — Rankings ID example:', JSON.stringify(noStatusIds[0]), typeof noStatusIds[0]);
-    console.warn('[SI] ID TYPE CHECK — Roster ID example:', JSON.stringify(ROSTER_EMPLOYEES[0]?.id), typeof ROSTER_EMPLOYEES[0]?.id);
-  }
-  // ── END DIAGNOSTIC ──
 
   // Build the list from Rankings — anyone ranked NO STATUS
   const eligible = Object.entries(RANKINGS_MAP)
