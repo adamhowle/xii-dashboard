@@ -1443,6 +1443,7 @@ body.light-mode #panel-status-incentive .filter-btn.active{
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
   }
+.ob-prog-inner { padding: 0 36px; }
 #panel-onboard-employee .dash-header h2, #panel-onboard-progress .dash-header h2{
     font-size: 20px; font-weight: 700; color: var(--off-white); letter-spacing: -.4px;
   }
@@ -1775,8 +1776,14 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
   .rankings-filter-bar{gap:8px;padding:12px 14px;}
   .rk-multi-sel{min-width:0;flex:1;font-size:9px;padding:7px 8px;}
 
+  /* ── Onboard Progress — tighter padding, full-width search ── */
+  .ob-prog-inner { padding: 0 14px; }
+  #panel-onboard-progress .dash-header { flex-direction: column; align-items: stretch; gap: 10px; margin-bottom: 14px; }
+  #panel-onboard-progress .dash-search { max-width: 100%; width: 100%; }
+  #panel-onboard-progress .dash-filter-group { flex-wrap: wrap; gap: 6px; }
+
   /* ── Onboard Employee — show full form directly on mobile ── */
-  #panel-onboard-employee > div > *:not(#ob-addModal):not(#ob-sunrunModal):not(.modal-overlay){display:none !important;}
+  #panel-onboard-employee > div > *:not(#ob-mobile-form-wrap):not(#ob-addModal):not(#ob-sunrunModal):not(.modal-overlay){display:none !important;}
   #ob-mobile-form-wrap{display:block !important;}
   #ob-mobile-add-wrap{display:none !important;}
   /* ── Rep modal ── */
@@ -2426,11 +2433,10 @@ function switchTab(id, el){
   if(id==='wtd') { renderWTD(); applyColPrefs('wtd'); }
   else if(id==='qtd') { renderQTD(); applyColPrefs('qtd'); }
   else if(id==='roster') renderRoster();
-  else if(id==='status-incentive') { /* renders on CSV upload */ }
+  else if(id==='status-incentive') { if(typeof buildSIFromRepPerf==='function'){ buildSIFromRepPerf(); applyFilters(); } }
   else if(id==='onboard-employee') { try{ob_renderTable();}catch(e){} }
   else if(id==='onboard-progress') { try{ob_renderDashboard();}catch(e){} }
   else if(id==='onboarding') { try { ob_renderTable(); } catch(e) {} }
-  else if(id==='status-incentive') { /* renders on CSV upload */ }
   else if(id==='overview') renderOverview();
   else if(id==='rankings') renderRankings();
   else if(id==='data') renderDataTab();
@@ -3029,8 +3035,80 @@ function renderWTDMobile(data) {
         </div>`;
       });
     });
+  } else if (wtdView === 'leaders') {
+    // One squad header + just the squad leader row per squad
+    const OFFICE_ORDER = {'Newport Beach':0,'Orange County':1,'Riverside':2};
+    const sortedSquads = Object.keys(SQUAD_DB).filter(k => k && k !== 'No Squad').sort((a,b) => {
+      const lA = ROSTER_EMPLOYEES.find(r => r.name === SQUAD_DB[a]?.leader);
+      const lB = ROSTER_EMPLOYEES.find(r => r.name === SQUAD_DB[b]?.leader);
+      const oA = OFFICE_ORDER[lA?.office] ?? 9, oB = OFFICE_ORDER[lB?.office] ?? 9;
+      return oA !== oB ? oA - oB : a.localeCompare(b);
+    });
+    sortedSquads.forEach(k => {
+      const sqCfg = SQUAD_DB[k];
+      const leaderName = sqCfg?.leader || '';
+      const allMembers = data.filter(e => e.squad === k);
+      const tot = { ac: allMembers.reduce((s,e)=>s+(e.wtd_ac||0),0), sra: allMembers.reduce((s,e)=>s+(e.wtd_sra||0),0), cap: allMembers.reduce((s,e)=>s+(e.wtd_cap||0),0), ic: allMembers.reduce((s,e)=>s+(e.wtd_ic||0),0) };
+      html += `<div style="padding:8px 14px 4px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);border-bottom:1px solid var(--border);background:var(--near-black);">
+        ${k} <span style="margin-left:8px;color:var(--text-muted);font-weight:400">AC ${tot.ac} · SRA ${tot.sra} · CAP ${tot.cap} · IC ${tot.ic}</span></div>`;
+      const leaderWTD = data.find(e => e.name === leaderName);
+      if (leaderWTD) {
+        const oc = OFFICE_COLORS[leaderWTD.office] || '#888';
+        const badge = leaderWTD.exp_rank ? rkRankBadge(leaderWTD.exp_rank) : '';
+        html += `<div style="display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border2);gap:10px;cursor:pointer" data-repid="${leaderWTD.id}" onclick="openRepModal(this.dataset.repid)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:15px;font-weight:600;color:var(--off-white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${leaderWTD.name}</div>
+            <div style="display:flex;gap:6px;margin-top:4px;align-items:center">
+              <span style="width:7px;height:7px;border-radius:50%;background:${oc};display:inline-block;flex-shrink:0"></span>
+              ${badge}
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,44px);gap:4px;flex-shrink:0;text-align:center">
+            <div><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">AC</div><div style="font-size:16px;font-weight:700;color:${!leaderWTD.wtd_ac?'rgba(248,249,249,.2)':leaderWTD.wtd_ac>WTD_GOALS.ac?'var(--v-exceeds)':'var(--off-white)'}">${leaderWTD.wtd_ac||'—'}</div></div>
+            <div><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">SRA</div><div style="font-size:16px;font-weight:700;color:${!leaderWTD.wtd_sra?'rgba(248,249,249,.2)':leaderWTD.wtd_sra>WTD_GOALS.sra?'var(--v-exceeds)':'var(--off-white)'}">${leaderWTD.wtd_sra||'—'}</div></div>
+            <div><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">CAP</div><div style="font-size:16px;font-weight:700;color:${!leaderWTD.wtd_cap?'rgba(248,249,249,.2)':leaderWTD.wtd_cap>WTD_GOALS.cap?'var(--v-exceeds)':'var(--off-white)'}">${leaderWTD.wtd_cap||'—'}</div></div>
+            <div><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">IC</div><div style="font-size:16px;font-weight:700;color:${!leaderWTD.wtd_ic?'rgba(248,249,249,.2)':leaderWTD.wtd_ic>WTD_GOALS.ic?'var(--v-exceeds)':'var(--off-white)'}">${leaderWTD.wtd_ic||'—'}</div></div>
+          </div>
+        </div>`;
+      }
+    });
+  } else if (wtdView === 'office') {
+    // Group by office with office headers
+    const OFFICE_ORDER = {'Newport Beach':0,'Orange County':1,'Riverside':2};
+    const officeGroups = {}, officeOrder = [];
+    data.forEach(e => {
+      const k = e.office || 'Unknown';
+      if (!officeGroups[k]) { officeGroups[k] = []; officeOrder.push(k); }
+      officeGroups[k].push(e);
+    });
+    [...new Set(officeOrder)].sort((a,b) => (OFFICE_ORDER[a]??9) - (OFFICE_ORDER[b]??9)).forEach(office => {
+      const members = officeGroups[office];
+      const tot = { ac: members.reduce((s,e)=>s+(e.wtd_ac||0),0), sra: members.reduce((s,e)=>s+(e.wtd_sra||0),0), cap: members.reduce((s,e)=>s+(e.wtd_cap||0),0), ic: members.reduce((s,e)=>s+(e.wtd_ic||0),0) };
+      const dot = OFFICE_COLORS[office] || '#888';
+      html += `<div style="padding:8px 14px 4px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--near-black);display:flex;align-items:center;gap:6px;">
+        <span style="width:7px;height:7px;border-radius:50%;background:${dot};display:inline-block;flex-shrink:0"></span>
+        <span style="color:var(--cyan-dark)">${office}</span>
+        <span style="margin-left:6px;color:var(--text-muted);font-weight:400">AC ${tot.ac} · SRA ${tot.sra} · CAP ${tot.cap} · IC ${tot.ic}</span>
+      </div>`;
+      members.forEach(e => {
+        const oc = OFFICE_COLORS[e.office] || '#888';
+        const badge = e.exp_rank ? rkRankBadge(e.exp_rank) : '';
+        html += `<div style="display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border2);gap:10px;cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:15px;font-weight:600;color:var(--off-white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.name}</div>
+            <div style="display:flex;gap:6px;margin-top:4px;align-items:center"><span style="font-size:11px;color:var(--text-muted)">${e.squad||''}</span>${badge}</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,44px);gap:4px;flex-shrink:0;text-align:center">
+            <div><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">AC</div><div style="font-size:16px;font-weight:700;color:${!e.wtd_ac?'rgba(248,249,249,.2)':e.wtd_ac>WTD_GOALS.ac?'var(--v-exceeds)':'var(--off-white)'}">${e.wtd_ac||'—'}</div></div>
+            <div><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">SRA</div><div style="font-size:16px;font-weight:700;color:${!e.wtd_sra?'rgba(248,249,249,.2)':e.wtd_sra>WTD_GOALS.sra?'var(--v-exceeds)':'var(--off-white)'}">${e.wtd_sra||'—'}</div></div>
+            <div><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">CAP</div><div style="font-size:16px;font-weight:700;color:${!e.wtd_cap?'rgba(248,249,249,.2)':e.wtd_cap>WTD_GOALS.cap?'var(--v-exceeds)':'var(--off-white)'}">${e.wtd_cap||'—'}</div></div>
+            <div><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">IC</div><div style="font-size:16px;font-weight:700;color:${!e.wtd_ic?'rgba(248,249,249,.2)':e.wtd_ic>WTD_GOALS.ic?'var(--v-exceeds)':'var(--off-white)'}">${e.wtd_ic||'—'}</div></div>
+          </div>
+        </div>`;
+      });
+    });
   } else {
-    // office or leaders view — flat list
+    // individual — flat list, no headers
     data.forEach(e => {
       const oc = OFFICE_COLORS[e.office] || '#888';
       const badge = e.exp_rank ? rkRankBadge(e.exp_rank) : '';
@@ -3065,58 +3143,95 @@ function renderQTDMobile(data) {
     Object.entries(SQUAD_DB).map(([sq,d]) => [sq, d.leader]).filter(([,v]) => v)
   );
 
+  function qtdRepRow(e) {
+    const oc = OFFICE_COLORS[e.office] || '#888';
+    const badge = e.exp_rank ? rkRankBadge(e.exp_rank) : '';
+    return `<div style="display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border2);gap:10px;cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:600;color:var(--off-white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.name}</div>
+        <div style="display:flex;gap:6px;margin-top:4px;align-items:center">
+          <span style="width:7px;height:7px;border-radius:50%;background:${oc};display:inline-block;flex-shrink:0"></span>
+          ${badge}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,52px);gap:4px;flex-shrink:0;text-align:center">
+        <div><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">SRA</div><div style="font-size:16px;font-weight:700;color:${!e.qtr_sra?'rgba(248,249,249,.2)':'var(--off-white)'}">${e.qtr_sra||'—'}</div></div>
+        <div><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">CAP</div><div style="font-size:16px;font-weight:700;color:${!e.qtr_cap?'rgba(248,249,249,.2)':'var(--off-white)'}">${e.qtr_cap||'—'}</div></div>
+        <div><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">IC</div><div style="font-size:16px;font-weight:700;color:${!e.qtr_ic?'rgba(248,249,249,.2)':'var(--off-white)'}">${e.qtr_ic||'—'}</div></div>
+      </div>
+    </div>`;
+  }
+
+  function squadHeader(k, members) {
+    const tot = { sra: members.reduce((s,e)=>s+(e.qtr_sra||0),0), cap: members.reduce((s,e)=>s+(e.qtr_cap||0),0), ic: members.reduce((s,e)=>s+(e.qtr_ic||0),0) };
+    return `<div style="padding:8px 14px 4px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);border-bottom:1px solid var(--border);background:var(--near-black)">
+      ${k || 'No Squad'} <span style="margin-left:8px;color:var(--text-muted);font-weight:400">SRA ${tot.sra} · CAP ${tot.cap} · IC ${tot.ic}</span></div>`;
+  }
+
   let html = '';
-  const groups = {}, order = [];
-  data.forEach(e => {
-    const k = qtdView === 'squad' ? (e.squad || '') : '__all__';
-    if (!groups[k]) { groups[k] = []; order.push(k); }
-    groups[k].push(e);
-  });
-  const keys = [...new Set(order)].sort((a,b) => {
-    if(a==='__all__') return 0;
-    if(!a&&!b) return 0; if(!a) return 1; if(!b) return -1;
-    return a.localeCompare(b);
-  });
-  keys.forEach(k => {
-    const members = groups[k];
-    const leader = QTD_SQUAD_LEADERS[k] || null;
-    const sorted = [...members].sort((a,b) => {
-      if(leader){ if(a.name===leader) return -1; if(b.name===leader) return 1; }
-      return (b.qtr_sra||0) - (a.qtr_sra||0);
+  const OFFICE_ORDER = {'Newport Beach':0,'Orange County':1,'Riverside':2};
+
+  if (qtdView === 'squad' || qtdView === 'individual') {
+    const groups = {}, order = [];
+    data.forEach(e => {
+      const k = qtdView === 'squad' ? (e.squad || '') : '__all__';
+      if (!groups[k]) { groups[k] = []; order.push(k); }
+      groups[k].push(e);
     });
-    if (qtdView === 'squad' && k !== '__all__') {
+    const keys = [...new Set(order)].sort((a,b) => {
+      if(a==='__all__') return 0;
+      if(!a&&!b) return 0; if(!a) return 1; if(!b) return -1;
+      return a.localeCompare(b);
+    });
+    keys.forEach(k => {
+      const members = groups[k];
+      const leader = QTD_SQUAD_LEADERS[k] || null;
+      const sorted = [...members].sort((a,b) => {
+        if(leader){ if(a.name===leader) return -1; if(b.name===leader) return 1; }
+        return (b.qtr_sra||0) - (a.qtr_sra||0);
+      });
+      if (qtdView === 'squad' && k !== '__all__') html += squadHeader(k, members);
+      sorted.forEach(e => { html += qtdRepRow(e); });
+    });
+
+  } else if (qtdView === 'leaders') {
+    const sortedSquads = Object.keys(SQUAD_DB).filter(k => k && k !== 'No Squad').sort((a,b) => {
+      const lA = ROSTER_EMPLOYEES.find(r => r.name === SQUAD_DB[a]?.leader);
+      const lB = ROSTER_EMPLOYEES.find(r => r.name === SQUAD_DB[b]?.leader);
+      const oA = OFFICE_ORDER[lA?.office] ?? 9, oB = OFFICE_ORDER[lB?.office] ?? 9;
+      return oA !== oB ? oA - oB : a.localeCompare(b);
+    });
+    sortedSquads.forEach(k => {
+      const leaderName = SQUAD_DB[k]?.leader || '';
+      const allMembers = data.filter(e => e.squad === k);
+      html += squadHeader(k, allMembers);
+      const leaderQTD = data.find(e => e.name === leaderName);
+      if (leaderQTD) html += qtdRepRow(leaderQTD);
+    });
+
+  } else if (qtdView === 'office') {
+    const officeGroups = {}, officeOrder = [];
+    data.forEach(e => {
+      const k = e.office || 'Unknown';
+      if (!officeGroups[k]) { officeGroups[k] = []; officeOrder.push(k); }
+      officeGroups[k].push(e);
+    });
+    [...new Set(officeOrder)].sort((a,b) => (OFFICE_ORDER[a]??9) - (OFFICE_ORDER[b]??9)).forEach(office => {
+      const members = officeGroups[office];
       const tot = { sra: members.reduce((s,e)=>s+(e.qtr_sra||0),0), cap: members.reduce((s,e)=>s+(e.qtr_cap||0),0), ic: members.reduce((s,e)=>s+(e.qtr_ic||0),0) };
-      html += `<div style="padding:8px 14px 4px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);border-bottom:1px solid var(--border);background:var(--near-black);position:sticky;top:0;z-index:2">
-        ${k || 'No Squad'} <span style="margin-left:8px;color:var(--text-muted);font-weight:400">SRA ${tot.sra} · CAP ${tot.cap} · IC ${tot.ic}</span></div>`;
-    }
-    sorted.forEach(e => {
-      const oc = OFFICE_COLORS[e.office] || '#888';
-      const badge = e.exp_rank ? rkRankBadge(e.exp_rank) : '';
-      html += `<div style="display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border2);gap:10px;cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:15px;font-weight:600;color:var(--off-white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.name}</div>
-          <div style="display:flex;gap:6px;margin-top:4px;align-items:center">
-            <span style="width:7px;height:7px;border-radius:50%;background:${oc};display:inline-block;flex-shrink:0"></span>
-            ${badge}
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(3,52px);gap:4px;flex-shrink:0;text-align:center">
-          <div>
-            <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">SRA</div>
-            <div style="font-size:16px;font-weight:700;color:${!e.qtr_sra?'rgba(248,249,249,.2)':'var(--off-white)'}">${e.qtr_sra||'—'}</div>
-          </div>
-          <div>
-            <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">CAP</div>
-            <div style="font-size:16px;font-weight:700;color:${!e.qtr_cap?'rgba(248,249,249,.2)':'var(--off-white)'}">${e.qtr_cap||'—'}</div>
-          </div>
-          <div>
-            <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">IC</div>
-            <div style="font-size:16px;font-weight:700;color:${!e.qtr_ic?'rgba(248,249,249,.2)':'var(--off-white)'}">${e.qtr_ic||'—'}</div>
-          </div>
-        </div>
+      const dot = OFFICE_COLORS[office] || '#888';
+      html += `<div style="padding:8px 14px 4px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--near-black);display:flex;align-items:center;gap:6px;">
+        <span style="width:7px;height:7px;border-radius:50%;background:${dot};display:inline-block;flex-shrink:0"></span>
+        <span style="color:var(--cyan-dark)">${office}</span>
+        <span style="margin-left:6px;color:var(--text-muted);font-weight:400">SRA ${tot.sra} · CAP ${tot.cap} · IC ${tot.ic}</span>
       </div>`;
+      members.forEach(e => { html += qtdRepRow(e); });
     });
-  });
+
+  } else {
+    data.forEach(e => { html += qtdRepRow(e); });
+  }
+
   list.innerHTML = html;
 }
 
@@ -7227,7 +7342,7 @@ document.addEventListener('keydown', function(e) {
 <div class="toast" id="ob-toast">
 </div></div>
 
-<div class="tab-panel" id="panel-onboard-progress"><div style="padding:0 36px">
+<div class="tab-panel" id="panel-onboard-progress"><div class="ob-prog-inner">
 <div class="dash-header">
     <h2>Leader <span>Dashboard</span></h2>
     <div class="dash-search">
@@ -7303,6 +7418,7 @@ document.addEventListener('keydown', function(e) {
       <option value="DM">DM</option>
       <option value="Director">Director</option>
     </select>
+    <button onclick="renderRankings()" style="background:var(--cyan-dark);color:var(--near-black);border:none;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:7px 14px;cursor:pointer;white-space:nowrap;flex-shrink:0;">Apply</button>
     <div class="search-wrap ml-auto">
       <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input id="rk-search" placeholder="Search name..." oninput="renderRankings()">
