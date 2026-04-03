@@ -2227,6 +2227,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
       </div>
     </div>
   </div>
+  <div id="roster-unmatched-banner" style="display:none;padding:0 36px 0;"></div>
   <div class="roster-card-grid" id="roster-grid"></div>
   <div id="roster-list"></div>
   <div class="empty-state" id="roster-empty" style="display:none">No records found</div>
@@ -3760,7 +3761,104 @@ document.addEventListener('click', e => {
     if (ac) ac.classList.remove('open');
   }
 });
+// Track which unmatched IDs the user has chosen to ignore this session
+const ROSTER_IGNORED_IDS = new Set();
+
+function checkUnmatchedReps() {
+  const banner = document.getElementById('roster-unmatched-banner');
+  if (!banner) return;
+
+  const rosterIds = new Set(ROSTER_EMPLOYEES.map(e => String(e.id)));
+
+  // Find reps in WTD_EMPLOYEES with any WTD activity this week who are not on the roster
+  const unmatched = WTD_EMPLOYEES.filter(e => {
+    if (ROSTER_IGNORED_IDS.has(String(e.id))) return false;
+    if (rosterIds.has(String(e.id))) return false;
+    const hasActivity = (e.wtd_cs || 0) + (e.wtd_sra || 0) + (e.wtd_cap || 0) + (e.wtd_ic || 0) + (e.wtd_ac || 0) > 0;
+    return hasActivity;
+  });
+
+  if (!unmatched.length) {
+    banner.style.display = 'none';
+    banner.innerHTML = '';
+    return;
+  }
+
+  banner.style.display = 'block';
+  banner.innerHTML = unmatched.map(e => {
+    const name = e.name || ('ID ' + e.id);
+    const stats = [
+      e.wtd_cs  ? `CS ${e.wtd_cs}`  : '',
+      e.wtd_sra ? `SRA ${e.wtd_sra}` : '',
+      e.wtd_cap ? `CAP ${e.wtd_cap}` : '',
+      e.wtd_ic  ? `IC ${e.wtd_ic}`  : '',
+      e.wtd_ac  ? `AC ${e.wtd_ac}`  : '',
+    ].filter(Boolean).join(' · ');
+    return `<div id="unmatched-${e.id}" style="
+      display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+      margin:10px 0;padding:12px 16px;
+      border:1px solid rgba(240,82,82,0.45);
+      background:rgba(240,82,82,0.07);
+      font-family:Helvetica Neue,Helvetica,Arial,sans-serif;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F05252" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span style="font-size:12px;font-weight:600;color:#F05252;letter-spacing:.5px;">WARNING</span>
+      <span style="font-size:13px;color:var(--off-white);flex:1;min-width:180px;">
+        <strong>${name}</strong> has WTD activity (${stats}) but is not on the current roster.
+      </span>
+      <button onclick="rosterUnmatchedAdd('${e.id}')" style="
+        background:var(--cyan-light);color:var(--near-black);border:none;
+        font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
+        font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+        padding:7px 14px;cursor:pointer;">Add to Roster</button>
+      <button onclick="rosterUnmatchedIgnore('${e.id}')" style="
+        background:transparent;color:var(--text-muted);
+        border:1px solid rgba(248,249,249,0.2);
+        font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
+        font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+        padding:7px 14px;cursor:pointer;">Ignore</button>
+    </div>`;
+  }).join('');
+}
+
+function rosterUnmatchedIgnore(id) {
+  ROSTER_IGNORED_IDS.add(String(id));
+  const el = document.getElementById('unmatched-' + id);
+  if (el) el.remove();
+  // Hide banner if no warnings left
+  const banner = document.getElementById('roster-unmatched-banner');
+  if (banner && !banner.querySelector('[id^="unmatched-"]')) banner.style.display = 'none';
+}
+
+function rosterUnmatchedAdd(id) {
+  const emp = WTD_EMPLOYEES.find(e => String(e.id) === String(id));
+  if (!emp) return;
+  // Pre-fill the Add Existing Employee modal with what we know
+  document.getElementById('modal-name').value   = emp.name   || '';
+  document.getElementById('modal-mobile').value = emp.mobile || '';
+  document.getElementById('modal-office').value = emp.office || '';
+  document.getElementById('modal-squad').value  = emp.squad  || '';
+  document.getElementById('rc-add-modal').style.display = 'flex';
+  // When saved, also dismiss the warning
+  const origSave = window._origSaveNewEmployee || saveNewEmployee;
+  window._origSaveNewEmployee = origSave;
+  window._pendingUnmatchedId = String(id);
+}
+
+// Wrap saveNewEmployee to also dismiss the warning card after saving
+const _origSaveNewEmployee = saveNewEmployee;
+function saveNewEmployee() {
+  _origSaveNewEmployee();
+  if (window._pendingUnmatchedId) {
+    ROSTER_IGNORED_IDS.add(window._pendingUnmatchedId);
+    const el = document.getElementById('unmatched-' + window._pendingUnmatchedId);
+    if (el) el.remove();
+    window._pendingUnmatchedId = null;
+    checkUnmatchedReps();
+  }
+}
+
 function renderRoster(){
+  checkUnmatchedReps();
   const search=document.getElementById('roster-search').value.toLowerCase();
   let data=[...ROSTER_EMPLOYEES];
   if(rosterOfficeFilter==='Riverside') data=data.filter(e=>e.office==='Riverside');
@@ -7081,7 +7179,7 @@ async function fetchSheetsData(opts) {
   renderWTD();
   renderQTD();
   renderCombineTab();
-  renderRoster();
+  renderRoster(); // also calls checkUnmatchedReps internally
   if ((window.innerWidth || screen.width) <= 430) {
     setTimeout(function() { renderWTD(); renderQTD(); renderRankings(); }, 300);
   }
