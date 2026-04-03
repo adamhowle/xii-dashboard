@@ -7016,6 +7016,8 @@ async function fetchSheetsData(opts) {
     }).filter(Boolean);
     if (gcRows.length) { GC_EMPLOYEES.length = 0; gcRows.forEach(function(e){ GC_EMPLOYEES.push(e); }); }
   } catch(e) { errors.push('Game Changers: ' + e.message); }
+
+  if (errors.length) {
     showSyncBanner('Sync issues: ' + errors.join(' / '), true);
     console.warn('[Sheets] errors:', errors);
   } else {
