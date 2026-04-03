@@ -279,7 +279,7 @@ body.chrome-collapsed .tab-bar{max-height:0;opacity:0;border-bottom-color:transp
 .section-title-brand{font-size:26px;font-weight:900;letter-spacing:-1px;color:var(--cyan-light);text-transform:lowercase;line-height:1}
 .section-subtitle{font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:11px;color:var(--text-muted);margin-left:auto}
 /* Overview office selector bar */
-.ov-office-bar{display:flex;align-items:center;gap:10px;padding:14px 36px;border-bottom:1px solid var(--border);flex-wrap:wrap;background:var(--near-black);position:sticky;top:111px;z-index:47}
+.ov-office-bar{display:flex;align-items:center;gap:10px;padding:14px 36px;border-bottom:1px solid var(--border);flex-wrap:wrap;background:var(--near-black)}
 .progress-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:40px}
 .prog-card{background:var(--card-bg);border:0.5px solid var(--border);padding:22px 24px}
 .prog-card-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
@@ -579,6 +579,21 @@ body.chrome-collapsed .rankings-stats{max-height:0;opacity:0;border-bottom-color
 #rankings-table .rank-badge{font-size:11px;padding:5px 12px;letter-spacing:1.5px}
 #rankings-table tbody tr{border-bottom:1px solid rgba(170,221,221,0.07);transition:background .12s}
 #rankings-table tbody tr:hover{background:rgba(170,221,221,0.06)}
+/* Rankings multi-select dropdowns */
+.rk-multi-sel {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(170,221,221,0.25);
+  color: rgba(248,249,249,0.75);
+  font-family: Helvetica Neue,Helvetica,Arial,sans-serif;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 6px 10px; cursor: pointer;
+  min-width: 110px;
+  transition: border-color .15s;
+}
+.rk-multi-sel:focus { outline: none; border-color: var(--cyan-light); }
+.rk-multi-sel option { background: #1e1b1c; color: var(--off-white); padding: 4px 8px; }
+
 /* Scope scrolling to the rankings panel so sticky thead works — overflow on ancestor breaks sticky */
 #panel-rankings.active{display:flex;flex-direction:column;height:calc(100vh - 111px);overflow:hidden}
 body.chrome-collapsed #panel-rankings.active{height:calc(100vh - 65px)}
@@ -1540,11 +1555,6 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
   background: rgba(242,207,156,0.1);
   border-color: var(--sand);
 }
-#panel-onboard-employee .btn-sunrun--dim {
-  opacity: 0.22;
-  cursor: not-allowed;
-  pointer-events: none;
-}
 
 /* ── SUNRUN PANEL MODAL ── */
 #ob-sunrunModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.72); z-index:1000; align-items:center; justify-content:center; padding:40px 20px; }
@@ -1751,13 +1761,24 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
   .section-title-brand{font-size:18px;}
   .section-banner-label{font-size:8px;}
 
-  /* ── Rankings — card layout (table is empty on mobile) ── */
+  /* ── Rankings — card layout (table is hidden on mobile) ── */
   #panel-rankings .table-wrap{display:none !important;}
   #rankings-mobile-list{display:block !important;}
+  /* Release the flex/fixed-height container so the page scrolls naturally */
+  #panel-rankings.active{
+    display:block !important;
+    height:auto !important;
+    overflow:visible !important;
+  }
+  #rankings-mobile-list{padding:0 0 100px;}
+  /* Rankings dropdowns — stack on mobile */
+  .rankings-filter-bar{gap:8px;padding:12px 14px;}
+  .rk-multi-sel{min-width:0;flex:1;font-size:9px;padding:7px 8px;}
 
-  /* ── Onboard — hide everything except the add button + modal ── */
-  #panel-onboard-employee > div > *:not(#ob-mobile-add-wrap):not(.modal-overlay){display:none !important;}
-  #ob-mobile-add-wrap{display:flex !important;}
+  /* ── Onboard Employee — show full form directly on mobile ── */
+  #panel-onboard-employee > div > *:not(#ob-addModal):not(#ob-sunrunModal):not(.modal-overlay){display:none !important;}
+  #ob-mobile-form-wrap{display:block !important;}
+  #ob-mobile-add-wrap{display:none !important;}
   /* ── Rep modal ── */
   #rep-modal{width:96vw;max-height:92vh;padding:0;}
   #rep-modal-content{padding:16px;}
@@ -1919,18 +1940,18 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
 <div class="tab-panel" id="panel-wtd">
   <div class="stats-bar" id="wtd-stats"></div>
   <div class="filter-bar">
-    <span class="filter-label">Office —</span>
     <button class="filter-btn" id="wtd-f-all" onclick="wtdToggleOffice('all')">All</button>
     <button class="filter-btn active" id="wtd-f-riverside" onclick="wtdToggleOffice('Riverside')">Riverside</button>
     <button class="filter-btn active" id="wtd-f-newport" onclick="wtdToggleOffice('Newport Beach')">Newport Beach</button>
     <button class="filter-btn active" id="wtd-f-oc" onclick="wtdToggleOffice('Orange County')">Orange County</button>
     <button class="filter-btn" id="wtd-f-active" onclick="wtdToggleOffice('active')">Has Activity</button>
     <div class="filter-sep"></div>
-    <span class="filter-label">View —</span>
-    <button class="view-btn active" id="wtd-v-squad" onclick="wtdSetView('squad',this)">Squad</button>
-    <button class="view-btn" id="wtd-v-leaders" onclick="wtdSetView('leaders',this)">Leaders</button>
-    <button class="view-btn" id="wtd-v-individual" onclick="wtdSetView('individual',this)">Individual</button>
-    <button class="view-btn" id="wtd-v-office" onclick="wtdSetView('office',this)">Office</button>
+    <select id="wtd-view-select" class="squad-select" style="background:rgba(255,255,255,0.05);border:1px solid rgba(170,221,221,0.25);color:rgba(248,249,249,0.6);padding:6px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer" onchange="wtdSetView(this.value,null)">
+      <option value="squad">Squad</option>
+      <option value="leaders">Leaders</option>
+      <option value="individual">Individual</option>
+      <option value="office">Office</option>
+    </select>
     <div class="filter-sep"></div>
     <select id="wtd-squad-select" class="squad-select" style="background:rgba(255,255,255,0.05);border:1px solid rgba(170,221,221,0.25);color:rgba(248,249,249,0.6);padding:6px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer" onchange="wtdSquadFilter=this.value;renderWTD()">
       <option value="">All Squads</option>
@@ -1988,18 +2009,18 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
 <div class="tab-panel" id="panel-qtd">
   <div class="stats-bar" id="qtd-stats"></div>
   <div class="filter-bar">
-    <span class="filter-label">Office —</span>
     <button class="filter-btn" id="qtd-f-all" onclick="qtdToggleOffice('all')">All</button>
     <button class="filter-btn" id="qtd-f-riverside" onclick="qtdToggleOffice('Riverside')">Riverside</button>
     <button class="filter-btn active" id="qtd-f-newport" onclick="qtdToggleOffice('Newport Beach')">Newport Beach</button>
     <button class="filter-btn active" id="qtd-f-oc" onclick="qtdToggleOffice('Orange County')">Orange County</button>
     <button class="filter-btn" id="qtd-f-active" onclick="qtdToggleOffice('active')">Has Activity</button>
     <div class="filter-sep"></div>
-    <span class="filter-label">View —</span>
-    <button class="view-btn active" id="qtd-v-squad" onclick="qtdSetView('squad',this)">Squad</button>
-    <button class="view-btn" id="qtd-v-leaders" onclick="qtdSetView('leaders',this)">Leaders</button>
-    <button class="view-btn" id="qtd-v-individual" onclick="qtdSetView('individual',this)">Individual</button>
-    <button class="view-btn" id="qtd-v-office" onclick="qtdSetView('office',this)">Office</button>
+    <select id="qtd-view-select" class="squad-select" style="background:rgba(255,255,255,0.05);border:1px solid rgba(170,221,221,0.25);color:rgba(248,249,249,0.6);padding:6px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer" onchange="qtdSetView(this.value,null)">
+      <option value="squad">Squad</option>
+      <option value="leaders">Leaders</option>
+      <option value="individual">Individual</option>
+      <option value="office">Office</option>
+    </select>
     <div class="filter-sep"></div>
     <select id="qtd-squad-select" class="squad-select" style="background:rgba(255,255,255,0.05);border:1px solid rgba(170,221,221,0.25);color:rgba(248,249,249,0.6);padding:6px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer" onchange="qtdSquadFilter=this.value;renderQTD()">
       <option value="">All Squads</option>
@@ -2078,7 +2099,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
       </tr></thead>
       <tbody id="si-table-body"></tbody>
     </table>
-    <div class="empty-state" id="si-empty-state" style="display:block">Upload the Export CSV to load Status Incentive data</div>
+    <div class="empty-state" id="si-empty-state" style="display:block">Loading Status Incentive data from Sheets…</div>
   </div>
 </div>
 <script>
@@ -2870,7 +2891,9 @@ function wtdToggleOffice(val){
 function wtdSetView(v, el){
   wtdView=v;
   document.querySelectorAll('#panel-wtd .view-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
+  if(el) el.classList.add('active');
+  var sel=document.getElementById('wtd-view-select');
+  if(sel) sel.value=v;
   renderWTD();
 }
 function wtdSetSquad(squad){
@@ -3271,7 +3294,9 @@ function qtdToggleOffice(val){
 function qtdSetView(v,el){
   qtdView=v;
   document.querySelectorAll('#panel-qtd .view-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
+  if(el) el.classList.add('active');
+  var sel=document.getElementById('qtd-view-select');
+  if(sel) sel.value=v;
   renderQTD();
 }
 function qtdSort(col){
@@ -4675,6 +4700,29 @@ function ob_commitEdit(input, id, field) {
 function ob_openAddModal() { document.getElementById('ob-addModal').classList.add('open'); }
 function ob_closeAddModal() { document.getElementById('ob-addModal').classList.remove('open'); }
 
+function ob_submitMobileForm() {
+  var name = (document.getElementById('ob-mf-name').value || '').trim();
+  var err  = document.getElementById('ob-mf-error');
+  if (!name) { err.textContent = 'Name is required.'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  // Build an emp object matching ob_addEmployee signature
+  document.getElementById('ob-f-name').value           = name;
+  document.getElementById('ob-f-mobile').value         = (document.getElementById('ob-mf-mobile').value || '').trim();
+  document.getElementById('ob-f-referral') && (document.getElementById('ob-f-referral').value = (document.getElementById('ob-mf-referral').value || '').trim());
+  document.getElementById('ob-f-office').value         = document.getElementById('ob-mf-office').value;
+  document.getElementById('ob-f-leader').value         = (document.getElementById('ob-mf-leader').value || '').trim();
+  var idate = document.getElementById('ob-mf-interview').value;
+  if (document.getElementById('ob-f-interviewDate')) document.getElementById('ob-f-interviewDate').value = idate;
+  document.getElementById('ob-f-notes').value          = (document.getElementById('ob-mf-notes').value || '').trim();
+  // Call the existing submit function
+  ob_addEmployee();
+  // Reset form on success
+  ['ob-mf-name','ob-mf-mobile','ob-mf-referral','ob-mf-leader','ob-mf-interview','ob-mf-notes'].forEach(function(id){
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('ob-mf-office').value = '';
+}
+
 // ── SUNRUN REFERRAL PANEL ────────────────────────────────────────────────────
 let ob_srCurrentEid = null;
 
@@ -5004,6 +5052,20 @@ function ob_renderDashboard() {
       const officeShort = (emp.office || '').replace('Orange County','OC').replace('Newport Beach','NB').replace('Riverside','RV');
       const statusHtml = emp.status ? ob_statusBadge(emp.status) : '';
 
+      // Contact row: call/SMS + email
+      const phoneBtn = emp.mobile
+        ? `<a href="tel:${emp.mobile}" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid rgba(170,221,221,0.25);color:var(--cyan-light);font-family:Helvetica Neue,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;transition:border-color .15s;" title="${emp.mobile}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.06 6.06l1.27-.88a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Call</a>`
+        : '';
+      const smsBtn = emp.mobile
+        ? `<a href="sms:${emp.mobile}" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid rgba(170,221,221,0.25);color:var(--cyan-light);font-family:Helvetica Neue,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;transition:border-color .15s;" title="Text ${emp.mobile}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Text</a>`
+        : '';
+      const emailBtn = emp.email
+        ? `<a href="mailto:${emp.email}" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid rgba(170,221,221,0.25);color:var(--cyan-light);font-family:Helvetica Neue,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;transition:border-color .15s;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email</a>`
+        : '';
+      const contactRow = (phoneBtn || smsBtn || emailBtn)
+        ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${phoneBtn}${smsBtn}${emailBtn}</div>`
+        : '';
+
       return `<button class="rep-card${isComplete ? ' complete' : ''}" data-eid="${emp.id}" onclick="ob_goToEmployee(this.dataset.eid)">
         <div class="rep-card-top">
           <div>
@@ -5012,6 +5074,7 @@ function ob_renderDashboard() {
           </div>
           ${statusHtml}
         </div>
+        ${contactRow}
         <div class="rep-prog-wrap">
           <div class="rep-prog-label">
             <span>Progress</span>
@@ -5905,30 +5968,35 @@ function rkPaceArrow(current, pace) {
   return rkRankBadge(pace);
 }
 
-function rkFilterOffice(val, el) {
-  if (val === 'all') {
-    rkOfficeFilter.clear();
-    document.querySelectorAll('[id^="rk-f-"]').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
-  } else {
-    document.getElementById('rk-f-all').classList.remove('active');
-    if (rkOfficeFilter.has(val)) { rkOfficeFilter.delete(val); el.classList.remove('active'); }
-    else { rkOfficeFilter.add(val); el.classList.add('active'); }
-    if (rkOfficeFilter.size === 0) document.getElementById('rk-f-all').classList.add('active');
+function rkDropdownFilter(type) {
+  // Read all selected options from the relevant select; treat __all__ as "clear filter"
+  function getSelected(selId, filterSet) {
+    var sel = document.getElementById(selId);
+    if (!sel) return;
+    filterSet.clear();
+    var chosen = Array.from(sel.selectedOptions).map(o => o.value);
+    if (chosen.includes('__all__') || chosen.length === 0) {
+      // deselect everything else, keep __all__ selected visually
+      Array.from(sel.options).forEach(o => { o.selected = o.value === '__all__'; });
+    } else {
+      // deselect __all__
+      Array.from(sel.options).forEach(o => { if (o.value === '__all__') o.selected = false; });
+      chosen.filter(v => v !== '__all__').forEach(v => filterSet.add(v));
+    }
   }
+  if (type === 'office') getSelected('rk-sel-office', rkOfficeFilter);
+  if (type === 'rank')   getSelected('rk-sel-rank',   rkRankFilter);
+  if (type === 'title')  getSelected('rk-sel-title',  rkTitleFilter);
+  renderRankings();
+}
+function rkFilterOffice(val, el) {
+  rkOfficeFilter.clear();
+  if (val !== 'all') rkOfficeFilter.add(val);
   renderRankings();
 }
 function rkFilterRank(val, el) {
-  if (val === 'all') {
-    rkRankFilter.clear();
-    document.querySelectorAll('[id^="rk-r-"]').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
-  } else {
-    document.getElementById('rk-r-all').classList.remove('active');
-    if (rkRankFilter.has(val)) { rkRankFilter.delete(val); el.classList.remove('active'); }
-    else { rkRankFilter.add(val); el.classList.add('active'); }
-    if (rkRankFilter.size === 0) document.getElementById('rk-r-all').classList.add('active');
-  }
+  rkRankFilter.clear();
+  if (val !== 'all') rkRankFilter.add(val);
   renderRankings();
 }
 function rkFilterTitle(val, el) {
@@ -6830,6 +6898,34 @@ document.addEventListener('keydown', function(e) {
 
 <div class="tab-panel" id="panel-onboard-employee"><div style="padding:0 36px">
   <!-- Mobile: show only Add New Hire button -->
+  <!-- MOBILE: inline add-new-hire form (shown instead of table on small screens) -->
+  <div id="ob-mobile-form-wrap" style="display:none;padding:16px 16px 100px;">
+    <div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--cyan-dark);margin-bottom:16px;">+ New Hire</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div><label style="display:block;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);margin-bottom:4px;">Name *</label>
+        <input id="ob-mf-name" placeholder="First Last" style="background:rgba(255,255,255,0.05);border:0.5px solid rgba(170,221,221,0.25);color:var(--off-white);font-family:Helvetica Neue,sans-serif;font-size:15px;padding:10px 12px;outline:none;width:100%;box-sizing:border-box;transition:border-color .15s;" onfocus="this.style.borderColor='var(--cyan-light)'" onblur="this.style.borderColor='rgba(170,221,221,0.25)'"></div>
+      <div><label style="display:block;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);margin-bottom:4px;">Mobile</label>
+        <input id="ob-mf-mobile" placeholder="(555) 555-5555" type="tel" style="background:rgba(255,255,255,0.05);border:0.5px solid rgba(170,221,221,0.25);color:var(--off-white);font-family:Helvetica Neue,sans-serif;font-size:15px;padding:10px 12px;outline:none;width:100%;box-sizing:border-box;" onfocus="this.style.borderColor='var(--cyan-light)'" onblur="this.style.borderColor='rgba(170,221,221,0.25)'"></div>
+      <div><label style="display:block;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);margin-bottom:4px;">Referral</label>
+        <input id="ob-mf-referral" placeholder="Who referred them?" style="background:rgba(255,255,255,0.05);border:0.5px solid rgba(170,221,221,0.25);color:var(--off-white);font-family:Helvetica Neue,sans-serif;font-size:15px;padding:10px 12px;outline:none;width:100%;box-sizing:border-box;" onfocus="this.style.borderColor='var(--cyan-light)'" onblur="this.style.borderColor='rgba(170,221,221,0.25)'"></div>
+      <div><label style="display:block;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);margin-bottom:4px;">Office</label>
+        <select id="ob-mf-office" style="background:rgba(255,255,255,0.05);border:0.5px solid rgba(170,221,221,0.25);color:var(--off-white);font-family:Helvetica Neue,sans-serif;font-size:15px;padding:10px 12px;outline:none;width:100%;box-sizing:border-box;color-scheme:dark;">
+          <option value="">— Select —</option>
+          <option>Riverside</option>
+          <option>Newport Beach</option>
+          <option>Orange County</option>
+        </select></div>
+      <div><label style="display:block;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);margin-bottom:4px;">Leader</label>
+        <input id="ob-mf-leader" placeholder="Leader name" style="background:rgba(255,255,255,0.05);border:0.5px solid rgba(170,221,221,0.25);color:var(--off-white);font-family:Helvetica Neue,sans-serif;font-size:15px;padding:10px 12px;outline:none;width:100%;box-sizing:border-box;" onfocus="this.style.borderColor='var(--cyan-light)'" onblur="this.style.borderColor='rgba(170,221,221,0.25)'"></div>
+      <div><label style="display:block;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);margin-bottom:4px;">Interview Date</label>
+        <input id="ob-mf-interview" type="date" style="background:rgba(255,255,255,0.05);border:0.5px solid rgba(170,221,221,0.25);color:var(--off-white);font-family:Helvetica Neue,sans-serif;font-size:15px;padding:10px 12px;outline:none;width:100%;box-sizing:border-box;color-scheme:dark;" onfocus="this.style.borderColor='var(--cyan-light)'" onblur="this.style.borderColor='rgba(170,221,221,0.25)'"></div>
+      <div><label style="display:block;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);margin-bottom:4px;">Notes</label>
+        <input id="ob-mf-notes" placeholder="Any notes…" style="background:rgba(255,255,255,0.05);border:0.5px solid rgba(170,221,221,0.25);color:var(--off-white);font-family:Helvetica Neue,sans-serif;font-size:15px;padding:10px 12px;outline:none;width:100%;box-sizing:border-box;" onfocus="this.style.borderColor='var(--cyan-light)'" onblur="this.style.borderColor='rgba(170,221,221,0.25)'"></div>
+      <div id="ob-mf-error" style="display:none;color:#F05252;font-family:Helvetica Neue,sans-serif;font-size:12px;padding:8px 0;"></div>
+      <button onclick="ob_submitMobileForm()" style="background:var(--cyan-light);color:var(--near-black);border:none;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:15px 28px;cursor:pointer;width:100%;margin-top:4px;">Submit New Hire</button>
+    </div>
+  </div>
+
   <div id="ob-mobile-add-wrap" style="display:none;align-items:center;justify-content:center;padding:40px 24px;">
     <button onclick="ob_openAddModal()" style="background:var(--cyan-light);color:var(--near-black);border:none;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:14px 28px;cursor:pointer;width:100%;max-width:280px;">+ Add New Hire</button>
   </div>
@@ -7187,26 +7283,26 @@ document.addEventListener('keydown', function(e) {
   <div class="rankings-stats" id="rankings-stats-bar"></div>
   <!-- FILTER BAR -->
   <div class="rankings-filter-bar">
-    <span class="filter-label">Office —</span>
-    <button class="filter-btn active" id="rk-f-all"    onclick="rkFilterOffice('all',this)">All</button>
-    <button class="filter-btn"        id="rk-f-rv"     onclick="rkFilterOffice('Riverside',this)">Riverside</button>
-    <button class="filter-btn"        id="rk-f-nb"     onclick="rkFilterOffice('Newport Beach',this)">Newport Beach</button>
-    <button class="filter-btn"        id="rk-f-oc"     onclick="rkFilterOffice('Orange County',this)">Orange County</button>
-    <div class="filter-sep"></div>
-    <span class="filter-label">Rank —</span>
-    <button class="filter-btn active" id="rk-r-all"    onclick="rkFilterRank('all',this)">All</button>
-    <button class="filter-btn"        id="rk-r-premier" onclick="rkFilterRank('PREMIER',this)">Premier</button>
-    <button class="filter-btn"        id="rk-r-l3"     onclick="rkFilterRank('LEVEL 3',this)">Level 3</button>
-    <button class="filter-btn"        id="rk-r-l2"     onclick="rkFilterRank('LEVEL 2',this)">Level 2</button>
-    <button class="filter-btn"        id="rk-r-l1"     onclick="rkFilterRank('LEVEL 1',this)">Level 1</button>
-    <button class="filter-btn"        id="rk-r-ns"     onclick="rkFilterRank('NO STATUS',this)">No Status</button>
-    <div class="filter-sep"></div>
-    <span class="filter-label">Title —</span>
-    <button class="filter-btn active" id="rk-t-all"    onclick="rkFilterTitle('all',this)">All</button>
-    <button class="filter-btn"        id="rk-t-sm"     onclick="rkFilterTitle('SM',this)">SM</button>
-    <button class="filter-btn"        id="rk-t-dm"     onclick="rkFilterTitle('DM',this)">DM</button>
-    <button class="filter-btn"        id="rk-t-dir"    onclick="rkFilterTitle('Director',this)">Director</button>
-    <div class="filter-sep"></div>
+    <select id="rk-sel-office" class="rk-multi-sel" multiple onchange="rkDropdownFilter('office')">
+      <option value="__all__" selected>All Offices</option>
+      <option value="Riverside">Riverside</option>
+      <option value="Newport Beach">Newport Beach</option>
+      <option value="Orange County">Orange County</option>
+    </select>
+    <select id="rk-sel-rank" class="rk-multi-sel" multiple onchange="rkDropdownFilter('rank')">
+      <option value="__all__" selected>All Ranks</option>
+      <option value="PREMIER">Premier</option>
+      <option value="LEVEL 3">Level 3</option>
+      <option value="LEVEL 2">Level 2</option>
+      <option value="LEVEL 1">Level 1</option>
+      <option value="NO STATUS">No Status</option>
+    </select>
+    <select id="rk-sel-title" class="rk-multi-sel" multiple onchange="rkDropdownFilter('title')">
+      <option value="__all__" selected>All Titles</option>
+      <option value="SM">SM</option>
+      <option value="DM">DM</option>
+      <option value="Director">Director</option>
+    </select>
     <div class="search-wrap ml-auto">
       <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input id="rk-search" placeholder="Search name..." oninput="renderRankings()">
