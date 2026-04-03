@@ -6083,6 +6083,19 @@ function rkPaceArrow(current, pace) {
   return rkRankBadge(pace);
 }
 
+function rkApplyFilters() {
+  function readSelect(selId, filterSet) {
+    var sel = document.getElementById(selId);
+    if (!sel) return;
+    filterSet.clear();
+    var chosen = Array.from(sel.selectedOptions).map(o => o.value).filter(v => v !== '__all__');
+    chosen.forEach(v => filterSet.add(v));
+  }
+  readSelect('rk-sel-office', rkOfficeFilter);
+  readSelect('rk-sel-rank',   rkRankFilter);
+  readSelect('rk-sel-title',  rkTitleFilter);
+  renderRankings();
+}
 function rkDropdownFilter(type) {
   // Read all selected options from the relevant select; treat __all__ as "clear filter"
   function getSelected(selId, filterSet) {
@@ -7418,7 +7431,7 @@ document.addEventListener('keydown', function(e) {
       <option value="DM">DM</option>
       <option value="Director">Director</option>
     </select>
-    <button onclick="renderRankings()" style="background:var(--cyan-dark);color:var(--near-black);border:none;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:7px 14px;cursor:pointer;white-space:nowrap;flex-shrink:0;">Apply</button>
+    <button onclick="rkApplyFilters()" style="background:var(--cyan-dark);color:var(--near-black);border:none;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:7px 14px;cursor:pointer;white-space:nowrap;flex-shrink:0;">Apply</button>
     <div class="search-wrap ml-auto">
       <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input id="rk-search" placeholder="Search name..." oninput="renderRankings()">
