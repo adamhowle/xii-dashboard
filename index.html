@@ -1834,7 +1834,8 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
   <div class="xii-mob-tab" data-tab="wtd" onclick="xiiMobSwitch('wtd',this)">WTD Detail</div>
   <div class="xii-mob-tab" data-tab="qtd" onclick="xiiMobSwitch('qtd',this)">QTD Detail</div>
   <div class="xii-mob-tab" data-tab="rankings" onclick="xiiMobSwitch('rankings',this)">Rankings</div>
-  <div class="xii-mob-tab" data-tab="status-incentive" onclick="xiiMobSwitch('status-incentive',this)">Status Incentive</div>
+  <div class="xii-mob-tab" data-tab="status-incentive" onclick="xiiMobSwitch('status-incentive',this)">Status Chasers</div>
+  <div class="xii-mob-tab" data-tab="game-changers" onclick="xiiMobSwitch('game-changers',this)">Game Changers</div>
   <div class="xii-mob-tab" data-tab="roster" onclick="xiiMobSwitch('roster',this)">Roster</div>
   <div class="xii-mob-tab" data-tab="onboard-employee" onclick="xiiMobSwitch('onboard-employee',this)">Onboard Employee</div>
   <div class="xii-mob-tab" data-tab="onboard-progress" onclick="xiiMobSwitch('onboard-progress',this)">Onboard Progress</div>
@@ -1848,7 +1849,8 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
   <div class="tab" onclick="switchTab('wtd',this)">WTD Detail</div>
   <div class="tab" onclick="switchTab('qtd',this)">QTD Detail</div>
   <div class="tab" onclick="switchTab('rankings',this)">Rankings</div>
-  <div class="tab" onclick="switchTab('status-incentive',this)">Status Incentive</div>
+  <div class="tab" onclick="switchTab('status-incentive',this)">Status Chasers</div>
+  <div class="tab" onclick="switchTab('game-changers',this)">Game Changers</div>
   <div class="tab" onclick="switchTab('roster',this)">Roster</div>
   <div class="tab" onclick="switchTab('onboard-employee',this)">Onboard Employee</div>
   <div class="tab" onclick="switchTab('onboard-progress',this)">Onboard Progress</div>
@@ -2106,12 +2108,48 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
       </tr></thead>
       <tbody id="si-table-body"></tbody>
     </table>
-    <div class="empty-state" id="si-empty-state" style="display:block">Loading Status Incentive data from Sheets…</div>
+    <div class="empty-state" id="si-empty-state" style="display:block">Loading Status Chasers data from Sheets…</div>
   </div>
 </div>
 <script>
   // Init SI after its DOM exists — safe to run here
   if (typeof buildSIFromRepPerf === 'function') buildSIFromRepPerf();
+</script>
+
+<div class="tab-panel" id="panel-game-changers">
+  <div class="stats-bar" id="gc-stats-bar"></div>
+  <div class="filter-bar">
+    <span class="filter-label">Filter —</span>
+    <button class="filter-btn active" onclick="gc_setFilter('all', this)">All</button>
+    <button class="filter-btn" id="gc-btn-riverside" onclick="gc_setOfficeFilter('Riverside', this)">Riverside</button>
+    <button class="filter-btn" id="gc-btn-newportbeach" onclick="gc_setOfficeFilter('Newport Beach', this)">Newport Beach</button>
+    <button class="filter-btn" id="gc-btn-orangecounty" onclick="gc_setOfficeFilter('Orange County', this)">Orange County</button>
+    <div class="filter-sep"></div>
+    <div class="search-wrap">
+      <svg class="search-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#F8F9F9" stroke-width="1.5"><circle cx="5" cy="5" r="3.5"/><path d="M8 8l2.5 2.5"/></svg>
+      <input type="text" id="gc-search-input" placeholder="Search name..." oninput="gc_applySearch()">
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table id="gc-main-table">
+      <thead><tr>
+        <th onclick="gc_sortBy('Name')">Name <span class="sa">↕</span></th>
+        <th style="text-align:left;white-space:nowrap;cursor:default;color:var(--cyan-dark)">Progress <span style="opacity:.45;font-size:.75em;letter-spacing:1px">SRA /7 · IC /3</span></th>
+        <th onclick="gc_sortBy('QSRA')" style="text-align:center">QSRA <span class="sa">↕</span></th>
+        <th onclick="gc_sortBy('QIC')" style="text-align:center">QIC <span class="sa">↕</span></th>
+        <th onclick="gc_sortBy('Office')">Office <span class="sa">↕</span></th>
+      </tr></thead>
+      <tbody id="gc-table-body"></tbody>
+    </table>
+    <div class="empty-state" id="gc-empty-state" style="display:block">Loading Game Changers data from Sheets…</div>
+  </div>
+  <div class="footer-bar">
+    <span class="footer-count" id="gc-footer-count">■ Loading…</span>
+    <span class="footer-brand">■ XII — BUILDING CULTURE FORWARD ■</span>
+  </div>
+</div>
+<script>
+  if (typeof gc_build === 'function') gc_build();
 </script>
 
 <div class="tab-panel" id="panel-roster">
@@ -2434,6 +2472,7 @@ function switchTab(id, el){
   else if(id==='qtd') { renderQTD(); applyColPrefs('qtd'); }
   else if(id==='roster') renderRoster();
   else if(id==='status-incentive') { if(typeof buildSIFromRepPerf==='function'){ buildSIFromRepPerf(); applyFilters(); } }
+  else if(id==='game-changers') { if(typeof gc_build==='function'){ gc_build(); gc_applyFilters(); } }
   else if(id==='onboard-employee') { try{ob_renderTable();}catch(e){} }
   else if(id==='onboard-progress') { try{ob_renderDashboard();}catch(e){} }
   else if(id==='onboarding') { try { ob_renderTable(); } catch(e) {} }
@@ -5267,9 +5306,14 @@ function reapplyRepPerfAuthority() {
 function buildSIFromRepPerf() {
   const rosterById = Object.fromEntries(ROSTER_EMPLOYEES.map(e => [e.id, e]));
 
-  // Build the list from Rankings — anyone ranked NO STATUS
+  // Build the list from Rankings — anyone whose BOTH current AND highest rank is NO STATUS
+  // (highest rank != NO STATUS means they achieved a level before and are excluded)
   const eligible = Object.entries(RANKINGS_MAP)
-    .filter(([id, r]) => (r.currentRank || '').toUpperCase() === 'NO STATUS')
+    .filter(([id, r]) => {
+      const cur  = (r.currentRank  || '').toUpperCase();
+      const high = (r.highestRank  || '').toUpperCase();
+      return cur === 'NO STATUS' && (high === 'NO STATUS' || high === '');
+    })
     .map(([id]) => id);
 
   if (!eligible.length) return; // Rankings not loaded yet
@@ -5560,6 +5604,177 @@ function deleteRow(id) {
   }
 }
 
+// ── GAME CHANGERS TAB ─────────────────────────────────────────────────────────
+// Fully namespaced with gc_ prefix — mirrors Status Chasers but pulls from
+// the dedicated "Game Changers" sheet tab.
+
+let GC_EMPLOYEES = []; // raw rows from Sheets Game Changers tab
+let gc_allData = [];
+let gc_filteredData = [];
+let gc_activeFilter = 'all';
+let gc_activeOffice = null;
+let gc_sortCol = 'QSRA';
+let gc_sortDir = -1;
+let gc_searchTerm = '';
+
+function gc_build() {
+  if (!GC_EMPLOYEES.length) return;
+  const rosterById = Object.fromEntries(ROSTER_EMPLOYEES.map(e => [e.id, e]));
+
+  gc_allData = GC_EMPLOYEES.map((r, i) => {
+    const id     = String(r['employee id'] || r['id'] || '').trim();
+    const roster = rosterById[id] || {};
+    const qtd    = QTD_MAP[id] || {};
+    const qsra   = qtd.qtr_sra != null ? qtd.qtr_sra : (r['qsra'] != null ? parseFloat(r['qsra']) : '');
+    const qic    = qtd.qtr_ic  != null ? qtd.qtr_ic  : (r['qic']  != null ? parseFloat(r['qic'])  : '');
+    const sraRem = qsra !== '' ? (parseFloat(qsra) - 7) : '';
+    const icRem  = qic  !== '' ? (parseFloat(qic)  - 3) : '';
+    const name   = roster.name   || String(r['name']   || '');
+    const office = roster.office || String(r['office'] || '');
+    if (!name) return null;
+    return {
+      _id: i,
+      'ID':     id,
+      'Name':   name,
+      'Office': office,
+      'QSRA':   qsra !== '' ? String(qsra) : '',
+      'QIC':    qic  !== '' ? String(qic)  : '',
+      'SRA Remaining': sraRem !== '' ? String(sraRem) : '',
+      'IC Remaining':  icRem  !== '' ? String(icRem)  : '',
+    };
+  }).filter(Boolean);
+
+  gc_allData.sort((a, b) => (parseFloat(b['QSRA']) || 0) - (parseFloat(a['QSRA']) || 0));
+  gc_applyFilters();
+}
+
+function gc_renderStats() {
+  const bar = document.getElementById('gc-stats-bar');
+  if (!bar) return;
+  const total   = gc_filteredData.length;
+  const offices = [...new Set(gc_filteredData.map(r => r['Office']))].filter(Boolean).length;
+  const topQSRA = gc_filteredData.reduce((max, r) => {
+    const v = parseFloat(r['QSRA']); return (!isNaN(v) && v > max) ? v : max;
+  }, 0);
+  bar.innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value">${total}</div><div class="stat-sub">game changers</div></div>
+    <div class="stat-card"><div class="stat-label">Top QSRA</div><div class="stat-value">${topQSRA}</div><div class="stat-sub">highest qualifier</div></div>
+    <div class="stat-card"><div class="stat-label">Offices</div><div class="stat-value">${offices}</div><div class="stat-sub">locations active</div></div>
+  `;
+}
+
+function gc_renderTable() {
+  const tbody = document.getElementById('gc-table-body');
+  const empty = document.getElementById('gc-empty-state');
+  if (!tbody || !empty) return;
+
+  if (gc_filteredData.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    const fc = document.getElementById('gc-footer-count');
+    if (fc) fc.textContent = '■ 0 records';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const SI_OFFICE_COLORS = { 'Riverside':'#417375', 'Newport Beach':'#AADDDD', 'Orange County':'#F2CF9C' };
+
+  tbody.innerHTML = gc_filteredData.map((row, i) => {
+    const officeColor = SI_OFFICE_COLORS[row['Office']] || '#AADDDD';
+    const sraVal = parseFloat(row['QSRA']) || 0;
+    const icVal  = parseFloat(row['QIC'])  || 0;
+    const sraPct = Math.min(sraVal / 7 * 100, 100);
+    const icPct  = Math.min(icVal  / 3 * 100, 100);
+    const sraComplete = sraPct >= 100;
+    const icComplete  = icPct  >= 100;
+
+    const sraRaw = (row['QSRA'] !== '' && row['QSRA'] != null) ? String(parseFloat(row['QSRA'])||0) : '—';
+    const icRaw  = (row['QIC']  !== '' && row['QIC']  != null) ? String(parseFloat(row['QIC']) ||0) : '—';
+    const sraDisplay = sraRaw === '—' ? '—' : (sraVal >= 7 ? `<span style="color:var(--cyan-light);font-weight:700">+</span>${sraRaw}` : sraRaw);
+    const icDisplay  = icRaw  === '—' ? '—' : (icVal  >= 3 ? `<span style="color:#2DC48E;font-weight:700">+</span>${icRaw}`  : icRaw);
+
+    return `<tr style="animation-delay:${Math.min(i*0.02,0.5)}s" data-id="${row._id}">
+      <td class="td-name">${row['Name']}</td>
+      <td class="td-progress">
+        <div class="progress-stack">
+          <div class="prog-row">
+            <span class="prog-label">SRA</span>
+            <div class="prog-track"><div class="prog-bar sra-bar${sraComplete?' complete':''}" style="width:${sraPct}%"></div></div>
+            <span class="prog-pct${sraComplete?' complete':''}">${Math.round(sraPct)}%</span>
+          </div>
+          <div class="prog-row">
+            <span class="prog-label">IC</span>
+            <div class="prog-track"><div class="prog-bar ic-bar${icComplete?' complete':''}" style="width:${icPct}%"></div></div>
+            <span class="prog-pct${icComplete?' complete':''}">${Math.round(icPct)}%</span>
+          </div>
+        </div>
+      </td>
+      <td class="td-num" style="text-align:center">${sraDisplay}</td>
+      <td class="td-num" style="text-align:center">${icDisplay}</td>
+      <td><span style="display:inline-flex;align-items:center;gap:5px">
+        <span style="width:6px;height:6px;border-radius:50%;background:${officeColor};display:inline-block"></span>
+        ${row['Office']||'—'}
+      </span></td>
+    </tr>`;
+  }).join('');
+
+  const fc = document.getElementById('gc-footer-count');
+  if (fc) fc.textContent = `■ ${gc_filteredData.length} of ${gc_allData.length} reps`;
+}
+
+function gc_applyFilters() {
+  let data = [...gc_allData];
+  if (gc_activeOffice) data = data.filter(r => r['Office'] === gc_activeOffice);
+  if (gc_searchTerm) {
+    const s = gc_searchTerm.toLowerCase();
+    data = data.filter(r => r['Name'].toLowerCase().includes(s));
+  }
+  if (gc_sortCol) {
+    data.sort((a, b) => {
+      const va = a[gc_sortCol], vb = b[gc_sortCol];
+      const na = parseFloat(va), nb = parseFloat(vb);
+      if (!isNaN(na) && !isNaN(nb)) return (na - nb) * gc_sortDir;
+      return String(va||'').localeCompare(String(vb||'')) * gc_sortDir;
+    });
+  }
+  gc_filteredData = data;
+  gc_renderStats();
+  gc_renderTable();
+}
+
+function gc_setFilter(type, btn) {
+  gc_activeFilter = type;
+  gc_activeOffice = null;
+  document.querySelectorAll('#panel-game-changers .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  gc_applyFilters();
+}
+
+function gc_setOfficeFilter(office, btn) {
+  if (gc_activeOffice === office) {
+    gc_activeOffice = null;
+    btn.classList.remove('active');
+    document.getElementById('panel-game-changers').querySelector('.filter-btn').classList.add('active');
+  } else {
+    gc_activeOffice = office;
+    document.querySelectorAll('#panel-game-changers .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  gc_applyFilters();
+}
+
+function gc_applySearch() {
+  gc_searchTerm = document.getElementById('gc-search-input').value;
+  gc_applyFilters();
+}
+
+function gc_sortBy(col) {
+  if (gc_sortCol === col) gc_sortDir *= -1;
+  else { gc_sortCol = col; gc_sortDir = 1; }
+  gc_applyFilters();
+}
+// ── END GAME CHANGERS ─────────────────────────────────────────────────────────
+
 function handleCSV(event) {
   const files = Array.from(event.target.files);
   if (!files.length) return;
@@ -5834,6 +6049,7 @@ function parseRosterCSV(text) {
 // ── Global storage for new tab data ──────────────────────────────────────────
 let COMBINE2_EMPLOYEES = []; // Populated from Google Sheets
 let NEW_HIRE_EMPLOYEES = []; // Populated from Google Sheets
+let GC_EMPLOYEES = []; // Populated from Google Sheets — Game Changers tab
 // Safe defaults — populated when Export CSV is uploaded
 let RANKINGS_MAP = {}; // Populated from Google Sheets
 let rankingsData = []; // Populated from Google Sheets
@@ -6711,9 +6927,9 @@ async function fetchSheetsData(opts) {
     var exRows = sheetsRowsToObjects((await exRes.json()).values || []).map(function(r) {
       var id = String(r['employee id'] || '').trim();
       if (!id || !/^\d+$/.test(id)) return null;
-      return { id, name: String(r['name']||''), office: shortOffice(String(r['office']||'')), title: String(r['title']||''), currentRank: String(r['current rank']||'NO STATUS'), rankPace: String(r['rank pace']||'NO STATUS'), llPoints: csvNum(r['ll install points']), qInstalls: csvNum(r['q installs (w/ add-ons)']), capPoints: csvNum(r['cap points']), sraPoints: csvNum(r['sra points']), careerIC: csvNum(r['career ic']) };
+      return { id, name: String(r['name']||''), office: shortOffice(String(r['office']||'')), title: String(r['title']||''), currentRank: String(r['current rank']||'NO STATUS'), highestRank: String(r['highest rank']||'NO STATUS'), rankPace: String(r['rank pace']||'NO STATUS'), llPoints: csvNum(r['ll install points']), qInstalls: csvNum(r['q installs (w/ add-ons)']), capPoints: csvNum(r['cap points']), sraPoints: csvNum(r['sra points']), careerIC: csvNum(r['career ic']) };
     }).filter(Boolean);
-    if (exRows.length) { rankingsData = exRows; RANKINGS_MAP = Object.fromEntries(exRows.map(function(r){ return [r.id, {title:r.title, currentRank:r.currentRank}]; })); }
+    if (exRows.length) { rankingsData = exRows; RANKINGS_MAP = Object.fromEntries(exRows.map(function(r){ return [r.id, {title:r.title, currentRank:r.currentRank, highestRank:r.highestRank}]; })); }
   } catch(e) { errors.push('Export: ' + e.message); }
 
   // ── Report (WTD AC/Knocks/Pitches) ──────────────────────────────────────────
@@ -6790,8 +7006,17 @@ async function fetchSheetsData(opts) {
     if (nhRows.length) { NEW_HIRE_EMPLOYEES.length = 0; nhRows.forEach(function(e){ NEW_HIRE_EMPLOYEES.push(e); }); }
   } catch(e) { errors.push('New Hires: ' + e.message); }
 
-
-  if (errors.length) {
+  // ── Game Changers ─────────────────────────────────────────────────────────────
+  try {
+    var gcRes = await fetchWithTimeout(sheetsUrl('Game Changers'));
+    if (!gcRes.ok) throw new Error('HTTP ' + gcRes.status);
+    var gcRows = sheetsRowsToObjects((await gcRes.json()).values || []).map(function(r) {
+      var id = String(r['employee id'] || r['rep id'] || r['id'] || '').trim();
+      if (!id) return null;
+      return { 'employee id': id, name: String(r['name']||''), office: shortOffice(String(r['office']||'')), qsra: r['qsra']||r['sra']||'', qic: r['qic']||r['ic']||'' };
+    }).filter(Boolean);
+    if (gcRows.length) { GC_EMPLOYEES.length = 0; gcRows.forEach(function(e){ GC_EMPLOYEES.push(e); }); }
+  } catch(e) { errors.push('Game Changers: ' + e.message); }
     showSyncBanner('Sync issues: ' + errors.join(' / '), true);
     console.warn('[Sheets] errors:', errors);
   } else {
@@ -6806,6 +7031,7 @@ async function fetchSheetsData(opts) {
   document.getElementById('wtd-date-input').value = _today;
   document.getElementById('qtd-date-input').value = _today;
   buildSIFromRepPerf();
+  gc_build();
   renderRankings();
   renderOverview();
   renderWTD();
