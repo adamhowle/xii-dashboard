@@ -580,19 +580,57 @@ body.chrome-collapsed .rankings-stats{max-height:0;opacity:0;border-bottom-color
 #rankings-table tbody tr{border-bottom:1px solid rgba(170,221,221,0.07);transition:background .12s}
 #rankings-table tbody tr:hover{background:rgba(170,221,221,0.06)}
 /* Rankings multi-select dropdowns */
-.rk-multi-sel {
+/* Rankings custom checkbox dropdowns */
+.rk-chk-wrap {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.rk-chk-btn {
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(170,221,221,0.25);
   color: rgba(248,249,249,0.75);
   font-family: Helvetica Neue,Helvetica,Arial,sans-serif;
   font-size: 10px; font-weight: 600;
   letter-spacing: 1px; text-transform: uppercase;
-  padding: 6px 10px; cursor: pointer;
-  min-width: 110px;
-  transition: border-color .15s;
+  padding: 7px 28px 7px 12px; cursor: pointer;
+  white-space: nowrap; min-width: 120px; text-align: left;
+  transition: border-color .15s; position: relative;
 }
-.rk-multi-sel:focus { outline: none; border-color: var(--cyan-light); }
-.rk-multi-sel option { background: #1e1b1c; color: var(--off-white); padding: 4px 8px; }
+.rk-chk-btn::after {
+  content: '▾';
+  position: absolute; right: 10px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px; color: var(--cyan-dark);
+}
+.rk-chk-btn.active-filter {
+  border-color: var(--cyan-light);
+  color: var(--cyan-light);
+}
+.rk-chk-panel {
+  display: none;
+  position: absolute; top: calc(100% + 4px); left: 0;
+  background: #1a1718; border: 1px solid rgba(170,221,221,0.25);
+  min-width: 160px; z-index: 200; padding: 6px 0;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.rk-chk-panel.open { display: block; }
+.rk-chk-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px; cursor: pointer;
+  font-family: Helvetica Neue,Helvetica,Arial,sans-serif;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: rgba(248,249,249,0.65);
+  transition: background .1s, color .1s;
+  user-select: none;
+}
+.rk-chk-item:hover { background: rgba(170,221,221,0.07); color: var(--off-white); }
+.rk-chk-item input[type=checkbox] {
+  width: 13px; height: 13px;
+  accent-color: var(--cyan-light); cursor: pointer; flex-shrink: 0;
+}
+.rk-chk-item.checked { color: var(--cyan-light); }
 
 /* Scope scrolling to the rankings panel so sticky thead works — overflow on ancestor breaks sticky */
 #panel-rankings.active{display:flex;flex-direction:column;height:calc(100vh - 111px);overflow:hidden}
@@ -1806,7 +1844,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
   #rankings-mobile-list{padding:0 0 100px;}
   /* Rankings dropdowns — stack on mobile */
   .rankings-filter-bar{gap:8px;padding:12px 14px;}
-  .rk-multi-sel{min-width:0;flex:1;font-size:9px;padding:7px 8px;}
+  .rk-chk-btn{min-width:0;flex:1;font-size:9px;padding:6px 24px 6px 8px;}
 
   /* ── Onboard Progress — tighter padding, full-width search ── */
   .ob-prog-inner { padding: 0 14px; }
@@ -6499,60 +6537,102 @@ function rkPaceArrow(current, pace) {
   return rkRankBadge(pace);
 }
 
-function rkApplyFilters() {
-  function readSelect(selId, filterSet) {
-    var sel = document.getElementById(selId);
-    if (!sel) return;
-    filterSet.clear();
-    var chosen = Array.from(sel.selectedOptions).map(o => o.value).filter(v => v !== '__all__');
-    chosen.forEach(v => filterSet.add(v));
+// ── Rankings checkbox dropdown filter system ──────────────────────────────────
+function rkTogglePanel(type) {
+  var panelId = 'rk-panel-' + type;
+  var panel = document.getElementById(panelId);
+  if (!panel) return;
+  var isOpen = panel.classList.contains('open');
+  // Close all panels first
+  document.querySelectorAll('.rk-chk-panel').forEach(p => p.classList.remove('open'));
+  if (!isOpen) panel.classList.add('open');
+}
+
+// Close panels when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.rk-chk-wrap')) {
+    document.querySelectorAll('.rk-chk-panel').forEach(p => p.classList.remove('open'));
   }
-  readSelect('rk-sel-office', rkOfficeFilter);
-  readSelect('rk-sel-rank',   rkRankFilter);
-  readSelect('rk-sel-title',  rkTitleFilter);
-  renderRankings();
-}
-function rkDropdownFilter(type) {
-  // Read all selected options from the relevant select; treat __all__ as "clear filter"
-  function getSelected(selId, filterSet) {
-    var sel = document.getElementById(selId);
-    if (!sel) return;
-    filterSet.clear();
-    var chosen = Array.from(sel.selectedOptions).map(o => o.value);
-    if (chosen.includes('__all__') || chosen.length === 0) {
-      // deselect everything else, keep __all__ selected visually
-      Array.from(sel.options).forEach(o => { o.selected = o.value === '__all__'; });
-    } else {
-      // deselect __all__
-      Array.from(sel.options).forEach(o => { if (o.value === '__all__') o.selected = false; });
-      chosen.filter(v => v !== '__all__').forEach(v => filterSet.add(v));
-    }
-  }
-  if (type === 'office') getSelected('rk-sel-office', rkOfficeFilter);
-  if (type === 'rank')   getSelected('rk-sel-rank',   rkRankFilter);
-  if (type === 'title')  getSelected('rk-sel-title',  rkTitleFilter);
-  renderRankings();
-}
-function rkFilterOffice(val, el) {
-  rkOfficeFilter.clear();
-  if (val !== 'all') rkOfficeFilter.add(val);
-  renderRankings();
-}
-function rkFilterRank(val, el) {
-  rkRankFilter.clear();
-  if (val !== 'all') rkRankFilter.add(val);
-  renderRankings();
-}
-function rkFilterTitle(val, el) {
-  if (val === 'all') {
-    rkTitleFilter.clear();
-    document.querySelectorAll('[id^="rk-t-"]').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
+});
+
+function rkChkAll(type) {
+  var allEl = document.getElementById('rkc-' + type + '-all');
+  if (!allEl) return;
+  // When "All" is checked, uncheck all others; when unchecked, re-check it (can't have nothing)
+  var panel = document.getElementById('rk-panel-' + type);
+  var others = Array.from(panel.querySelectorAll('input[type=checkbox]')).filter(c => c !== allEl);
+  if (allEl.checked) {
+    others.forEach(c => { c.checked = false; c.closest('.rk-chk-item').classList.remove('checked'); });
+    allEl.closest('.rk-chk-item').classList.add('checked');
   } else {
-    document.getElementById('rk-t-all').classList.remove('active');
-    if (rkTitleFilter.has(val)) { rkTitleFilter.delete(val); el.classList.remove('active'); }
-    else { rkTitleFilter.add(val); el.classList.add('active'); }
-    if (rkTitleFilter.size === 0) document.getElementById('rk-t-all').classList.add('active');
+    allEl.checked = true; // keep all checked if nothing else is selected
+  }
+  rkChkSync(type);
+}
+
+function rkChkChange(type) {
+  var allEl = document.getElementById('rkc-' + type + '-all');
+  var panel = document.getElementById('rk-panel-' + type);
+  var others = Array.from(panel.querySelectorAll('input[type=checkbox]')).filter(c => c !== allEl);
+  var anyChecked = others.some(c => c.checked);
+  if (anyChecked) {
+    allEl.checked = false;
+    allEl.closest('.rk-chk-item').classList.remove('checked');
+  } else {
+    // Nothing selected — revert to All
+    allEl.checked = true;
+    allEl.closest('.rk-chk-item').classList.add('checked');
+  }
+  // Update checked styling on each item
+  others.forEach(c => {
+    c.closest('.rk-chk-item').classList.toggle('checked', c.checked);
+  });
+  rkChkSync(type);
+}
+
+function rkChkSync(type) {
+  var filterMap = { office: rkOfficeFilter, rank: rkRankFilter, title: rkTitleFilter };
+  var filterSet = filterMap[type];
+  if (!filterSet) return;
+  filterSet.clear();
+  var allEl = document.getElementById('rkc-' + type + '-all');
+  if (!allEl || allEl.checked) {
+    // All selected — empty set means no filter
+  } else {
+    var panel = document.getElementById('rk-panel-' + type);
+    Array.from(panel.querySelectorAll('input[type=checkbox]')).forEach(function(c) {
+      if (c !== allEl && c.checked) filterSet.add(c.value);
+    });
+  }
+  // Update button label
+  var btn = document.getElementById('rk-btn-' + type);
+  if (btn) {
+    var labels = { office: 'All Offices', rank: 'All Ranks', title: 'All Titles' };
+    if (filterSet.size === 0) {
+      btn.textContent = labels[type];
+      btn.classList.remove('active-filter');
+    } else if (filterSet.size === 1) {
+      btn.textContent = [...filterSet][0].charAt(0).toUpperCase() + [...filterSet][0].slice(1).toLowerCase();
+      btn.classList.add('active-filter');
+    } else {
+      btn.textContent = filterSet.size + ' selected';
+      btn.classList.add('active-filter');
+    }
+    // Re-add the ▾ arrow via ::after — textContent clears it, restore with a space
+  }
+  renderRankings();
+}
+
+// Legacy stubs — kept so any remaining references don't throw
+function rkApplyFilters() { renderRankings(); }
+function rkDropdownFilter(type) { renderRankings(); }
+function rkFilterOffice(val, el) { renderRankings(); }
+function rkFilterRank(val, el) { renderRankings(); }
+function rkFilterTitle(val, el) {
+  if (val === 'all') { rkTitleFilter.clear(); }
+  else {
+    if (rkTitleFilter.has(val)) rkTitleFilter.delete(val);
+    else rkTitleFilter.add(val);
   }
   renderRankings();
 }
@@ -7897,27 +7977,39 @@ document.addEventListener('keydown', function(e) {
   <div class="rankings-stats" id="rankings-stats-bar"></div>
   <!-- FILTER BAR -->
   <div class="rankings-filter-bar">
-    <select id="rk-sel-office" class="rk-multi-sel" multiple onchange="rkDropdownFilter('office')">
-      <option value="__all__" selected>All Offices</option>
-      <option value="Riverside">Riverside</option>
-      <option value="Newport Beach">Newport Beach</option>
-      <option value="Orange County">Orange County</option>
-    </select>
-    <select id="rk-sel-rank" class="rk-multi-sel" multiple onchange="rkDropdownFilter('rank')">
-      <option value="__all__" selected>All Ranks</option>
-      <option value="PREMIER">Premier</option>
-      <option value="LEVEL 3">Level 3</option>
-      <option value="LEVEL 2">Level 2</option>
-      <option value="LEVEL 1">Level 1</option>
-      <option value="NO STATUS">No Status</option>
-    </select>
-    <select id="rk-sel-title" class="rk-multi-sel" multiple onchange="rkDropdownFilter('title')">
-      <option value="__all__" selected>All Titles</option>
-      <option value="SM">SM</option>
-      <option value="DM">DM</option>
-      <option value="Director">Director</option>
-    </select>
-    <button onclick="rkApplyFilters()" style="background:var(--cyan-dark);color:var(--near-black);border:none;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:7px 14px;cursor:pointer;white-space:nowrap;flex-shrink:0;">Apply</button>
+    <!-- Office filter -->
+    <div class="rk-chk-wrap" id="rk-wrap-office">
+      <button class="rk-chk-btn" id="rk-btn-office" onclick="rkTogglePanel('office')">All Offices</button>
+      <div class="rk-chk-panel" id="rk-panel-office">
+        <label class="rk-chk-item checked"><input type="checkbox" id="rkc-office-all" checked onchange="rkChkAll('office')"> All Offices</label>
+        <label class="rk-chk-item"><input type="checkbox" id="rkc-office-rv"  value="Riverside"     onchange="rkChkChange('office')"> Riverside</label>
+        <label class="rk-chk-item"><input type="checkbox" id="rkc-office-nb"  value="Newport Beach" onchange="rkChkChange('office')"> Newport Beach</label>
+        <label class="rk-chk-item"><input type="checkbox" id="rkc-office-oc"  value="Orange County" onchange="rkChkChange('office')"> Orange County</label>
+      </div>
+    </div>
+    <!-- Rank filter -->
+    <div class="rk-chk-wrap" id="rk-wrap-rank">
+      <button class="rk-chk-btn" id="rk-btn-rank" onclick="rkTogglePanel('rank')">All Ranks</button>
+      <div class="rk-chk-panel" id="rk-panel-rank">
+        <label class="rk-chk-item checked"><input type="checkbox" id="rkc-rank-all" checked onchange="rkChkAll('rank')"> All Ranks</label>
+        <label class="rk-chk-item"><input type="checkbox" id="rkc-rank-franchise" value="FRANCHISE" onchange="rkChkChange('rank')"> Franchise</label>
+        <label class="rk-chk-item"><input type="checkbox" id="rkc-rank-premier"   value="PREMIER"   onchange="rkChkChange('rank')"> Premier</label>
+        <label class="rk-chk-item"><input type="checkbox" id="rkc-rank-l3"        value="LEVEL 3"   onchange="rkChkChange('rank')"> Level 3</label>
+        <label class="rk-chk-item"><input type="checkbox" id="rkc-rank-l2"        value="LEVEL 2"   onchange="rkChkChange('rank')"> Level 2</label>
+        <label class="rk-chk-item"><input type="checkbox" id="rkc-rank-l1"        value="LEVEL 1"   onchange="rkChkChange('rank')"> Level 1</label>
+        <label class="rk-chk-item"><input type="checkbox" id="rkc-rank-ns"        value="NO STATUS" onchange="rkChkChange('rank')"> No Status</label>
+      </div>
+    </div>
+    <!-- Title filter -->
+    <div class="rk-chk-wrap" id="rk-wrap-title">
+      <button class="rk-chk-btn" id="rk-btn-title" onclick="rkTogglePanel('title')">All Titles</button>
+      <div class="rk-chk-panel" id="rk-panel-title">
+        <label class="rk-chk-item checked"><input type="checkbox" id="rkc-title-all" checked onchange="rkChkAll('title')"> All Titles</label>
+        <label class="rk-chk-item"><input type="checkbox" id="rkc-title-sm"       value="SM"       onchange="rkChkChange('title')"> SM</label>
+        <label class="rk-chk-item"><input type="checkbox" id="rkc-title-dm"       value="DM"       onchange="rkChkChange('title')"> DM</label>
+        <label class="rk-chk-item"><input type="checkbox" id="rkc-title-dir"      value="Director" onchange="rkChkChange('title')"> Director</label>
+      </div>
+    </div>
     <div class="search-wrap ml-auto">
       <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input id="rk-search" placeholder="Search name..." oninput="renderRankings()">
