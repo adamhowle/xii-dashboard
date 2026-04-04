@@ -7227,6 +7227,12 @@ async function fetchSheetsData(opts) {
     var totRows = sheetsRowsToObjects((await totRes.json()).values || []);
     var totRosterById = Object.fromEntries(ROSTER_EMPLOYEES.map(function(e){ return [e.id, e]; }));
     var totCount = 0;
+    // Zero out QTD totals for ALL reps first — Totals only includes active reps,
+    // so anyone absent from Totals genuinely has 0 activity this quarter.
+    Object.values(QTD_MAP).forEach(function(e) {
+      e.qtd_cs  = 0; e.qtd_sra = 0; e.qtd_cap = 0; e.qtd_ic = 0;
+      e.qtr_sra = 0; e.qtr_cap = 0; e.qtr_ic  = 0;
+    });
     totRows.forEach(function(r) {
       var id = String(r['employee id'] || '').trim();
       if (!id || !/^\d+$/.test(id)) return;
@@ -7266,9 +7272,6 @@ async function fetchSheetsData(opts) {
     if (typeof gc_build === 'function') gc_build();
     if (typeof renderOverview === 'function') renderOverview();
     if (typeof renderQTD === 'function') renderQTD();
-    // Diagnostic: show sample QTD_MAP values after Totals overwrite
-    var sampleIds = Object.keys(QTD_MAP).slice(0,3);
-    sampleIds.forEach(function(sid){ var e=QTD_MAP[sid]; console.log('[Totals] QTD_MAP['+sid+'] qtr_sra='+e.qtr_sra+' qtd_cs='+e.qtd_cs+' name='+e.name); });
     console.log('[Totals] loaded', totCount, 'rows');
   } catch(e) { errors.push('Totals: ' + e.message); console.error('[Totals] error:', e); }
 
