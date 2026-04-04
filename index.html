@@ -7211,6 +7211,55 @@ async function fetchSheetsData(opts) {
     if (gcRows.length) { GC_EMPLOYEES.length = 0; gcRows.forEach(function(e){ GC_EMPLOYEES.push(e); }); }
   } catch(e) { errors.push('Game Changers: ' + e.message); }
 
+  // ── Totals (authoritative QTD: AC, CS, CAP, SRA, IC) ──────────────────────
+  // Fetched last so it overwrites qtr_* fields set by QTD Points.
+  // QTD Points still owns: wtd_* (weekly), qtr_status, rolling_status, days_since_sra.
+  try {
+    var totRes = await fetchWithTimeout(sheetsUrl('Totals'));
+    if (!totRes.ok) throw new Error('HTTP ' + totRes.status);
+    var totRows = sheetsRowsToObjects((await totRes.json()).values || []);
+    totRows.forEach(function(r) {
+      var id = String(r['employee id'] || '').trim();
+      if (!id || !/^\d+$/.test(id)) return;
+      var qtdEntry = QTD_MAP[id];
+      var wtdEntry = WTD_MAP[id];
+      var ac  = csvNum(r['ac']);
+      var cs  = csvNum(r['cs']);
+      var sra = csvNum(r['sra']);
+      var cap = csvNum(r['cap']);
+      var ic  = csvNum(r['ic']);
+      // Overwrite QTD totals in QTD_MAP — preserve all other fields
+      if (qtdEntry) {
+        qtdEntry.qtd_cs  = cs;
+        qtdEntry.qtd_sra = sra;
+        qtdEntry.qtd_cap = cap;
+        qtdEntry.qtd_ic  = ic;
+        qtdEntry.qtr_sra = sra;
+        qtdEntry.qtr_cap = cap;
+        qtdEntry.qtr_ic  = ic;
+      } else {
+        // Rep is in Totals but not in QTD Points — add a minimal entry
+        var ro = (rosterById && rosterById[id]) || {};
+        var newEntry = {
+          id: id, name: ro.name||id, squad: ro.squad||'', office: ro.office||'', status: ro.status||'',
+          wtd_ac:0, wtd_cs:0, wtd_sra:0, wtd_cap:0, wtd_ic:0,
+          knocks:0, pitches:0, hours_knocked:0,
+          qtd_cs:cs, qtd_sra:sra, qtd_cap:cap, qtd_ic:ic,
+          qtr_sra:sra, qtr_cap:cap, qtr_ic:ic,
+          qtr_status:'', rolling_status:'', days_since_sra:0,
+          status_change:'', rec_points:null, rec_stars:''
+        };
+        QTD_EMPLOYEES.push(newEntry);
+        QTD_MAP[id] = newEntry;
+      }
+      // Also update WTD_MAP ac with Totals AC if QTD Points didn't supply it
+      if (wtdEntry && !wtdEntry.wtd_ac && ac) wtdEntry.wtd_ac = ac;
+    });
+    // Rebuild SI and GC after Totals overwrites QTD fields
+    if (typeof buildSIFromRepPerf === 'function') { buildSIFromRepPerf(); applyFilters(); }
+    if (typeof gc_build === 'function') gc_build();
+  } catch(e) { errors.push('Totals: ' + e.message); }
+
   if (errors.length) {
     showSyncBanner('Sync issues: ' + errors.join(' / '), true);
     console.warn('[Sheets] errors:', errors);
