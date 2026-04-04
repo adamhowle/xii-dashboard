@@ -540,7 +540,7 @@ body.light-mode .col-toggle-btn.open{background:#2A2828;border-color:var(--cyan-
 .overview-target-input:focus{border-bottom-color:var(--cyan-light)}
 
 /* ── RANKINGS TAB ── */
-.rankings-filter-bar{display:flex;align-items:center;gap:10px;padding:14px 36px;border-bottom:1px solid var(--border);flex-wrap:wrap;transition:max-height .28s cubic-bezier(.4,0,.2,1),opacity .2s,border-color .2s,padding .28s;max-height:120px;overflow:hidden;opacity:1}
+.rankings-filter-bar{display:flex;align-items:center;gap:10px;padding:14px 36px;border-bottom:1px solid var(--border);flex-wrap:wrap;transition:max-height .28s cubic-bezier(.4,0,.2,1),opacity .2s,border-color .2s,padding .28s;max-height:120px;overflow:visible;opacity:1;position:relative;z-index:50;}
 body.chrome-collapsed .rankings-filter-bar{max-height:0;opacity:0;border-bottom-color:transparent;padding-top:0;padding-bottom:0}
 .rankings-stats{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--border);transition:max-height .28s cubic-bezier(.4,0,.2,1),opacity .2s,border-color .2s;max-height:200px;overflow:hidden;opacity:1}
 body.chrome-collapsed .rankings-stats{max-height:0;opacity:0;border-bottom-color:transparent}
@@ -609,9 +609,9 @@ body.chrome-collapsed .rankings-stats{max-height:0;opacity:0;border-bottom-color
 }
 .rk-chk-panel {
   display: none;
-  position: absolute; top: calc(100% + 4px); left: 0;
+  position: fixed;
   background: #1a1718; border: 1px solid rgba(170,221,221,0.25);
-  min-width: 160px; z-index: 200; padding: 6px 0;
+  min-width: 160px; z-index: 9000; padding: 6px 0;
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
 .rk-chk-panel.open { display: block; }
@@ -633,7 +633,7 @@ body.chrome-collapsed .rankings-stats{max-height:0;opacity:0;border-bottom-color
 .rk-chk-item.checked { color: var(--cyan-light); }
 
 /* Scope scrolling to the rankings panel so sticky thead works — overflow on ancestor breaks sticky */
-#panel-rankings.active{display:flex;flex-direction:column;height:calc(100vh - 111px);overflow:hidden}
+#panel-rankings.active{display:flex;flex-direction:column;height:calc(100vh - 111px);overflow:hidden;}
 body.chrome-collapsed #panel-rankings.active{height:calc(100vh - 65px)}
 #panel-rankings .rankings-stats{flex-shrink:0}
 #panel-rankings .rankings-filter-bar{flex-shrink:0}
@@ -6541,11 +6541,19 @@ function rkPaceArrow(current, pace) {
 function rkTogglePanel(type) {
   var panelId = 'rk-panel-' + type;
   var panel = document.getElementById(panelId);
-  if (!panel) return;
+  var btn   = document.getElementById('rk-btn-' + type);
+  if (!panel || !btn) return;
   var isOpen = panel.classList.contains('open');
   // Close all panels first
   document.querySelectorAll('.rk-chk-panel').forEach(p => p.classList.remove('open'));
-  if (!isOpen) panel.classList.add('open');
+  if (!isOpen) {
+    // Position panel below the button using fixed coords
+    var rect = btn.getBoundingClientRect();
+    panel.style.top  = (rect.bottom + 4) + 'px';
+    panel.style.left = rect.left + 'px';
+    panel.style.minWidth = Math.max(rect.width, 160) + 'px';
+    panel.classList.add('open');
+  }
 }
 
 // Close panels when clicking outside
