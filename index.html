@@ -3832,6 +3832,8 @@ function rosterUnmatchedAdd(id) {
   const rawName = emp.name || '';
   const bestName = (rawName && !/^\d+$/.test(rawName)) ? rawName
                  : (rkEntry.name) ? rkEntry.name : '';
+  const empidEl = document.getElementById('modal-empid');
+  if (empidEl) { empidEl.value = String(id); empidEl.setAttribute('readonly', true); empidEl.style.opacity = '0.6'; }
   document.getElementById('modal-name').value   = bestName;
   document.getElementById('modal-mobile').value = emp.mobile || '';
   document.getElementById('modal-office').value = emp.office || '';
@@ -3845,8 +3847,10 @@ function rosterUnmatchedAdd(id) {
 function saveNewEmployee(){
   const name = document.getElementById('modal-name').value.trim();
   if(!name){alert('Name is required.');return;}
+  const empidEl = document.getElementById('modal-empid');
+  const empId = empidEl ? empidEl.value.trim() : '';
   const newEmp = {
-    id:     'new_'+Date.now(),
+    id:     empId || ('new_'+Date.now()),
     name,
     role:   document.getElementById('modal-role').value,
     office: document.getElementById('modal-office').value,
@@ -3860,8 +3864,8 @@ function saveNewEmployee(){
   rosterSortMode='name';
   document.getElementById('roster-sort-name').classList.add('active');
   document.getElementById('roster-sort-squad').classList.remove('active');
-  // Write to Sheets Roster tab — columns: Employee ID, Name, Role, Office, Squad, Status, Mobile, Email, Address
-  var row = ['', newEmp.name, newEmp.role||'Sales Manager', newEmp.office||'', newEmp.squad||'', 'Active', newEmp.mobile||'', newEmp.email||'', ''];
+  // Roster sheet columns: Employee ID, Name, Role, Office, Squad, Mobile, Email, Address
+  var row = [newEmp.id, newEmp.name, newEmp.role||'Sales Manager', newEmp.office||'', newEmp.squad||'', newEmp.mobile||'', newEmp.email||'', ''];
   sheetsAppendRow('Roster', row).then(function(ok){ if(ok) showSyncBanner('\u2713 ' + newEmp.name + ' added to Roster'); });
   // Dismiss the warning card if triggered from a warning button
   if (window._pendingUnmatchedId) {
@@ -4025,9 +4029,10 @@ function deleteEmployee(id){
 }
 
 function openAddModal(){
-  ['modal-name','modal-squad','modal-mobile','modal-email'].forEach(id=>document.getElementById(id).value='');
+  ['modal-empid','modal-name','modal-squad','modal-mobile','modal-email'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('modal-role').value='';
   document.getElementById('modal-office').value='';
+  if(document.getElementById('modal-empid')) document.getElementById('modal-empid').removeAttribute('readonly');
   document.getElementById('rc-add-modal').style.display='flex';
   setTimeout(()=>document.getElementById('modal-name').focus(),50);
 }
@@ -7218,6 +7223,8 @@ async function fetchSheetsData(opts) {
     var totRes = await fetchWithTimeout(sheetsUrl('Totals'));
     if (!totRes.ok) throw new Error('HTTP ' + totRes.status);
     var totRows = sheetsRowsToObjects((await totRes.json()).values || []);
+    var totRosterById = Object.fromEntries(ROSTER_EMPLOYEES.map(function(e){ return [e.id, e]; }));
+    var totCount = 0;
     totRows.forEach(function(r) {
       var id = String(r['employee id'] || '').trim();
       if (!id || !/^\d+$/.test(id)) return;
@@ -7228,7 +7235,6 @@ async function fetchSheetsData(opts) {
       var sra = csvNum(r['sra']);
       var cap = csvNum(r['cap']);
       var ic  = csvNum(r['ic']);
-      // Overwrite QTD totals in QTD_MAP — preserve all other fields
       if (qtdEntry) {
         qtdEntry.qtd_cs  = cs;
         qtdEntry.qtd_sra = sra;
@@ -7238,9 +7244,8 @@ async function fetchSheetsData(opts) {
         qtdEntry.qtr_cap = cap;
         qtdEntry.qtr_ic  = ic;
       } else {
-        // Rep is in Totals but not in QTD Points — add a minimal entry
-        var ro = (rosterById && rosterById[id]) || {};
-        var newEntry = {
+        var ro = totRosterById[id] || {};
+        var newTotEntry = {
           id: id, name: ro.name||id, squad: ro.squad||'', office: ro.office||'', status: ro.status||'',
           wtd_ac:0, wtd_cs:0, wtd_sra:0, wtd_cap:0, wtd_ic:0,
           knocks:0, pitches:0, hours_knocked:0,
@@ -7249,16 +7254,16 @@ async function fetchSheetsData(opts) {
           qtr_status:'', rolling_status:'', days_since_sra:0,
           status_change:'', rec_points:null, rec_stars:''
         };
-        QTD_EMPLOYEES.push(newEntry);
-        QTD_MAP[id] = newEntry;
+        QTD_EMPLOYEES.push(newTotEntry);
+        QTD_MAP[id] = newTotEntry;
       }
-      // Also update WTD_MAP ac with Totals AC if QTD Points didn't supply it
       if (wtdEntry && !wtdEntry.wtd_ac && ac) wtdEntry.wtd_ac = ac;
+      totCount++;
     });
-    // Rebuild SI and GC after Totals overwrites QTD fields
     if (typeof buildSIFromRepPerf === 'function') { buildSIFromRepPerf(); applyFilters(); }
     if (typeof gc_build === 'function') gc_build();
-  } catch(e) { errors.push('Totals: ' + e.message); }
+    console.log('[Totals] loaded', totCount, 'rows');
+  } catch(e) { errors.push('Totals: ' + e.message); console.error('[Totals] error:', e); }
 
   if (errors.length) {
     showSyncBanner('Sync issues: ' + errors.join(' / '), true);
@@ -7848,6 +7853,7 @@ document.addEventListener('keydown', function(e) {
 <div class="rc-modal-overlay" id="rc-add-modal" style="display:none" onclick="if(event.target===this)closeAddModal()">
   <div class="rc-modal">
     <div class="rc-modal-title">Add Existing Employee</div>
+    <div class="rc-modal-field"><label>Employee ID</label><input type="text" id="modal-empid" placeholder="Sunrun Employee ID"></div>
     <div class="rc-modal-field"><label>Full Name *</label><input type="text" id="modal-name" placeholder="First Last"></div>
     <div class="rc-modal-field"><label>Role</label>
       <select id="modal-role">
