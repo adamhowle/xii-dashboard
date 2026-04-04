@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#1a1718;color:#F8F9F9;font-family:'Barlow','Helvetica Neue',sans-serif;min-height:100vh}
+.app{display:grid;grid-template-columns:360px 1fr;min-height:100vh}
+.sidebar{background:#231F20;border-right:1px solid rgba(170,221,221,0.12);overflow-y:auto;max-height:100vh}
+.sidebar-header{padding:18px 22px 14px;border-bottom:1px solid rgba(170,221,221,0.1);display:flex;align-items:center;gap:10px}
+.xii-brand{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;letter-spacing:4px;color:#AADDDD}
+.app-badge{background:rgba(170,221,221,0.1);border:1px solid rgba(170,221,221,0.25);color:#AADDDD;font-size:8px;font-weight:700;letter-spacing:2px;padding:3px 7px;text-transform:uppercase}
+.section{padding:14px 22px;border-bottom:1px solid rgba(170,221,221,0.07)}
+.sec-label{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#5A9EA0;margin-bottom:10px}
+.upload-zone{border:1.5px dashed rgba(170,221,221,0.18);background:rgba(170,221,221,0.03);padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative}
+.upload-zone:hover{border-color:rgba(170,221,221,0.45);background:rgba(170,221,221,0.06)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{font-size:20px;margin-bottom:4px;opacity:0.4}
+.upload-label{font-size:10px;color:#9A9A9A}
+.upload-label strong{color:#AADDDD}
+.photo-preview-wrap{position:relative;margin-top:8px}
+.photo-preview-wrap img{width:100%;max-height:130px;object-fit:cover;display:block}
+.photo-preview-wrap .remove-btn{position:absolute;top:4px;right:4px;background:rgba(35,31,32,0.85);border:1px solid rgba(170,221,221,0.3);color:#AADDDD;font-size:9px;padding:3px 7px;cursor:pointer;letter-spacing:1px}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#5A9EA0;margin-bottom:5px}
+.field input,.field textarea,.field select{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(170,221,221,0.13);color:#F8F9F9;font-family:'Barlow','Helvetica Neue',sans-serif;font-size:13px;padding:7px 10px;outline:none;transition:border-color 0.2s}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:rgba(170,221,221,0.45)}
+.field textarea{resize:vertical;min-height:54px}
+.field select{appearance:none;cursor:pointer}
+.field select option{background:#231F20}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.stats-grid .field input{text-align:center;font-weight:700}
+
+/* Template picker */
+.tmpl-scroll{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.tmpl-opt{border:1.5px solid rgba(170,221,221,0.1);cursor:pointer;padding:7px 4px;text-align:center;transition:all 0.2s;background:rgba(170,221,221,0.03)}
+.tmpl-opt:hover{border-color:rgba(170,221,221,0.35)}
+.tmpl-opt.selected{border-color:#AADDDD;background:rgba(170,221,221,0.1)}
+.tmpl-opt .ti{font-size:16px;display:block;margin-bottom:3px}
+.tmpl-opt .tn{font-size:7px;font-weight:700;letter-spacing:1.2px;color:#9A9A9A;text-transform:uppercase}
+
+/* Logo grid */
+.logo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.logo-opt{background:#000;border:2px solid transparent;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;transition:border-color 0.2s;aspect-ratio:1}
+.logo-opt:hover{border-color:rgba(170,221,221,0.35)}
+.logo-opt.selected{border-color:#AADDDD}
+.logo-opt svg{width:100%;height:auto}
+.logo-opt span{font-size:7px;font-weight:700;letter-spacing:1px;color:#9A9A9A;text-transform:uppercase;text-align:center}
+
+/* Color swatches */
+.swatches{display:flex;gap:7px;flex-wrap:wrap}
+.swatch{width:26px;height:26px;cursor:pointer;border:2px solid transparent;transition:border-color 0.2s}
+.swatch.selected{border-color:#F8F9F9}
+
+/* Buttons */
+.gen-btn{width:100%;background:#AADDDD;color:#231F20;border:none;padding:13px;font-family:'Barlow',sans-serif;font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;transition:background 0.2s;margin-top:4px}
+.gen-btn:hover{background:#27d9d9}
+.gen-btn:disabled{background:#3a3a3a;color:#555;cursor:not-allowed}
+.ai-btn{width:100%;background:transparent;border:1px solid rgba(170,221,221,0.3);color:#AADDDD;padding:10px;font-family:'Barlow',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;margin-top:6px}
+.ai-btn:hover{background:rgba(170,221,221,0.08);border-color:#AADDDD}
+.ai-btn:disabled{opacity:0.4;cursor:not-allowed}
+
+/* Main */
+.main{display:flex;flex-direction:column;align-items:center;padding:28px 36px;background:#1a1718;position:relative;overflow:hidden}
+.main-title{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#5A9EA0;margin-bottom:20px;text-align:center}
+.canvas-wrap{position:relative;box-shadow:0 0 60px rgba(0,0,0,0.7)}
+#postCanvas{display:block;max-width:100%}
+.loading-overlay{display:none;position:absolute;inset:0;background:rgba(35,31,32,0.88);z-index:10;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+.loading-overlay.active{display:flex}
+.spinner{width:32px;height:32px;border:2px solid rgba(170,221,221,0.15);border-top-color:#AADDDD;border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-txt{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#5A9EA0}
+.actions{display:flex;gap:10px;margin-top:18px}
+.action-btn{padding:9px 20px;font-family:'Barlow',sans-serif;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border:1px solid rgba(170,221,221,0.25);background:transparent;color:#AADDDD;transition:all 0.2s}
+.action-btn:hover{background:rgba(170,221,221,0.08);border-color:#AADDDD}
+.action-btn.primary{background:rgba(170,221,221,0.12);border-color:#AADDDD}
+.caption-area{margin-top:18px;width:100%;max-width:520px}
+.caption-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.caption-label{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#5A9EA0}
+.ai-indicator{font-size:8px;color:#2DC48E;letter-spacing:1px;display:flex;align-items:center;gap:4px}
+.caption-box{background:rgba(255,255,255,0.03);border:1px solid rgba(170,221,221,0.1);padding:14px}
+.caption-box p{font-size:12px;color:#9A9A9A;line-height:1.7;white-space:pre-wrap}
+.copy-btn{margin-top:8px;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#5A9EA0;background:transparent;border:1px solid rgba(90,158,160,0.3);padding:6px 14px;cursor:pointer}
+.copy-btn:hover{background:rgba(90,158,160,0.1)}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="xii-brand">XII</div>
+    <div class="app-badge">XIIG · Post Generator</div>
+  </div>
+
+  <!-- Photo -->
+  <div class="section">
+    <div class="sec-label">Athlete / Lifestyle Photo</div>
+    <div class="upload-zone" id="photoZone">
+      <input type="file" accept="image/*" id="photoInput" onchange="handlePhoto(event)">
+      <div class="upload-icon">📸</div>
+      <div class="upload-label"><strong>Upload Photo</strong> · PNG, JPG</div>
+    </div>
+    <div class="photo-preview-wrap" id="previewWrap" style="display:none">
+      <img id="photoPreview">
+      <button class="remove-btn" onclick="removePhoto()">✕ Remove</button>
+    </div>
+  </div>
+
+  <!-- Athlete Info -->
+  <div class="section">
+    <div class="sec-label">Athlete Info</div>
+    <div class="field"><label>Full Name</label><input type="text" id="athleteName" placeholder="ALEX CARTER"></div>
+    <div class="field"><label>Title / Position</label><input type="text" id="athleteTitle" placeholder="Level II · West Region"></div>
+    <div class="field"><label>Tagline / Quote</label><input type="text" id="tagline" placeholder="Built to outrun limits."></div>
+    <div class="field"><label>Event / Context</label><input type="text" id="context" placeholder="Q1 Top Performer · March 2026"></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="section">
+    <div class="sec-label">Performance Stats (up to 4)</div>
+    <div class="stats-grid">
+      <div class="field"><label>Label 1</label><input type="text" id="s1l" placeholder="REVENUE"></div>
+      <div class="field"><label>Label 2</label><input type="text" id="s2l" placeholder="CALLS"></div>
+      <div class="field"><label>Label 3</label><input type="text" id="s3l" placeholder="RANK"></div>
+      <div class="field"><label>Value 1</label><input type="text" id="s1v" placeholder="$142K"></div>
+      <div class="field"><label>Value 2</label><input type="text" id="s2v" placeholder="312"></div>
+      <div class="field"><label>Value 3</label><input type="text" id="s3v" placeholder="#1"></div>
+    </div>
+    <div class="stats-grid" style="margin-top:4px">
+      <div class="field"><label>Label 4</label><input type="text" id="s4l" placeholder="CLOSE %"></div>
+      <div class="field"><label>Value 4</label><input type="text" id="s4v" placeholder="68%"></div>
+      <div></div>
+    </div>
+  </div>
+
+  <!-- Template -->
+  <div class="section">
+    <div class="sec-label">Post Template</div>
+    <div class="tmpl-scroll">
+      <div class="tmpl-opt selected" onclick="selectTemplate('athlete',this)"><span class="ti">⚡</span><div class="tn">Athlete</div></div>
+      <div class="tmpl-opt" onclick="selectTemplate('stats',this)"><span class="ti">📊</span><div class="tn">Stats</div></div>
+      <div class="tmpl-opt" onclick="selectTemplate('lifestyle',this)"><span class="ti">🌊</span><div class="tn">Lifestyle</div></div>
+      <div class="tmpl-opt" onclick="selectTemplate('award',this)"><span class="ti">🏆</span><div class="tn">Award</div></div>
+      <div class="tmpl-opt" onclick="selectTemplate('bold',this)"><span class="ti">🔥</span><div class="tn">Bold</div></div>
+      <div class="tmpl-opt" onclick="selectTemplate('minimal',this)"><span class="ti">◼</span><div class="tn">Minimal</div></div>
+      <div class="tmpl-opt" onclick="selectTemplate('split',this)"><span class="ti">⬛</span><div class="tn">Split</div></div>
+      <div class="tmpl-opt" onclick="selectTemplate('cinematic',this)"><span class="ti">🎬</span><div class="tn">Cinematic</div></div>
+      <div class="tmpl-opt" onclick="selectTemplate('neon',this)"><span class="ti">✦</span><div class="tn">Glow</div></div>
+      <div class="tmpl-opt" onclick="selectTemplate('ticker',this)"><span class="ti">📰</span><div class="tn">Ticker</div></div>
+      <div class="tmpl-opt" onclick="selectTemplate('grid',this)"><span class="ti">⊞</span><div class="tn">Grid</div></div>
+      <div class="tmpl-opt" onclick="selectTemplate('magazine',this)"><span class="ti">📋</span><div class="tn">Magazine</div></div>
+    </div>
+  </div>
+
+  <!-- Logo -->
+  <div class="section">
+    <div class="sec-label">XII Logo</div>
+    <div class="logo-grid">
+      <div class="logo-opt selected" onclick="selectLogo('xii',this)" title="XII Wordmark">
+        <svg viewBox="0 0 100 44"><text x="2" y="38" font-family="Barlow Condensed,sans-serif" font-weight="900" font-size="42" fill="white">XII</text></svg>
+        <span>XII</span>
+      </div>
+      <div class="logo-opt" onclick="selectLogo('level1',this)">
+        <svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="27" fill="none" stroke="white" stroke-width="4"/><rect x="23" y="12" width="14" height="28" rx="2" fill="white"/><text x="30" y="53" text-anchor="middle" font-family="Barlow Condensed,sans-serif" font-size="8" font-weight="700" fill="white">RUNX</text></svg>
+        <span>Lvl I</span>
+      </div>
+      <div class="logo-opt" onclick="selectLogo('level2',this)">
+        <svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="27" fill="none" stroke="white" stroke-width="4"/><rect x="17" y="12" width="11" height="28" rx="2" fill="white"/><rect x="32" y="12" width="11" height="28" rx="2" fill="white"/><text x="30" y="53" text-anchor="middle" font-family="Barlow Condensed,sans-serif" font-size="8" font-weight="700" fill="white">RUNX</text></svg>
+        <span>Lvl II</span>
+      </div>
+      <div class="logo-opt" onclick="selectLogo('level3',this)">
+        <svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="27" fill="none" stroke="white" stroke-width="4"/><rect x="10" y="12" width="10" height="28" rx="2" fill="white"/><rect x="25" y="12" width="10" height="28" rx="2" fill="white"/><rect x="40" y="12" width="10" height="28" rx="2" fill="white"/><text x="30" y="53" text-anchor="middle" font-family="Barlow Condensed,sans-serif" font-size="8" font-weight="700" fill="white">RUNX</text></svg>
+        <span>Lvl III</span>
+      </div>
+      <div class="logo-opt" onclick="selectLogo('none',this)" style="background:#1a1a1a"><span style="font-size:18px;color:#444">✕</span><span>None</span></div>
+    </div>
+  </div>
+
+  <!-- Accent Color -->
+  <div class="section">
+    <div class="sec-label">Accent Color</div>
+    <div class="swatches">
+      <div class="swatch selected" style="background:#AADDDD" onclick="selectColor('#AADDDD',this)" title="Cyan"></div>
+      <div class="swatch" style="background:#F0C030" onclick="selectColor('#F0C030',this)" title="Gold"></div>
+      <div class="swatch" style="background:#EF9F27" onclick="selectColor('#EF9F27',this)" title="Amber"></div>
+      <div class="swatch" style="background:#2DC48E" onclick="selectColor('#2DC48E',this)" title="Green"></div>
+      <div class="swatch" style="background:#F05252" onclick="selectColor('#F05252',this)" title="Red"></div>
+      <div class="swatch" style="background:#F8F9F9" onclick="selectColor('#F8F9F9',this)" title="White"></div>
+      <div class="swatch" style="background:#27d9d9" onclick="selectColor('#27d9d9',this)" title="Cyan Bright"></div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="section">
+    <button class="gen-btn" onclick="generatePost()">⚡ Generate Post</button>
+    <button class="ai-btn" id="aiCaptionBtn" onclick="generateAICaption()">✦ AI Caption Generator</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="main-title">Post Preview · 1080 × 1080</div>
+  <div class="canvas-wrap" style="position:relative">
+    <canvas id="postCanvas" width="540" height="540"></canvas>
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="spinner"></div>
+      <div class="load-txt" id="loadTxt">Generating...</div>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="action-btn" onclick="generatePost()">↻ Refresh</button>
+    <button class="action-btn primary" onclick="downloadPost()">↓ Download PNG</button>
+  </div>
+  <div class="caption-area" id="captionArea" style="display:none">
+    <div class="caption-header">
+      <div class="caption-label">Instagram Caption</div>
+      <div class="ai-indicator" id="aiIndicator" style="display:none">✦ AI Generated</div>
+    </div>
+    <div class="caption-box"><p id="captionText"></p></div>
+    <button class="copy-btn" onclick="copyCaption()">⎘ Copy Caption</button>
+  </div>
+</main>
+</div>
+
+<script>
+const S = {
+  photo: null, photoImg: null,
+  template: 'athlete', logo: 'xii',
+  accent: '#AADDDD',
+};
+
+function handlePhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    S.photo = ev.target.result;
+    const img = new Image();
+    img.onload = () => {
+      S.photoImg = img;
+      document.getElementById('photoPreview').src = ev.target.result;
+      document.getElementById('previewWrap').style.display = 'block';
+      document.getElementById('photoZone').style.display = 'none';
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto() {
+  S.photo = null; S.photoImg = null;
+  document.getElementById('photoInput').value = '';
+  document.getElementById('previewWrap').style.display = 'none';
+  document.getElementById('photoZone').style.display = 'block';
+}
+
+function selectTemplate(t, el) {
+  document.querySelectorAll('.tmpl-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected'); S.template = t;
+}
+function selectLogo(l, el) {
+  document.querySelectorAll('.logo-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected'); S.logo = l;
+}
+function selectColor(c, el) {
+  document.querySelectorAll('.swatch').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected'); S.accent = c;
+}
+
+function getInputs() {
+  return {
+    name: (document.getElementById('athleteName').value || 'YOUR NAME').toUpperCase(),
+    title: document.getElementById('athleteTitle').value || 'XII MEMBER',
+    tagline: document.getElementById('tagline').value || '',
+    context: document.getElementById('context').value || '',
+    stats: [
+      {l: document.getElementById('s1l').value, v: document.getElementById('s1v').value},
+      {l: document.getElementById('s2l').value, v: document.getElementById('s2v').value},
+      {l: document.getElementById('s3l').value, v: document.getElementById('s3v').value},
+      {l: document.getElementById('s4l').value, v: document.getElementById('s4v').value},
+    ].filter(s => s.l || s.v)
+  };
+}
+
+// ── CANVAS HELPERS ──────────────────────────────────────
+function grain(ctx, W, H) {
+  const id = ctx.createImageData(W, H);
+  const d = id.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const v = Math.random() * 28;
+    d[i]=v; d[i+1]=v; d[i+2]=v; d[i+3]=10;
+  }
+  ctx.putImageData(id, 0, 0);
+}
+
+function fitPhoto(ctx, img, x, y, w, h, alpha=1) {
+  if (!img) return;
+  const s = Math.max(w / img.width, h / img.height);
+  const pw = img.width * s, ph = img.height * s;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(img, x + (w-pw)/2, y + (h-ph)/2, pw, ph);
+  ctx.restore();
+}
+
+function vignette(ctx, W, H, strength=0.8) {
+  const gr = ctx.createRadialGradient(W/2,H/2,H*0.2,W/2,H/2,H*0.85);
+  gr.addColorStop(0,'rgba(0,0,0,0)');
+  gr.addColorStop(1,`rgba(0,0,0,${strength})`);
+  ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+}
+
+function gradFade(ctx, W, H, from=0.45, to=1, dir='bottom') {
+  let gr;
+  if (dir==='bottom') gr = ctx.createLinearGradient(0,H*from,0,H);
+  else if (dir==='left') gr = ctx.createLinearGradient(W*from,0,0,0);
+  else gr = ctx.createLinearGradient(0,0,0,H*from);
+  gr.addColorStop(0,'rgba(35,31,32,0)');
+  gr.addColorStop(1,'rgba(35,31,32,1)');
+  ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+}
+
+function drawXIIStripes(ctx, x, y, size, color) {
+  ctx.save();
+  const off = document.createElement('canvas');
+  off.width = Math.ceil(size * 2.2) + 20;
+  off.height = size + 10;
+  const oc = off.getContext('2d');
+  oc.font = `900 ${size}px 'Barlow Condensed',sans-serif`;
+  oc.fillStyle = color;
+  oc.textBaseline = 'top';
+  oc.fillText('XII', 4, 0);
+  const tw = oc.measureText('XII').width;
+  oc.globalCompositeOperation = 'source-in';
+  const lines = 12;
+  for (let i = 0; i < lines; i++) {
+    const ly = i * (size / lines);
+    if (i % 2 === 1) { oc.fillStyle='rgba(0,0,0,0.92)'; oc.fillRect(0,ly,off.width,size/lines*0.4); }
+  }
+  ctx.drawImage(off, 0, 0, off.width, off.height, x, y, off.width * 0.82, off.height * 0.82);
+  ctx.restore();
+}
+
+function drawLevelBadge(ctx, cx, cy, r, level, color) {
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = r * 0.13;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke();
+  const bw = r * 0.26, bh = r * 0.72, gap = r * 0.1;
+  const total = level*bw + (level-1)*gap;
+  ctx.fillStyle = color;
+  for (let i = 0; i < level; i++) {
+    const bx = cx - total/2 + i*(bw+gap);
+    ctx.beginPath(); ctx.roundRect(bx, cy-bh/2, bw, bh, 2); ctx.fill();
+  }
+  ctx.font = `700 ${r*0.2}px 'Barlow Condensed',sans-serif`;
+  ctx.fillStyle = color; ctx.textAlign = 'center';
+  ctx.fillText('RUN X', cx, cy + r * 0.8);
+  ctx.restore();
+}
+
+function placeLogo(ctx, W, H, logo, color, pos='tl', size=42) {
+  const pad = 28;
+  let x = pad, y = pad;
+  if (pos==='tr') x = W - pad - size*2;
+  if (pos==='br') { x = W - pad - size*2; y = H - pad - size; }
+  if (pos==='bl') { x = pad; y = H - pad - size; }
+  if (pos==='tc') { x = W/2 - size; y = pad; }
+  if (pos==='bc') { x = W/2 - size; y = H - pad - size; }
+
+  if (logo === 'xii') {
+    drawXIIStripes(ctx, x, y - size*0.8, size, color);
+  } else if (logo === 'level1') drawLevelBadge(ctx, x + size*0.7, y + size*0.4, size*0.55, 1, color);
+  else if (logo === 'level2') drawLevelBadge(ctx, x + size*0.7, y + size*0.4, size*0.55, 2, color);
+  else if (logo === 'level3') drawLevelBadge(ctx, x + size*0.7, y + size*0.4, size*0.55, 3, color);
+}
+
+function statBar(ctx, stats, x, y, w, h, accent, bg='rgba(255,255,255,0.06)') {
+  const valid = stats.filter(s => s.v);
+  if (!valid.length) return;
+  ctx.fillStyle = bg; ctx.fillRect(x, y, w, h);
+  const sw = w / valid.length;
+  valid.forEach((s, i) => {
+    const sx = x + i*sw + sw/2;
+    ctx.font = `900 ${Math.round(h*0.52)}px 'Barlow Condensed',sans-serif`;
+    ctx.fillStyle = accent; ctx.textAlign = 'center';
+    ctx.fillText(s.v, sx, y + h*0.6);
+    ctx.font = `700 ${Math.round(h*0.18)}px 'Barlow',sans-serif`;
+    ctx.fillStyle = '#9A9A9A'; ctx.letterSpacing = '2px';
+    ctx.fillText((s.l || '').toUpperCase(), sx, y + h*0.85);
+    ctx.letterSpacing = '0px';
+    if (i < valid.length-1) {
+      ctx.strokeStyle = 'rgba(170,221,221,0.15)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x+(i+1)*sw, y+8); ctx.lineTo(x+(i+1)*sw, y+h-8); ctx.stroke();
+    }
+  });
+}
+
+// ── 12 TEMPLATES ────────────────────────────────────────
+
+function tmpl_athlete(ctx, W, H, inp, img, logo, acc) {
+  ctx.fillStyle='#231F20'; ctx.fillRect(0,0,W,H);
+  fitPhoto(ctx, img, 0, 0, W, H, 0.55);
+  gradFade(ctx, W, H, 0.3, 1, 'bottom');
+  ctx.strokeStyle=acc; ctx.lineWidth=3; ctx.strokeRect(14,14,W-28,H-28);
+  placeLogo(ctx, W, H, logo, acc, 'tr', 40);
+  ctx.fillStyle=acc; ctx.fillRect(38, H-230, 3, 130);
+  ctx.font=`900 56px 'Barlow Condensed',sans-serif`; ctx.fillStyle='#F8F9F9'; ctx.textAlign='left';
+  ctx.fillText(inp.name, 50, H-162);
+  ctx.font=`600 14px 'Barlow',sans-serif`; ctx.fillStyle=acc; ctx.letterSpacing='3px';
+  ctx.fillText(inp.title.toUpperCase(), 50, H-140); ctx.letterSpacing='0px';
+  if (inp.tagline) { ctx.font=`400 italic 16px 'Barlow',sans-serif`; ctx.fillStyle='rgba(248,249,249,0.6)'; ctx.fillText(`"${inp.tagline}"`,50,H-116); }
+  if (inp.context) { ctx.font=`700 10px 'Barlow',sans-serif`; ctx.fillStyle='rgba(248,249,249,0.4)'; ctx.letterSpacing='1.5px'; ctx.fillText(inp.context.toUpperCase(),50,H-96); ctx.letterSpacing='0px'; }
+  statBar(ctx, inp.stats, 38, H-76, W-76, 60, acc);
+  grain(ctx, W, H);
+}
+
+function tmpl_stats(ctx, W, H, inp, img, logo, acc) {
+  ctx.fillStyle='#1a1718'; ctx.fillRect(0,0,W,H);
+  if (img) {
+    ctx.save(); ctx.globalAlpha=0.22;
+    fitPhoto(ctx, img, W/2, 0, W/2, H, 1);
+    ctx.restore();
+    const gr=ctx.createLinearGradient(W*0.38,0,W,0);
+    gr.addColorStop(0,'#1a1718'); gr.addColorStop(1,'rgba(26,23,24,0)');
+    ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+  }
+  ctx.strokeStyle=acc; ctx.lineWidth=2; ctx.strokeRect(18,18,W-36,H-36);
+  ctx.fillStyle=acc; ctx.fillRect(36,48,W-72,2);
+  placeLogo(ctx, W, H, logo, acc, 'tr', 36);
+  ctx.font=`900 60px 'Barlow Condensed',sans-serif`; ctx.fillStyle='#F8F9F9'; ctx.textAlign='left';
+  ctx.fillText(inp.name, 36, 118);
+  ctx.font=`500 13px 'Barlow',sans-serif`; ctx.fillStyle='#9A9A9A'; ctx.letterSpacing='2px';
+  ctx.fillText(inp.title.toUpperCase(), 36, 142); ctx.letterSpacing='0px';
+  const valid=inp.stats.filter(s=>s.v);
+  valid.slice(0,4).forEach((s,i)=>{
+    const sy=180+i*82;
+    ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.fillRect(36,sy,W-72,70);
+    ctx.fillStyle=acc; ctx.fillRect(36,sy,4,70);
+    ctx.font=`900 52px 'Barlow Condensed',sans-serif`; ctx.fillStyle='#F8F9F9'; ctx.textAlign='left';
+    ctx.fillText(s.v, 56, sy+50);
+    ctx.font=`700 10px 'Barlow',sans-serif`; ctx.fillStyle='#9A9A9A'; ctx.letterSpacing='2.5px';
+    ctx.fillText((s.l||'').toUpperCase(), 56, sy+62); ctx.letterSpacing='0px';
+  });
+  grain(ctx,W,H);
+}
+
+function tmpl_lifestyle(ctx, W, H, inp, img, logo, acc) {
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+  fitPhoto(ctx, img, 0, 0, W, H, 1);
+  vignette(ctx,W,H,0.7);
+  gradFade(ctx,W,H,0.45,1,'bottom');
+  const gr2=ctx.createLinearGradient(0,0,0,H*0.35);
+  gr2.addColorStop(0,'rgba(0,0,0,0.65)'); gr2.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=gr2; ctx.fillRect(0,0,W,H);
+  placeLogo(ctx, W, H, logo, acc, 'tc', 38);
+  if (inp.tagline) {
+    ctx.font=`900 italic 54px 'Barlow Condensed',sans-serif`; ctx.fillStyle='#F8F9F9'; ctx.textAlign='center';
+    const words=inp.tagline.split(' '), maxW=W-100;
+    let line='', lines=[], ly=H/2-40;
+    words.forEach(w=>{ const t=line+w+' '; if(ctx.measureText(t).width>maxW&&line){lines.push(line.trim());line=w+' ';}else line=t; });
+    lines.push(line.trim());
+    lines.forEach((l,i)=>ctx.fillText(l,W/2,ly+i*58));
+  }
+  ctx.font=`700 13px 'Barlow',sans-serif`; ctx.fillStyle=acc; ctx.textAlign='center'; ctx.letterSpacing='4px';
+  ctx.fillText(inp.name, W/2, H-64); ctx.letterSpacing='0px';
+  ctx.strokeStyle='rgba(255,255,255,0.18)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(W/2-70,H-48); ctx.lineTo(W/2+70,H-48); ctx.stroke();
+  ctx.font=`400 13px 'Barlow',sans-serif`; ctx.fillStyle='rgba(248,249,249,0.5)';
+  ctx.fillText(inp.title, W/2, H-28);
+  grain(ctx,W,H);
+}
+
+function tmpl_award(ctx, W, H, inp, img, logo, acc) {
+  ctx.fillStyle='#231F20'; ctx.fillRect(0,0,W,H);
+  fitPhoto(ctx, img, 0, 0, W, H, 0.22);
+  ctx.fillStyle=acc; ctx.fillRect(0,0,W,6); ctx.fillRect(0,H-6,W,6);
+  ctx.fillStyle='rgba(255,255,255,0.035)'; ctx.fillRect(38,72,W-76,H-144);
+  placeLogo(ctx, W, H, logo, acc, 'bc', 38);
+  ctx.textAlign='center';
+  ctx.font=`700 10px 'Barlow',sans-serif`; ctx.fillStyle=acc; ctx.letterSpacing='4px';
+  ctx.fillText('ACHIEVEMENT UNLOCKED', W/2, H/2-118); ctx.letterSpacing='0px';
+  ctx.strokeStyle=acc; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(W/2-90,H/2-102); ctx.lineTo(W/2+90,H/2-102); ctx.stroke();
+  ctx.font=`900 72px 'Barlow Condensed',sans-serif`; ctx.fillStyle='#F8F9F9';
+  ctx.fillText(inp.name, W/2, H/2-26);
+  ctx.font=`400 16px 'Barlow',sans-serif`; ctx.fillStyle='#9A9A9A';
+  ctx.fillText(inp.title, W/2, H/2+10);
+  if (inp.tagline) {
+    ctx.font=`700 22px 'Barlow Condensed',sans-serif`; ctx.fillStyle=acc; ctx.letterSpacing='2px';
+    ctx.fillText(inp.tagline.toUpperCase(), W/2, H/2+48); ctx.letterSpacing='0px';
+  }
+  if (inp.context) { ctx.font=`700 9px 'Barlow',sans-serif`; ctx.fillStyle='rgba(248,249,249,0.35)'; ctx.letterSpacing='2px'; ctx.fillText(inp.context.toUpperCase(),W/2,H/2+72); ctx.letterSpacing='0px'; }
+  statBar(ctx, inp.stats, 38, H/2+100, W-76, 66, acc);
+  grain(ctx,W,H);
+}
+
+function tmpl_bold(ctx, W, H, inp, img, logo, acc) {
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+  fitPhoto(ctx, img, 0, 0, W, H, 0.75);
+  ctx.fillStyle=acc; ctx.globalAlpha=0.93; ctx.fillRect(0,H-210,W,210); ctx.globalAlpha=1;
+  ctx.fillStyle='#231F20'; ctx.globalAlpha=0.3; ctx.fillRect(0,H-210,W,210); ctx.globalAlpha=1;
+  ctx.font=`900 82px 'Barlow Condensed',sans-serif`; ctx.fillStyle='#231F20'; ctx.textAlign='center';
+  ctx.fillText(inp.name, W/2, H-136);
+  ctx.font=`700 13px 'Barlow',sans-serif`; ctx.fillStyle='rgba(35,31,32,0.65)'; ctx.letterSpacing='3px';
+  ctx.fillText(inp.title.toUpperCase(), W/2, H-110); ctx.letterSpacing='0px';
+  if (inp.tagline) { ctx.font=`400 italic 16px 'Barlow',sans-serif`; ctx.fillStyle='rgba(35,31,32,0.55)'; ctx.fillText(`"${inp.tagline}"`,W/2,H-86); }
+  statBar(ctx, inp.stats, 0, H-72, W, 72, '#231F20', 'rgba(35,31,32,0.15)');
+  placeLogo(ctx, W, H, logo, '#231F20', 'tl', 42);
+  grain(ctx,W,H);
+}
+
+function tmpl_minimal(ctx, W, H, inp, img, logo, acc) {
+  ctx.fillStyle='#231F20'; ctx.fillRect(0,0,W,H);
+  fitPhoto(ctx, img, 0, 0, W, H, 0.12);
+  ctx.fillStyle=acc; ctx.fillRect(W/2-1,60,2,H-120);
+  placeLogo(ctx, W, H, logo, acc, 'tr', 38);
+  ctx.textAlign='right';
+  const words=inp.name.split(' ');
+  ctx.font=`900 ${words.length>1?72:88}px 'Barlow Condensed',sans-serif`; ctx.fillStyle='#F8F9F9';
+  words.forEach((w,i)=>ctx.fillText(w, W/2-18, H/2-(words.length*38)+i*80+38));
+  ctx.textAlign='left';
+  ctx.font=`500 13px 'Barlow',sans-serif`; ctx.fillStyle=acc; ctx.letterSpacing='2.5px';
+  ctx.fillText(inp.title.toUpperCase(), W/2+18, H/2-16); ctx.letterSpacing='0px';
+  if (inp.tagline) { ctx.font=`400 italic 15px 'Barlow',sans-serif`; ctx.fillStyle='rgba(248,249,249,0.45)'; ctx.fillText(`"${inp.tagline}"`,W/2+18,H/2+14); }
+  if (inp.context) { ctx.font=`700 9px 'Barlow',sans-serif`; ctx.fillStyle='rgba(248,249,249,0.3)'; ctx.letterSpacing='2px'; ctx.fillText(inp.context.toUpperCase(),W/2+18,H/2+38); ctx.letterSpacing='0px'; }
+  const vs=inp.stats.filter(s=>s.v);
+  if (vs.length) {
+    vs.slice(0,3).forEach((s,i)=>{
+      const sy=H*0.65+i*52;
+      ctx.textAlign='left'; ctx.font=`900 30px 'Barlow Condensed',sans-serif`; ctx.fillStyle=acc; ctx.fillText(s.v,W/2+18,sy);
+      ctx.font=`700 9px 'Barlow',sans-serif`; ctx.fillStyle='#9A9A9A'; ctx.letterSpacing='2px'; ctx.fillText((s.l||'').toUpperCase(),W/2+18,sy+14); ctx.letterSpacing='0px';
+    });
+  }
+  grain(ctx,W,H);
+}
+
+function tmpl_split(ctx, W, H, inp, img, logo, acc) {
+  ctx.fillStyle='#231F20'; ctx.fillRect(0,0,W,H);
+  if (img) { ctx.save(); ctx.beginPath(); ctx.rect(0,0,W,H/2); ctx.clip(); fitPhoto(ctx,img,0,0,W,H/2,0.9); ctx.restore(); }
+  const gr=ctx.createLinearGradient(0,H*0.3,0,H*0.5);
+  gr.addColorStop(0,'rgba(35,31,32,0)'); gr.addColorStop(1,'rgba(35,31,32,1)');
+  ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=acc; ctx.fillRect(0,H/2,W,3);
+  placeLogo(ctx, W, H, logo, acc, 'tl', 38);
+  ctx.textAlign='left';
+  ctx.font=`900 64px 'Barlow Condensed',sans-serif`; ctx.fillStyle='#F8F9F9';
+  ctx.fillText(inp.name, 36, H/2+72);
+  ctx.font=`600 14px 'Barlow',sans-serif`; ctx.fillStyle=acc; ctx.letterSpacing='2.5px';
+  ctx.fillText(inp.title.toUpperCase(), 36, H/2+98); ctx.letterSpacing='0px';
+  if (inp.tagline) { ctx.font=`400 italic 16px 'Barlow',sans-serif`; ctx.fillStyle='rgba(248,249,249,0.55)'; ctx.fillText(`"${inp.tagline}"`,36,H/2+126); }
+  statBar(ctx, inp.stats, 36, H-88, W-72, 68, acc);
+  grain(ctx,W,H);
+}
+
+function tmpl_cinematic(ctx, W, H, inp, img, logo, acc) {
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+  fitPhoto(ctx, img, 0, 0, W, H, 1);
+  ctx.fillStyle='rgba(0,0,0,0.45)'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H*0.08); ctx.fillRect(0,H*0.92,W,H*0.08);
+  placeLogo(ctx, W, H, logo, acc, 'tc', 34);
+  ctx.textAlign='center';
+  ctx.font=`900 italic 64px 'Barlow Condensed',sans-serif`; ctx.fillStyle='#F8F9F9';
+  ctx.fillText(inp.name, W/2, H/2+20);
+  if (inp.tagline) { ctx.font=`400 18px 'Barlow',sans-serif`; ctx.fillStyle=acc; ctx.fillText(`"${inp.tagline}"`,W/2,H/2+52); }
+  ctx.font=`700 10px 'Barlow',sans-serif`; ctx.fillStyle='rgba(248,249,249,0.45)'; ctx.letterSpacing='3px';
+  ctx.fillText(inp.title.toUpperCase(), W/2, H*0.9+14); ctx.letterSpacing='0px';
+  if (inp.context) { ctx.font=`400 10px 'Barlow',sans-serif`; ctx.fillStyle='rgba(248,249,249,0.3)'; ctx.letterSpacing='1.5px'; ctx.fillText(inp.context.toUpperCase(),W/2,H*0.9+30); ctx.letterSpacing='0px'; }
+  grain(ctx,W,H);
+}
+
+function tmpl_neon(ctx, W, H, inp, img, logo, acc) {
+  ctx.fillStyle='#0d0d0d'; ctx.fillRect(0,0,W,H);
+  fitPhoto(ctx, img, 0, 0, W, H, 0.18);
+  for (let i=0;i<3;i++){
+    ctx.strokeStyle=acc; ctx.lineWidth=1-(i*0.3); ctx.globalAlpha=0.25-(i*0.08);
+    ctx.strokeRect(12+i*10,12+i*10,W-24-i*20,H-24-i*20);
+  }
+  ctx.globalAlpha=1;
+  ctx.fillStyle=acc; ctx.globalAlpha=0.07; ctx.fillRect(0,0,W,H); ctx.globalAlpha=1;
+  placeLogo(ctx, W, H, logo, acc, 'tc', 42);
+  ctx.textAlign='center';
+  ctx.shadowColor=acc; ctx.shadowBlur=24;
+  ctx.font=`900 70px 'Barlow Condensed',sans-serif`; ctx.fillStyle='#F8F9F9';
+  ctx.fillText(inp.name, W/2, H/2+20);
+  ctx.shadowBlur=0;
+  ctx.font=`700 13px 'Barlow',sans-serif`; ctx.fillStyle=acc; ctx.letterSpacing='3px';
+  ctx.fillText(inp.title.toUpperCase(), W/2, H/2+50); ctx.letterSpacing='0px';
+  if (inp.tagline) { ctx.font=`400 italic 17px 'Barlow',sans-serif`; ctx.fillStyle='rgba(248,249,249,0.55)'; ctx.fillText(`"${inp.tagline}"`,W/2,H/2+80); }
+  statBar(ctx, inp.stats, 40, H-90, W-80, 68, acc);
+  grain(ctx,W,H);
+}
+
+function tmpl_ticker(ctx, W, H, inp, img, logo, acc) {
+  ctx.fillStyle='#F8F9F9'; ctx.fillRect(0,0,W,H);
+  fitPhoto(ctx, img, 0, 0, W*0.55, H, 0.85);
+  const gr=ctx.createLinearGradient(W*0.35,0,W*0.65,0);
+  gr.addColorStop(0,'rgba(248,249,249,0)'); gr.addColorStop(1,'#F8F9F9');
+  ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#F8F9F9'; ctx.fillRect(W*0.55,0,W*0.45,H);
+  placeLogo(ctx, W, H, logo, '#231F20', 'tr', 36);
+  ctx.textAlign='left';
+  ctx.font=`900 58px 'Barlow Condensed',sans-serif`; ctx.fillStyle='#231F20';
+  const words=inp.name.split(' ');
+  words.forEach((w,i)=>ctx.fillText(w,W*0.54+14,180+i*62));
+  ctx.font=`700 11px 'Barlow',sans-serif`; ctx.fillStyle=acc==='#F8F9F9'?'#5A9EA0':acc; ctx.letterSpacing='2.5px';
+  ctx.fillText(inp.title.toUpperCase(), W*0.54+14, 180+words.length*62+8); ctx.letterSpacing='0px';
+  ctx.fillStyle='#231F20'; ctx.fillRect(W*0.54+14,180+words.length*62+20,80,2);
+  const vs=inp.stats.filter(s=>s.v);
+  vs.slice(0,3).forEach((s,i)=>{
+    const sy=H*0.58+i*70;
+    ctx.font=`900 38px 'Barlow Condensed',sans-serif`; ctx.fillStyle='#231F20'; ctx.fillText(s.v,W*0.54+14,sy);
+    ctx.font=`700 9px 'Barlow',sans-serif`; ctx.fillStyle='#9A9A9A'; ctx.letterSpacing='2px'; ctx.fillText((s.l||'').toUpperCase(),W*0.54+14,sy+12); ctx.letterSpacing='0px';
+  });
+  ctx.fillStyle=acc==='#F8F9F9'?'#231F20':acc; ctx.fillRect(0,H-50,W,50);
+  ctx.font=`700 10px 'Barlow',sans-serif`; ctx.fillStyle=acc==='#F8F9F9'?'#F8F9F9':'#231F20'; ctx.textAlign='center'; ctx.letterSpacing='3px';
+  ctx.fillText((inp.context||'XII · RUNX PROGRAM').toUpperCase(), W/2, H-20); ctx.letterSpacing='0px';
+  grain(ctx,W,H);
+}
+
+function tmpl_grid(ctx, W, H, inp, img, logo, acc) {
+  ctx.fillStyle='#231F20'; ctx.fillRect(0,0,W,H);
+  const hw=W/2, hh=H/2;
+  fitPhoto(ctx,img,0,0,hw,hh,0.9);
+  ctx.fillStyle=acc; ctx.fillRect(hw,0,hw,hh);
+  ctx.fillStyle='#1a1718'; ctx.fillRect(0,hh,hw,hh);
+  ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.fillRect(hw,hh,hw,hh);
+  ctx.strokeStyle='rgba(170,221,221,0.15)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(0,hh); ctx.lineTo(W,hh); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(hw,0); ctx.lineTo(hw,H); ctx.stroke();
+  ctx.font=`900 44px 'Barlow Condensed',sans-serif`; ctx.fillStyle='#231F20'; ctx.textAlign='center';
+  ctx.fillText(inp.name.split(' ')[0]||inp.name, hw+hw/2, hh/2-4);
+  if (inp.name.split(' ')[1]) { ctx.fillText(inp.name.split(' ').slice(1).join(' '), hw+hw/2, hh/2+42); }
+  ctx.font=`700 10px 'Barlow',sans-serif`; ctx.fillStyle='rgba(35,31,32,0.6)'; ctx.letterSpacing='2px';
+  ctx.fillText(inp.title.toUpperCase(), hw+hw/2, hh-22); ctx.letterSpacing='0px';
+  if (inp.tagline) { ctx.font=`400 italic 22px 'Barlow Condensed',sans-serif`; ctx.fillStyle='rgba(248,249,249,0.55)'; ctx.textAlign='center'; ctx.fillText(`"${inp.tagline}"`,hw/2,hh+42); }
+  const vs=inp.stats.filter(s=>s.v);
+  vs.slice(0,2).forEach((s,i)=>{
+    const sy=hh+80+i*66;
+    ctx.font=`900 44px 'Barlow Condensed',sans-serif`; ctx.fillStyle=acc; ctx.textAlign='center'; ctx.fillText(s.v,hw/2,sy);
+    ctx.font=`700 9px 'Barlow',sans-serif`; ctx.fillStyle='#9A9A9A'; ctx.letterSpacing='2px'; ctx.fillText((s.l||'').toUpperCase(),hw/2,sy+14); ctx.letterSpacing='0px';
+  });
+  const vs2=vs.slice(2,4);
+  vs2.forEach((s,i)=>{
+    const sy=hh+80+i*66;
+    ctx.font=`900 44px 'Barlow Condensed',sans-serif`; ctx.fillStyle='#F8F9F9'; ctx.textAlign='center'; ctx.fillText(s.v,hw+hw/2,sy);
+    ctx.font=`700 9px 'Barlow',sans-serif`; ctx.fillStyle='rgba(248,249,249,0.45)'; ctx.letterSpacing='2px'; ctx.fillText((s.l||'').toUpperCase(),hw+hw/2,sy+14); ctx.letterSpacing='0px';
+  });
+  placeLogo(ctx,W,H,logo,'rgba(35,31,32,0.65)','tl',34);
+  placeLogo(ctx,W,H,logo,acc,'br',34);
+  grain(ctx,W,H);
+}
+
+function tmpl_magazine(ctx, W, H, inp, img, logo, acc) {
+  ctx.fillStyle='#F0EDE8'; ctx.fillRect(0,0,W,H);
+  fitPhoto(ctx, img, 0, 0, W, H*0.58, 0.92);
+  ctx.fillStyle='rgba(240,237,232,0)';
+  const gr=ctx.createLinearGradient(0,H*0.44,0,H*0.62);
+  gr.addColorStop(0,'rgba(240,237,232,0)'); gr.addColorStop(1,'rgba(240,237,232,1)');
+  ctx.fillStyle=gr; ctx.fillRect(0,0,W,H*0.65);
+  ctx.fillStyle='#F0EDE8'; ctx.fillRect(0,H*0.58,W,H*0.42);
+  placeLogo(ctx, W, H, logo, '#231F20', 'tr', 36);
+  ctx.fillStyle=acc; ctx.fillRect(36,H*0.62,60,4);
+  ctx.textAlign='left';
+  ctx.font=`900 64px 'Barlow Condensed',sans-serif`; ctx.fillStyle='#1A1718';
+  ctx.fillText(inp.name, 36, H*0.62+72);
+  ctx.font=`500 14px 'Barlow',sans-serif`; ctx.fillStyle='#5A5755'; ctx.letterSpacing='2px';
+  ctx.fillText(inp.title.toUpperCase(), 36, H*0.62+96); ctx.letterSpacing='0px';
+  if (inp.tagline) { ctx.font=`400 italic 17px 'Barlow',sans-serif`; ctx.fillStyle='#888'; ctx.fillText(`"${inp.tagline}"`,36,H*0.62+122); }
+  ctx.fillStyle='rgba(26,23,24,0.1)'; ctx.fillRect(36,H*0.62+136,W-72,1);
+  statBar(ctx, inp.stats, 36, H-90, W-72, 68, acc==='#F8F9F9'?'#231F20':acc, 'rgba(0,0,0,0.04)');
+  grain(ctx,W,H);
+}
+
+const templates = {
+  athlete:tmpl_athlete, stats:tmpl_stats, lifestyle:tmpl_lifestyle,
+  award:tmpl_award, bold:tmpl_bold, minimal:tmpl_minimal,
+  split:tmpl_split, cinematic:tmpl_cinematic, neon:tmpl_neon,
+  ticker:tmpl_ticker, grid:tmpl_grid, magazine:tmpl_magazine
+};
+
+function generatePost() {
+  const canvas = document.getElementById('postCanvas');
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  const inp = getInputs();
+  ctx.clearRect(0,0,W,H);
+  const fn = templates[S.template] || tmpl_athlete;
+  fn(ctx, W, H, inp, S.photoImg, S.logo, S.accent);
+  setDefaultCaption(inp);
+}
+
+function setDefaultCaption(inp) {
+  const vs = inp.stats.filter(s=>s.v);
+  const statStr = vs.map(s=>`${s.v} ${s.l}`).join(' · ');
+  let cap = inp.name;
+  if (inp.title) cap += `\n${inp.title}`;
+  if (statStr) cap += `\n\n${statStr}`;
+  if (inp.tagline) cap += `\n\n"${inp.tagline}"`;
+  if (inp.context) cap += `\n\n${inp.context}`;
+  cap += '\n\n#XII #XIIG #RunX #performance #winning';
+  document.getElementById('captionText').textContent = cap;
+  document.getElementById('captionArea').style.display='block';
+  document.getElementById('aiIndicator').style.display='none';
+}
+
+async function generateAICaption() {
+  const btn = document.getElementById('aiCaptionBtn');
+  const inp = getInputs();
+  btn.disabled = true;
+  btn.textContent = '✦ Generating...';
+  const overlay = document.getElementById('loadingOverlay');
+  document.getElementById('loadTxt').textContent = 'AI Writing Caption...';
+  overlay.classList.add('active');
+
+  const statsStr = inp.stats.filter(s=>s.v).map(s=>`${s.l}: ${s.v}`).join(', ');
+  const prompt = `You are a social media copywriter for XII, a high-performance fitness and sales training brand with a surf/lifestyle aesthetic (think Nike meets Patagonia meets Wall Street hustle).
+
+Write an Instagram caption for this post:
+- Name: ${inp.name}
+- Role: ${inp.title}
+- Stats: ${statsStr || 'none'}
+- Tagline: ${inp.tagline || 'none'}
+- Context: ${inp.context || 'general post'}
+- Template style: ${S.template}
+
+Rules:
+- 3-5 sentences max, punchy and energetic
+- Start with a powerful hook (not "Congrats" or "Check out")
+- Reflect the XII brand: driven, coastal, elite but accessible
+- Include 1-2 relevant emojis naturally placed
+- End with 5-8 relevant hashtags on a new line including #XII #RunX
+- Never use generic corporate language
+
+Return only the caption text, nothing else.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{role:'user', content: prompt}]
+      })
+    });
+    const data = await res.json();
+    const caption = data.content?.find(b=>b.type==='text')?.text || '';
+    if (caption) {
+      document.getElementById('captionText').textContent = caption;
+      document.getElementById('captionArea').style.display='block';
+      document.getElementById('aiIndicator').style.display='flex';
+    }
+  } catch(e) {
+    document.getElementById('captionText').textContent = 'Could not generate caption. Check connection and try again.';
+  }
+
+  overlay.classList.remove('active');
+  btn.disabled = false;
+  btn.textContent = '✦ AI Caption Generator';
+}
+
+function copyCaption() {
+  const text = document.getElementById('captionText').textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ Copied!';
+    setTimeout(()=>btn.textContent='⎘ Copy Caption', 2000);
+  });
+}
+
+function downloadPost() {
+  generatePost();
+  const canvas = document.getElementById('postCanvas');
+  const name = document.getElementById('athleteName').value || 'XII_post';
+  const link = document.createElement('a');
+  link.download = `${name.replace(/\s+/g,'_')}_XII.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+generatePost();
+</script>
+</body>
+</html>
