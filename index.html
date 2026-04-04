@@ -2848,9 +2848,9 @@ function renderOverview(){
   const qtdReps = ROSTER_EMPLOYEES.filter(primaryFilter).map(e => QTD_MAP[e.id] || {});
   const qtdActual = {
     CS:  qtdReps.reduce((s,e) => s + (e.qtd_cs  || 0), 0),
-    SRA: qtdReps.reduce((s,e) => s + (e.qtr_sra || e.qtd_sra || 0), 0),
-    CAP: qtdReps.reduce((s,e) => s + (e.qtr_cap || e.qtd_cap || 0), 0),
-    IC:  qtdReps.reduce((s,e) => s + (e.qtr_ic  || e.qtd_ic  || 0), 0),
+    SRA: qtdReps.reduce((s,e) => s + (e.qtr_sra != null ? e.qtr_sra : (e.qtd_sra || 0)), 0),
+    CAP: qtdReps.reduce((s,e) => s + (e.qtr_cap != null ? e.qtr_cap : (e.qtd_cap || 0)), 0),
+    IC:  qtdReps.reduce((s,e) => s + (e.qtr_ic  != null ? e.qtr_ic  : (e.qtd_ic  || 0)), 0),
   };
 
   // Primary label is always "twelve"
@@ -2945,9 +2945,9 @@ function renderOverview(){
   const cQtdReps = ROSTER_EMPLOYEES.filter(cFilter).map(e => QTD_MAP[e.id] || {});
   const cQtdActual = {
     CS:  cQtdReps.reduce((s,e) => s + (e.qtd_cs  || 0), 0),
-    SRA: cQtdReps.reduce((s,e) => s + (e.qtr_sra || e.qtd_sra || 0), 0),
-    CAP: cQtdReps.reduce((s,e) => s + (e.qtr_cap || e.qtd_cap || 0), 0),
-    IC:  cQtdReps.reduce((s,e) => s + (e.qtr_ic  || e.qtd_ic  || 0), 0),
+    SRA: cQtdReps.reduce((s,e) => s + (e.qtr_sra != null ? e.qtr_sra : (e.qtd_sra || 0)), 0),
+    CAP: cQtdReps.reduce((s,e) => s + (e.qtr_cap != null ? e.qtr_cap : (e.qtd_cap || 0)), 0),
+    IC:  cQtdReps.reduce((s,e) => s + (e.qtr_ic  != null ? e.qtr_ic  : (e.qtd_ic  || 0)), 0),
   };
 
   document.getElementById('wtd-progress-compare').innerHTML =
@@ -7266,6 +7266,9 @@ async function fetchSheetsData(opts) {
     if (typeof gc_build === 'function') gc_build();
     if (typeof renderOverview === 'function') renderOverview();
     if (typeof renderQTD === 'function') renderQTD();
+    // Diagnostic: show sample QTD_MAP values after Totals overwrite
+    var sampleIds = Object.keys(QTD_MAP).slice(0,3);
+    sampleIds.forEach(function(sid){ var e=QTD_MAP[sid]; console.log('[Totals] QTD_MAP['+sid+'] qtr_sra='+e.qtr_sra+' qtd_cs='+e.qtd_cs+' name='+e.name); });
     console.log('[Totals] loaded', totCount, 'rows');
   } catch(e) { errors.push('Totals: ' + e.message); console.error('[Totals] error:', e); }
 
