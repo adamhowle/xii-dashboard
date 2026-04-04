@@ -2901,9 +2901,9 @@ function renderOverview(){
       calcPace(wtdActual[c], wtdPace), 'wtd'
     )).join('');
 
-  // QTD Points sheet has no cumulative CS column — only SRA, CAP, IC are quarterly totals
+  // CS now available from Totals sheet — show all four QTD metrics
   document.getElementById('qtd-progress').innerHTML =
-    ['SRA','CAP','IC'].map(c => buildProgressCard(
+    ['CS','SRA','CAP','IC'].map(c => buildProgressCard(
       c, getTarget('qtd', c), qtdActual[c],
       calcPace(qtdActual[c], qtdPace), 'qtd'
     )).join('');
@@ -2957,7 +2957,7 @@ function renderOverview(){
     )).join('');
 
   document.getElementById('qtd-progress-compare').innerHTML =
-    ['SRA','CAP','IC'].map(c => buildProgressCard(
+    ['CS','SRA','CAP','IC'].map(c => buildProgressCard(
       c, getTarget('qtd', c, ovCompareOffice), cQtdActual[c],
       calcPace(cQtdActual[c], qtdPace), 'qtd-cmp'
     )).join('');
@@ -3790,10 +3790,10 @@ function checkUnmatchedReps() {
   if (!unmatched.length) { banner.style.display='none'; banner.innerHTML=''; return; }
   banner.style.display = 'block';
   banner.innerHTML = unmatched.map(e => {
-    const rkEntry = RANKINGS_MAP[String(e.id)] || {};
+    const rkFull = rankingsData.find(r => String(r.id) === String(e.id)) || {};
     const rawName = e.name || '';
     const name = (rawName && !/^\d+$/.test(rawName)) ? rawName
-               : (rkEntry.name) ? rkEntry.name
+               : (rkFull.name) ? rkFull.name
                : ('Employee ' + e.id);
     const stats = [
       e.wtd_cs  ? 'CS '  + e.wtd_cs  : '',
@@ -3828,10 +3828,12 @@ function rosterUnmatchedIgnore(id) {
 function rosterUnmatchedAdd(id) {
   const emp = WTD_EMPLOYEES.find(e => String(e.id) === String(id));
   if (!emp) return;
-  const rkEntry = RANKINGS_MAP[String(id)] || {};
+  // Look up name from rankingsData (full objects with name field)
+  // RANKINGS_MAP only stores {title, currentRank, highestRank} — no name
+  const rkFull = rankingsData.find(r => String(r.id) === String(id)) || {};
   const rawName = emp.name || '';
   const bestName = (rawName && !/^\d+$/.test(rawName)) ? rawName
-                 : (rkEntry.name) ? rkEntry.name : '';
+                 : (rkFull.name) ? rkFull.name : '';
   const empidEl = document.getElementById('modal-empid');
   if (empidEl) { empidEl.value = String(id); empidEl.setAttribute('readonly', true); empidEl.style.opacity = '0.6'; }
   document.getElementById('modal-name').value   = bestName;
@@ -7262,6 +7264,8 @@ async function fetchSheetsData(opts) {
     });
     if (typeof buildSIFromRepPerf === 'function') { buildSIFromRepPerf(); applyFilters(); }
     if (typeof gc_build === 'function') gc_build();
+    if (typeof renderOverview === 'function') renderOverview();
+    if (typeof renderQTD === 'function') renderQTD();
     console.log('[Totals] loaded', totCount, 'rows');
   } catch(e) { errors.push('Totals: ' + e.message); console.error('[Totals] error:', e); }
 
