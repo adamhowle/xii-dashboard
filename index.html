@@ -8180,6 +8180,12 @@ document.addEventListener('keydown', function(e) {
     flex-direction: column;
     gap: 1px;
   }
+  #panel-productivity .prod-names-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    align-content: start;
+  }
   #panel-productivity .prod-name-row {
     display: flex;
     align-items: center;
@@ -8275,7 +8281,7 @@ document.addEventListener('keydown', function(e) {
 
   <!-- Stats bar -->
   <div class="prod-stats" id="prod-stats-bar">
-    <div class="prod-stat"><div class="prod-stat-val" id="pstat-total">—</div><div class="prod-stat-lbl">Visible</div></div>
+    <div class="prod-stat"><div class="prod-stat-val" id="pstat-total">—</div><div class="prod-stat-lbl">Selected Offices</div></div>
     <div class="prod-stat"><div class="prod-stat-val clr-productive" id="pstat-productive">—</div><div class="prod-stat-lbl">Productive</div></div>
     <div class="prod-stat"><div class="prod-stat-val clr-active"     id="pstat-active">—</div><div class="prod-stat-lbl">Active</div></div>
     <div class="prod-stat"><div class="prod-stat-val clr-inactive"   id="pstat-inactive">—</div><div class="prod-stat-lbl">Inactive</div></div>
@@ -8366,30 +8372,32 @@ function renderProductivity() {
     return;
   }
 
-  // Count all reps (unfiltered by office/status) for global stats
-  const globalCounts = {};
-  PROD_STATUSES.forEach(s => { globalCounts[s] = 0; });
-  reps.forEach(r => { if (globalCounts[r.status] !== undefined) globalCounts[r.status]++; });
+  // Reps matching selected offices only (ignore status filter for stats)
+  const officeFiltered = reps.filter(r => prodOffices.has(r.office));
 
-  // Filtered reps (for visible column contents)
+  // Reps matching both offices AND statuses (for column content)
   const filtered = reps.filter(r =>
     prodOffices.has(r.office) && prodStatuses.has(r.status)
   );
 
-  // Update stats — always show global totals regardless of filter
-  const totalAll = reps.length;
-  const prodCount = globalCounts['Productive'] || 0;
-  const pct = totalAll > 0 ? Math.round(prodCount / totalAll * 100) : 0;
+  // Stats reflect selected offices across all statuses
+  const officeCounts = {};
+  PROD_STATUSES.forEach(s => { officeCounts[s] = 0; });
+  officeFiltered.forEach(r => { if (officeCounts[r.status] !== undefined) officeCounts[r.status]++; });
+
+  const totalOffice  = officeFiltered.length;
+  const prodCount    = officeCounts['Productive'] || 0;
+  const pct          = totalOffice > 0 ? Math.round(prodCount / totalOffice * 100) : 0;
 
   const statMap = {
-    productive: globalCounts['Productive'] || 0,
-    active:     globalCounts['Active']     || 0,
-    inactive:   globalCounts['Inactive']   || 0,
-    combine:    globalCounts['Combine']    || 0,
-    newhire:    globalCounts['New Hire']   || 0,
+    productive: officeCounts['Productive'] || 0,
+    active:     officeCounts['Active']     || 0,
+    inactive:   officeCounts['Inactive']   || 0,
+    combine:    officeCounts['Combine']    || 0,
+    newhire:    officeCounts['New Hire']   || 0,
   };
   const totalEl = document.getElementById('pstat-total');
-  if (totalEl) totalEl.textContent = filtered.length;
+  if (totalEl) totalEl.textContent = totalOffice;
   Object.entries(statMap).forEach(([k, v]) => {
     const el = document.getElementById('pstat-' + k);
     if (el) el.textContent = v;
@@ -8417,9 +8425,7 @@ function renderProductivity() {
             ? `<span class="prod-sra-badge sra-active">${sraVal}</span>`
             : `<span class="prod-sra-badge">0</span>`;
 
-          // Filter name rows by selected offices
-          const hiddenClass = prodOffices.has(r.office) ? '' : ' hidden';
-          return `<div class="prod-name-row${hiddenClass}" data-office="${r.office}">
+          return `<div class="prod-name-row" data-office="${r.office}">
             <span class="prod-office-dot" style="background:${dotColor}"></span>
             <span class="prod-name-text">${r.name}</span>
             ${chgIcon}
@@ -8433,7 +8439,7 @@ function renderProductivity() {
         <span>${status}</span>
         <span class="prod-col-count">${colReps.length}</span>
       </div>
-      <div class="prod-names">${rows}</div>
+      <div class="prod-names prod-names-2col">${rows}</div>
     </div>`;
   }).join('');
 }
