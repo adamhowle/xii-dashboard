@@ -1934,6 +1934,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
   <div class="tab" onclick="switchTab('onboard-employee',this)">Onboard Employee</div>
   <div class="tab" onclick="switchTab('onboard-progress',this)">Onboard Progress</div>
   <div class="tab" onclick="switchTab('combine',this)">Combine</div>
+  <div class="tab" onclick="switchTab('productivity',this)">Productivity</div>
 
   <div class="tab" onclick="switchTab('data',this)">Data</div>
 </div>
@@ -6156,6 +6157,7 @@ function parseRepDetailCSV(text) {
       status:        csvVal(c[col('status')]),
       status_change: csvVal(c[col('change')]),
       prev_status:   csvVal(c[col('previous status')]),
+      sra_4wk:       csvNum(c[col('sra (4wk)')]),
     };
   }).filter(Boolean);
 }
@@ -6424,9 +6426,11 @@ function loadCSVFile(file, forcedSourceKey) {
           if (qtd) {
             qtd.title_group=r.title_group; qtd.status=r.status;
             qtd.status_change=r.status_change; qtd.prev_status=r.prev_status;
+            qtd.sra_4wk=r.sra_4wk;
           }
         });
         buildPerfMaps(); renderQTD();
+        if (typeof renderProductivity === 'function') renderProductivity();
         showCSVToast(`✓ Rep Detail loaded — ${rows.length} reps`);
         updateDataCard('repdetail', rows.length, file.name);
 
@@ -8050,6 +8054,402 @@ document.addEventListener('keydown', function(e) {
     <span class="footer-brand">■ XII — BUILDING CULTURE FORWARD ■</span>
   </div>
 </div>
+
+<!-- ── PRODUCTIVITY TAB ── -->
+<div class="tab-panel" id="panel-productivity">
+<style>
+  /* ── Scoped to #panel-productivity ── */
+  #panel-productivity { background: var(--near-black); }
+
+  #panel-productivity .prod-controls {
+    display: flex;
+    align-items: flex-end;
+    gap: 28px;
+    padding: 18px 36px 14px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  #panel-productivity .prod-filter-group {}
+  #panel-productivity .prod-filter-label {
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--cyan-dark);
+    margin-bottom: 8px;
+  }
+  #panel-productivity .prod-pills {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  #panel-productivity .prod-pill {
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border: 1px solid rgba(170,221,221,0.2);
+    background: transparent;
+    color: rgba(248,249,249,0.35);
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  #panel-productivity .prod-pill.active {
+    border-color: rgba(170,221,221,0.6);
+    color: var(--off-white);
+    background: rgba(170,221,221,0.08);
+  }
+  #panel-productivity .prod-pill.pill-productive.active { border-color: #2ecc40; color: #2ecc40; background: rgba(46,204,64,0.08); }
+  #panel-productivity .prod-pill.pill-active.active    { border-color: #f0c040; color: #f0c040; background: rgba(240,192,64,0.08); }
+  #panel-productivity .prod-pill.pill-inactive.active  { border-color: #e84040; color: #e84040; background: rgba(232,64,64,0.08); }
+  #panel-productivity .prod-pill.pill-combine.active   { border-color: #b06cd9; color: #b06cd9; background: rgba(176,108,217,0.08); }
+  #panel-productivity .prod-pill.pill-newhire.active   { border-color: var(--cyan-light); color: var(--cyan-light); background: rgba(170,221,221,0.08); }
+
+  #panel-productivity .prod-stats {
+    display: flex;
+    gap: 0;
+    padding: 12px 36px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  #panel-productivity .prod-stat {
+    padding: 0 20px 0 0;
+    margin-right: 20px;
+    border-right: 1px solid var(--border);
+  }
+  #panel-productivity .prod-stat:last-child { border-right: none; }
+  #panel-productivity .prod-stat-val {
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--off-white);
+    line-height: 1;
+  }
+  #panel-productivity .prod-stat-lbl {
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  #panel-productivity .prod-stat-val.clr-productive { color: #2ecc40; }
+  #panel-productivity .prod-stat-val.clr-active     { color: #f0c040; }
+  #panel-productivity .prod-stat-val.clr-inactive   { color: #e84040; }
+  #panel-productivity .prod-stat-val.clr-combine    { color: #b06cd9; }
+  #panel-productivity .prod-stat-val.clr-newhire    { color: var(--cyan-light); }
+
+  #panel-productivity .prod-columns {
+    display: grid;
+    gap: 0;
+    padding: 20px 28px 32px;
+  }
+  #panel-productivity .prod-col {}
+  #panel-productivity .prod-col-header {
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 10px 12px 8px;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  #panel-productivity .prod-col-header.hdr-productive { background: #2ecc40; color: #0a1a0c; }
+  #panel-productivity .prod-col-header.hdr-active     { background: #f0c040; color: #1a1500; }
+  #panel-productivity .prod-col-header.hdr-inactive   { background: #e84040; color: #fff; }
+  #panel-productivity .prod-col-header.hdr-combine    { background: #b06cd9; color: #fff; }
+  #panel-productivity .prod-col-header.hdr-newhire    { background: var(--cyan-light); color: #0d1e1e; }
+  #panel-productivity .prod-col-count {
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0;
+    opacity: 0.75;
+  }
+
+  #panel-productivity .prod-names {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  #panel-productivity .prod-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: rgba(248,249,249,0.03);
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--off-white);
+    letter-spacing: 0.3px;
+    transition: background .1s;
+  }
+  #panel-productivity .prod-name-row:hover { background: rgba(170,221,221,0.06); }
+  #panel-productivity .prod-name-row.hidden { display: none; }
+
+  #panel-productivity .prod-office-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  #panel-productivity .prod-name-text { flex: 1; }
+  #panel-productivity .prod-chg-up   { color: #2ecc40; font-size: 9px; font-weight: 800; flex-shrink: 0; }
+  #panel-productivity .prod-chg-down { color: #e84040; font-size: 9px; font-weight: 800; flex-shrink: 0; }
+  #panel-productivity .prod-sra-badge {
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    background: rgba(248,249,249,0.08);
+    color: rgba(248,249,249,0.45);
+    flex-shrink: 0;
+    min-width: 22px;
+    text-align: center;
+  }
+  #panel-productivity .prod-sra-badge.sra-active {
+    background: rgba(46,204,64,0.15);
+    color: #2ecc40;
+  }
+
+  #panel-productivity .prod-empty {
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 12px 10px;
+    opacity: 0.5;
+  }
+  #panel-productivity .prod-no-data {
+    padding: 48px 36px;
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* Light mode adjustments */
+  body.light-mode #panel-productivity { background: var(--bg); }
+  body.light-mode #panel-productivity .prod-name-row { background: rgba(35,31,32,0.04); color: var(--near-black); }
+  body.light-mode #panel-productivity .prod-name-row:hover { background: rgba(90,158,160,0.08); }
+  body.light-mode #panel-productivity .prod-col-header.hdr-inactive { color: #fff; }
+</style>
+
+  <!-- Controls -->
+  <div class="prod-controls">
+
+    <!-- Office filter (multi-select) -->
+    <div class="prod-filter-group">
+      <div class="prod-filter-label">Office</div>
+      <div class="prod-pills" id="prod-office-pills">
+        <span class="prod-pill active" data-office="Orange County" onclick="prodToggleOffice('Orange County',this)">Orange County</span>
+        <span class="prod-pill active" data-office="Newport Beach" onclick="prodToggleOffice('Newport Beach',this)">Newport Beach</span>
+        <span class="prod-pill" data-office="Riverside" onclick="prodToggleOffice('Riverside',this)">Riverside</span>
+      </div>
+    </div>
+
+    <!-- Status filter (multi-select) -->
+    <div class="prod-filter-group">
+      <div class="prod-filter-label">Status</div>
+      <div class="prod-pills" id="prod-status-pills">
+        <span class="prod-pill pill-productive active" data-status="Productive" onclick="prodToggleStatus('Productive',this)">Productive</span>
+        <span class="prod-pill pill-active active"     data-status="Active"     onclick="prodToggleStatus('Active',this)">Active</span>
+        <span class="prod-pill pill-inactive active"   data-status="Inactive"   onclick="prodToggleStatus('Inactive',this)">Inactive</span>
+        <span class="prod-pill pill-combine"           data-status="Combine"    onclick="prodToggleStatus('Combine',this)">Combine</span>
+        <span class="prod-pill pill-newhire"           data-status="New Hire"   onclick="prodToggleStatus('New Hire',this)">New Hire</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Stats bar -->
+  <div class="prod-stats" id="prod-stats-bar">
+    <div class="prod-stat"><div class="prod-stat-val" id="pstat-total">—</div><div class="prod-stat-lbl">Visible</div></div>
+    <div class="prod-stat"><div class="prod-stat-val clr-productive" id="pstat-productive">—</div><div class="prod-stat-lbl">Productive</div></div>
+    <div class="prod-stat"><div class="prod-stat-val clr-active"     id="pstat-active">—</div><div class="prod-stat-lbl">Active</div></div>
+    <div class="prod-stat"><div class="prod-stat-val clr-inactive"   id="pstat-inactive">—</div><div class="prod-stat-lbl">Inactive</div></div>
+    <div class="prod-stat"><div class="prod-stat-val clr-combine"    id="pstat-combine">—</div><div class="prod-stat-lbl">Combine</div></div>
+    <div class="prod-stat"><div class="prod-stat-val clr-newhire"    id="pstat-newhire">—</div><div class="prod-stat-lbl">New Hire</div></div>
+    <div class="prod-stat"><div class="prod-stat-val clr-productive" id="pstat-pct">—</div><div class="prod-stat-lbl">% Productive</div></div>
+  </div>
+
+  <!-- Columns grid -->
+  <div class="prod-columns" id="prod-columns-grid">
+    <div class="prod-no-data" id="prod-no-data">Load Rep Detail CSV to populate</div>
+  </div>
+
+</div>
+
+<script>
+// ── PRODUCTIVITY TAB ───────────────────────────────────────────────────────────
+
+const PROD_OFFICE_COLORS = {
+  'Orange County': '#5A9EA0',
+  'Newport Beach': '#AADDDD',
+  'Riverside':     '#F2CF9C',
+};
+
+const PROD_STATUSES = ['Productive','Active','Inactive','Combine','New Hire'];
+const PROD_HDR_CLASS = {
+  'Productive': 'hdr-productive',
+  'Active':     'hdr-active',
+  'Inactive':   'hdr-inactive',
+  'Combine':    'hdr-combine',
+  'New Hire':   'hdr-newhire',
+};
+
+// Filter state — default: OC + NB selected, Productive + Active + Inactive selected
+let prodOffices  = new Set(['Orange County','Newport Beach']);
+let prodStatuses = new Set(['Productive','Active','Inactive']);
+
+function prodToggleOffice(office, el) {
+  if (prodOffices.has(office)) {
+    // Don't allow deselecting all
+    if (prodOffices.size === 1) return;
+    prodOffices.delete(office);
+    el.classList.remove('active');
+  } else {
+    prodOffices.add(office);
+    el.classList.add('active');
+  }
+  renderProductivity();
+}
+
+function prodToggleStatus(status, el) {
+  if (prodStatuses.has(status)) {
+    if (prodStatuses.size === 1) return;
+    prodStatuses.delete(status);
+    el.classList.remove('active');
+  } else {
+    prodStatuses.add(status);
+    el.classList.add('active');
+  }
+  renderProductivity();
+}
+
+function renderProductivity() {
+  const grid    = document.getElementById('prod-columns-grid');
+  const noData  = document.getElementById('prod-no-data');
+  if (!grid) return;
+
+  // Pull reps from QTD_EMPLOYEES that have a status set by Rep Detail
+  const reps = ROSTER_EMPLOYEES.map(ro => {
+    const q = QTD_MAP[ro.id] || {};
+    return {
+      id:     ro.id,
+      name:   ro.name,
+      office: ro.office,
+      status: q.status || '',
+      change: (q.status_change || '').toLowerCase(),
+      sra:    q.sra_4wk != null ? q.sra_4wk : null,
+    };
+  }).filter(r => r.status !== '');
+
+  if (!reps.length) {
+    grid.innerHTML = '<div class="prod-no-data" id="prod-no-data">Load Rep Detail CSV to populate</div>';
+    // Reset stats
+    ['total','productive','active','inactive','combine','newhire','pct'].forEach(k => {
+      const el = document.getElementById('pstat-' + k);
+      if (el) el.textContent = '—';
+    });
+    return;
+  }
+
+  // Count all reps (unfiltered by office/status) for global stats
+  const globalCounts = {};
+  PROD_STATUSES.forEach(s => { globalCounts[s] = 0; });
+  reps.forEach(r => { if (globalCounts[r.status] !== undefined) globalCounts[r.status]++; });
+
+  // Filtered reps (for visible column contents)
+  const filtered = reps.filter(r =>
+    prodOffices.has(r.office) && prodStatuses.has(r.status)
+  );
+
+  // Update stats — always show global totals regardless of filter
+  const totalAll = reps.length;
+  const prodCount = globalCounts['Productive'] || 0;
+  const pct = totalAll > 0 ? Math.round(prodCount / totalAll * 100) : 0;
+
+  const statMap = {
+    productive: globalCounts['Productive'] || 0,
+    active:     globalCounts['Active']     || 0,
+    inactive:   globalCounts['Inactive']   || 0,
+    combine:    globalCounts['Combine']    || 0,
+    newhire:    globalCounts['New Hire']   || 0,
+  };
+  const totalEl = document.getElementById('pstat-total');
+  if (totalEl) totalEl.textContent = filtered.length;
+  Object.entries(statMap).forEach(([k, v]) => {
+    const el = document.getElementById('pstat-' + k);
+    if (el) el.textContent = v;
+  });
+  const pctEl = document.getElementById('pstat-pct');
+  if (pctEl) pctEl.textContent = pct + '%';
+
+  // Build visible columns
+  const visibleStatuses = PROD_STATUSES.filter(s => prodStatuses.has(s));
+  const colWidth = visibleStatuses.length > 0 ? `repeat(${visibleStatuses.length}, 1fr)` : '1fr';
+  grid.style.gridTemplateColumns = colWidth;
+
+  grid.innerHTML = visibleStatuses.map(status => {
+    const colReps = filtered.filter(r => r.status === status)
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const rows = colReps.length
+      ? colReps.map(r => {
+          const dotColor  = PROD_OFFICE_COLORS[r.office] || '#5A9EA0';
+          const chgIcon   = r.change === 'up'   ? '<span class="prod-chg-up">▲</span>'
+                          : r.change === 'down' ? '<span class="prod-chg-down">▼</span>'
+                          : '';
+          const sraVal    = r.sra != null && r.sra > 0 ? r.sra : null;
+          const sraBadge  = sraVal != null
+            ? `<span class="prod-sra-badge sra-active">${sraVal}</span>`
+            : `<span class="prod-sra-badge">0</span>`;
+
+          // Filter name rows by selected offices
+          const hiddenClass = prodOffices.has(r.office) ? '' : ' hidden';
+          return `<div class="prod-name-row${hiddenClass}" data-office="${r.office}">
+            <span class="prod-office-dot" style="background:${dotColor}"></span>
+            <span class="prod-name-text">${r.name}</span>
+            ${chgIcon}
+            ${sraBadge}
+          </div>`;
+        }).join('')
+      : '<div class="prod-empty">None</div>';
+
+    return `<div class="prod-col">
+      <div class="prod-col-header ${PROD_HDR_CLASS[status] || ''}">
+        <span>${status}</span>
+        <span class="prod-col-count">${colReps.length}</span>
+      </div>
+      <div class="prod-names">${rows}</div>
+    </div>`;
+  }).join('');
+}
+
+// Init on tab switch
+(function() {
+  const origSwitch = typeof switchTab === 'function' ? switchTab : null;
+  if (origSwitch) {
+    const _orig = switchTab;
+    switchTab = function(id, el) {
+      _orig(id, el);
+      if (id === 'productivity') renderProductivity();
+    };
+  }
+})();
+</script>
 
 <div class="tab-panel" id="panel-data">
 
