@@ -6289,6 +6289,7 @@ function parseRosterCSV(text) {
 // ── Global storage for new tab data ──────────────────────────────────────────
 let COMBINE2_EMPLOYEES = []; // Populated from Google Sheets
 let NEW_HIRE_EMPLOYEES = []; // Populated from Google Sheets
+let REP_DETAIL_MAP = {}; // Keyed by employee ID string — populated by Rep Detail CSV
 let GC_EMPLOYEES = []; // Populated from Google Sheets — Game Changers tab
 // Safe defaults — populated when Export CSV is uploaded
 let RANKINGS_MAP = {}; // Populated from Google Sheets
@@ -6421,6 +6422,8 @@ function loadCSVFile(file, forcedSourceKey) {
       } else if (isRepDetail) {
         const rows = parseRepDetailCSV(text);
         if (!rows.length) { showCSVToast('⚠ Rep Detail: no records found'); return; }
+        // Always store into dedicated map — independent of QTD_MAP load order
+        REP_DETAIL_MAP = Object.fromEntries(rows.map(r => [r.id, r]));
         rows.forEach(r => {
           const qtd = QTD_MAP[r.id];
           if (qtd) {
@@ -8349,16 +8352,19 @@ function renderProductivity() {
   const noData  = document.getElementById('prod-no-data');
   if (!grid) return;
 
-  // Pull reps from QTD_EMPLOYEES that have a status set by Rep Detail
+  // Pull reps from ROSTER_EMPLOYEES, using REP_DETAIL_MAP as primary source
+  // (independent of QTD Points load order)
   const reps = ROSTER_EMPLOYEES.map(ro => {
-    const q = QTD_MAP[ro.id] || {};
+    const rd = REP_DETAIL_MAP[ro.id] || {};
+    const q  = QTD_MAP[ro.id] || {};
+    const status = rd.status || q.status || '';
     return {
       id:     ro.id,
       name:   ro.name,
       office: ro.office,
-      status: q.status || '',
-      change: (q.status_change || '').toLowerCase(),
-      sra:    q.sra_4wk != null ? q.sra_4wk : null,
+      status,
+      change: (rd.status_change || q.status_change || '').toLowerCase(),
+      sra:    rd.sra_4wk != null ? rd.sra_4wk : (q.sra_4wk != null ? q.sra_4wk : null),
     };
   }).filter(r => r.status !== '');
 
