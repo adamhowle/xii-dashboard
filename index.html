@@ -2292,7 +2292,23 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
 <script>
 const WTD_EMPLOYEES = []; // Populated from Google Sheets
 const QTD_EMPLOYEES = []; // Populated from Google Sheets
-let ROSTER_EMPLOYEES = []; // Populated from Google Sheets on load
+let ROSTER_EMPLOYEES   = []; // Populated from Google Sheets on load
+let RANKINGS_MAP       = {}; // Populated from Google Sheets (Export tab)
+let rankingsData       = []; // Same as RANKINGS_MAP but as array for Rankings tab
+let COMBINE2_EMPLOYEES = []; // Populated from Google Sheets
+let NEW_HIRE_EMPLOYEES = []; // Populated from Google Sheets
+let REP_DETAIL_MAP     = {}; // Populated from Google Sheets (Rep Detail tab)
+
+// Helpers used throughout Sheets fetch path
+function csvNum(v) { const x = parseFloat(v != null ? String(v) : ''); return isNaN(x) ? 0 : x; }
+function shortOffice(o) {
+  if (!o) return '';
+  const u = String(o).toUpperCase();
+  if (u.includes('ORANGE')) return 'Orange County';
+  if (u.includes('RIVERSIDE') || u.includes('CA-21')) return 'Riverside';
+  if (u.includes('CORONA') || u.includes('CA-36') || u.includes('NEWPORT')) return 'Newport Beach';
+  return String(o);
+}
 
 // ── Performance lookup maps (rebuilt whenever roster changes) ──
 let WTD_MAP = {}, QTD_MAP = {};
