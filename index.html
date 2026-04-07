@@ -2293,12 +2293,21 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode #pane
 const WTD_EMPLOYEES = []; // Populated from Google Sheets
 const QTD_EMPLOYEES = []; // Populated from Google Sheets
 let ROSTER_EMPLOYEES   = []; // Populated from Google Sheets on load
-let RANKINGS_MAP       = {}; // Populated from Google Sheets (Export tab)
-let rankingsData       = []; // Same as RANKINGS_MAP but as array for Rankings tab
 let COMBINE2_EMPLOYEES = []; // Populated from Google Sheets
 let NEW_HIRE_EMPLOYEES = []; // Populated from Google Sheets
-let REP_DETAIL_MAP     = {}; // Populated from Google Sheets (Rep Detail tab)
-let GC_EMPLOYEES       = []; // Populated from Google Sheets (Game Changers tab)
+let REP_DETAIL_MAP     = {}; // Keyed by employee ID — populated by Rep Detail tab
+let GC_EMPLOYEES       = []; // Populated from Google Sheets — Game Changers tab
+// Safe defaults — populated when Sheets data loads
+let RANKINGS_MAP       = {}; // Populated from Google Sheets (Export tab)
+let rankingsData       = []; // Same as RANKINGS_MAP but as array for Rankings tab
+// Combine tab state
+let combineState = { offices: new Set(['all']), squad: '', showMissed: false };
+// Rankings tab state
+let rkOfficeFilter = new Set(); // empty = all
+let rkRankFilter   = new Set(); // empty = all
+let rkTitleFilter  = new Set(); // empty = all
+let rkSortCol      = 'llPoints';
+let rkSortDir      = -1;
 
 // Helpers used throughout Sheets fetch path
 function csvNum(v) { const x = parseFloat(v != null ? String(v) : ''); return isNaN(x) ? 0 : x; }
@@ -6050,6 +6059,304 @@ document.getElementById('ov-c-none').classList.remove('active');
 document.getElementById('ov-c-riverside').classList.add('active');
 document.getElementById('ov-c-newport').classList.remove('active');
 document.getElementById('ov-c-oc').classList.remove('active');
+
+function rkRankBadge(rank) {
+  if (!rank) return '<span class="rank-badge rank-nostatus">No Status</span>';
+  const r = rank.toUpperCase();
+  if (r === 'FRANCHISE') return `<span class="rank-badge rank-franchise">Franchise</span>`;
+  if (r === 'PREMIER')   return `<span class="rank-badge rank-premier">Premier</span>`;
+  if (r === 'LEVEL 3')   return `<span class="rank-badge rank-level3">Level III</span>`;
+  if (r === 'LEVEL 2')   return `<span class="rank-badge rank-level2">Level II</span>`;
+  if (r === 'LEVEL 1')   return `<span class="rank-badge rank-level1">Level I</span>`;
+  if (r === 'IN COMBINE' || r === 'COMBINE') return `<span class="rank-badge rank-combine">In Combine</span>`;
+  return `<span class="rank-badge rank-nostatus">No Status</span>`;
+}
+
+function rkTitleBadge(title) {
+  if (title === 'DM')       return `<span class="title-dm">DM</span>`;
+  if (title === 'Director') return `<span class="title-dir">DIR</span>`;
+  return `<span class="title-sm">SM</span>`;
+}
+
+function rkPaceArrow(current, pace) {
+  const RANK_ORDER = {'NO STATUS':0,'IN COMBINE':1,'COMBINE':1,'LEVEL 1':2,'LEVEL 2':3,'LEVEL 3':4,'PREMIER':5,'FRANCHISE':6};
+  const cur = RANK_ORDER[current?.toUpperCase()] ?? 0;
+  const pac = RANK_ORDER[pace?.toUpperCase()] ?? 0;
+  if (pac > cur)  return `<span class="rank-pace-up">▲ ${rkRankBadge(pace)}</span>`;
+  if (pac < cur)  return `<span class="rank-pace-down">▼ ${rkRankBadge(pace)}</span>`;
+  return rkRankBadge(pace);
+}
+
+// ── Rankings checkbox dropdown filter system ──────────────────────────────────
+function rkTogglePanel(type) {
+  var panelId = 'rk-panel-' + type;
+  var panel = document.getElementById(panelId);
+  var btn   = document.getElementById('rk-btn-' + type);
+  if (!panel || !btn) return;
+  var isOpen = panel.classList.contains('open');
+  // Close all panels first
+  document.querySelectorAll('.rk-chk-panel').forEach(p => p.classList.remove('open'));
+  if (!isOpen) {
+    // Position panel below the button using fixed coords
+    var rect = btn.getBoundingClientRect();
+    panel.style.top  = (rect.bottom + 4) + 'px';
+    panel.style.left = rect.left + 'px';
+    panel.style.minWidth = Math.max(rect.width, 160) + 'px';
+    panel.classList.add('open');
+  }
+}
+
+// Close panels when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.rk-chk-wrap')) {
+    document.querySelectorAll('.rk-chk-panel').forEach(p => p.classList.remove('open'));
+  }
+});
+
+function rkChkAll(type) {
+  var allEl = document.getElementById('rkc-' + type + '-all');
+  if (!allEl) return;
+  // When "All" is checked, uncheck all others; when unchecked, re-check it (can't have nothing)
+  var panel = document.getElementById('rk-panel-' + type);
+  var others = Array.from(panel.querySelectorAll('input[type=checkbox]')).filter(c => c !== allEl);
+  if (allEl.checked) {
+    others.forEach(c => { c.checked = false; c.closest('.rk-chk-item').classList.remove('checked'); });
+    allEl.closest('.rk-chk-item').classList.add('checked');
+  } else {
+    allEl.checked = true; // keep all checked if nothing else is selected
+  }
+  rkChkSync(type);
+}
+
+function rkChkChange(type) {
+  var allEl = document.getElementById('rkc-' + type + '-all');
+  var panel = document.getElementById('rk-panel-' + type);
+  var others = Array.from(panel.querySelectorAll('input[type=checkbox]')).filter(c => c !== allEl);
+  var anyChecked = others.some(c => c.checked);
+  if (anyChecked) {
+    allEl.checked = false;
+    allEl.closest('.rk-chk-item').classList.remove('checked');
+  } else {
+    // Nothing selected — revert to All
+    allEl.checked = true;
+    allEl.closest('.rk-chk-item').classList.add('checked');
+  }
+  // Update checked styling on each item
+  others.forEach(c => {
+    c.closest('.rk-chk-item').classList.toggle('checked', c.checked);
+  });
+  rkChkSync(type);
+}
+
+function rkChkSync(type) {
+  var filterMap = { office: rkOfficeFilter, rank: rkRankFilter, title: rkTitleFilter };
+  var filterSet = filterMap[type];
+  if (!filterSet) return;
+  filterSet.clear();
+  var allEl = document.getElementById('rkc-' + type + '-all');
+  if (!allEl || allEl.checked) {
+    // All selected — empty set means no filter
+  } else {
+    var panel = document.getElementById('rk-panel-' + type);
+    Array.from(panel.querySelectorAll('input[type=checkbox]')).forEach(function(c) {
+      if (c !== allEl && c.checked) filterSet.add(c.value);
+    });
+  }
+  // Update button label
+  var btn = document.getElementById('rk-btn-' + type);
+  if (btn) {
+    var labels = { office: 'All Offices', rank: 'All Ranks', title: 'All Titles' };
+    if (filterSet.size === 0) {
+      btn.textContent = labels[type];
+      btn.classList.remove('active-filter');
+    } else if (filterSet.size === 1) {
+      btn.textContent = [...filterSet][0].charAt(0).toUpperCase() + [...filterSet][0].slice(1).toLowerCase();
+      btn.classList.add('active-filter');
+    } else {
+      btn.textContent = filterSet.size + ' selected';
+      btn.classList.add('active-filter');
+    }
+    // Re-add the ▾ arrow via ::after — textContent clears it, restore with a space
+  }
+  renderRankings();
+}
+
+// Legacy stubs — kept so any remaining references don't throw
+function rkApplyFilters() { renderRankings(); }
+function rkDropdownFilter(type) { renderRankings(); }
+function rkFilterOffice(val, el) { renderRankings(); }
+function rkFilterRank(val, el) { renderRankings(); }
+function rkFilterTitle(val, el) {
+  if (val === 'all') { rkTitleFilter.clear(); }
+  else {
+    if (rkTitleFilter.has(val)) rkTitleFilter.delete(val);
+    else rkTitleFilter.add(val);
+  }
+  renderRankings();
+}
+function rkSort(col) {
+  if (rkSortCol === col) rkSortDir *= -1;
+  else { rkSortCol = col; rkSortDir = -1; }
+  renderRankings();
+}
+
+// ── RANK CONSTANTS & PROGRESS BAR — global so openRepModal can always call rkProgressBar ──
+const RANK_THRESHOLDS = {
+  'LEVEL 1':  { sra: 7,  ic: 3  },
+  'LEVEL 2':  { sra: 12, ic: 5  },
+  'LEVEL 3':  { sra: 16, ic: 7  },
+  'PREMIER':  { sra: 20, ic: 10 },
+  'FRANCHISE':{ sra: 0,  ic: 20 },
+};
+const RANK_NEXT  = {'NO STATUS':'LEVEL 1','LEVEL 1':'LEVEL 2','LEVEL 2':'LEVEL 3','LEVEL 3':'PREMIER','PREMIER':'FRANCHISE'};
+const RANK_COLOR = {'LEVEL 1':'rgba(248,249,249,.5)','LEVEL 2':'#5A9EA0','LEVEL 3':'#AADDDD','PREMIER':'#F0C030','FRANCHISE':'#EF9F27'};
+
+function rkProgressBar(r) {
+  const cur = r.currentRank?.toUpperCase() || 'NO STATUS';
+  const nextKey = RANK_NEXT[cur];
+  if (!nextKey) return '<span style="color:var(--text-muted);font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1px">MAX RANK</span>';
+  const thresh = RANK_THRESHOLDS[nextKey];
+  const sraPct  = thresh.sra > 0 ? Math.min(100, Math.round((r.sraPoints  / thresh.sra)  * 100)) : 100;
+  const icPct   = thresh.ic  > 0 ? Math.min(100, Math.round((r.qInstalls  / thresh.ic)   * 100)) : 100;
+  const col     = RANK_COLOR[nextKey] || 'var(--cyan-light)';
+  const nextLabel = nextKey === 'FRANCHISE' ? 'Franchise' : nextKey.charAt(0) + nextKey.slice(1).toLowerCase();
+  return `<div style="display:flex;flex-direction:column;gap:8px;min-width:220px">
+    <div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;color:${col};text-transform:uppercase;margin-bottom:2px">→ ${nextLabel}</div>
+    <div style="display:flex;align-items:center;gap:9px">
+      <span style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;color:var(--text-muted);width:24px">SRA</span>
+      <div style="flex:1;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;position:relative">
+        <div style="position:absolute;left:0;top:0;height:6px;border-radius:3px;width:${sraPct}%;background:${col};transition:width .4s"></div>
+      </div>
+      <span style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:11px;color:${sraPct>=100?col:'var(--text-muted)'};width:44px;text-align:right">${r.sraPoints}/${thresh.sra}</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px">
+      <span style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;color:var(--text-muted);width:24px">IC</span>
+      <div style="flex:1;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;position:relative">
+        <div style="position:absolute;left:0;top:0;height:6px;border-radius:3px;width:${icPct}%;background:${col};transition:width .4s"></div>
+      </div>
+      <span style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:11px;color:${icPct>=100?col:'var(--text-muted)'};width:44px;text-align:right">${r.qInstalls}/${thresh.ic}</span>
+    </div>
+  </div>`;
+}
+
+function renderRankings() {
+  const tbody = document.getElementById('rankings-tbody');
+  const statsBar = document.getElementById('rankings-stats-bar');
+  const footer = document.getElementById('rankings-footer-count');
+  if (!tbody) return;
+
+  if (!rankingsData.length) {
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state">Upload the Export CSV on the Data tab to load rankings</div></td></tr>`;
+    if (statsBar) statsBar.innerHTML = '';
+    if (footer) footer.textContent = '■ No data loaded';
+    return;
+  }
+
+  let data = rankingsData.filter(r => {
+    const q = (document.getElementById('rk-search')?.value || '').toLowerCase();
+    if (q && !`${r.name} ${r.office} ${r.currentRank}`.toLowerCase().includes(q)) return false;
+
+    // Pure OR: if any filter set is non-empty, the rep must match at least one value
+    // across ALL active selections (Office, Rank, Title combined as one OR pool)
+    const hasOffice = rkOfficeFilter.size > 0;
+    const hasRank   = rkRankFilter.size   > 0;
+    const hasTitle  = rkTitleFilter.size  > 0;
+    if (!hasOffice && !hasRank && !hasTitle) return true;
+
+    const matchOffice = hasOffice && rkOfficeFilter.has(r.office);
+    const matchRank   = hasRank   && rkRankFilter.has((r.currentRank || '').toUpperCase());
+    const matchTitle  = hasTitle  && rkTitleFilter.has(r.title);
+    return matchOffice || matchRank || matchTitle;
+  });
+
+  // Sort
+  const RK_TIER = {'FRANCHISE':5,'PREMIER':4,'LEVEL 3':3,'LEVEL 2':2,'LEVEL 1':1,'NO STATUS':0,'':0};
+  data = [...data].sort((a, b) => {
+    if (rkSortCol === 'currentRank') {
+      const ta = RK_TIER[(a.currentRank||'').toUpperCase()] ?? 0;
+      const tb = RK_TIER[(b.currentRank||'').toUpperCase()] ?? 0;
+      if (ta !== tb) return (tb - ta) * rkSortDir;
+      return (b.sraPoints||0) - (a.sraPoints||0);
+    }
+    let va = a[rkSortCol] ?? '', vb = b[rkSortCol] ?? '';
+    if (typeof va === 'string') va = va.toLowerCase();
+    if (typeof vb === 'string') vb = vb.toLowerCase();
+    if (va < vb) return -rkSortDir;
+    if (va > vb) return  rkSortDir;
+    // tiebreaker: SRA points descending
+    return (b.sraPoints||0) - (a.sraPoints||0);
+  });
+
+  // Stats bar
+  const RANK_ORDER = {'NO STATUS':0,'LEVEL 1':1,'LEVEL 2':2,'LEVEL 3':3,'PREMIER':4};
+  const total    = data.length;
+  const premiers = data.filter(r => r.currentRank?.toUpperCase() === 'PREMIER').length;
+  const l3       = data.filter(r => r.currentRank?.toUpperCase() === 'LEVEL 3').length;
+  const l2       = data.filter(r => r.currentRank?.toUpperCase() === 'LEVEL 2').length;
+  const l1       = data.filter(r => r.currentRank?.toUpperCase() === 'LEVEL 1').length;
+  const pacing   = data.filter(r => {
+    const cur = RANK_ORDER[r.currentRank?.toUpperCase()] ?? 0;
+    const pac = RANK_ORDER[r.rankPace?.toUpperCase()] ?? 0;
+    return pac > cur;
+  }).length;
+
+  if (statsBar) statsBar.innerHTML = `
+    <div class="stat-card"><div class="stat-label">Reps</div><div class="stat-value">${total}</div><div class="stat-sub">visible</div></div>
+    <div class="stat-card"><div class="stat-label">Premier</div><div class="stat-value" style="color:#F0C030">${premiers}</div><div class="stat-sub">current rank</div></div>
+    <div class="stat-card"><div class="stat-label">Level 3</div><div class="stat-value" style="color:var(--cyan-light)">${l3}</div><div class="stat-sub">current rank</div></div>
+    <div class="stat-card"><div class="stat-label">Level 2</div><div class="stat-value" style="color:var(--cyan-dark)">${l2}</div><div class="stat-sub">current rank</div></div>
+    <div class="stat-card"><div class="stat-label">Pacing Up</div><div class="stat-value" style="color:#2DC48E">${pacing}</div><div class="stat-sub">rank pace above current</div></div>`;
+
+  // Table rows
+  tbody.innerHTML = data.map(r => `
+    <tr>
+      <td class="td-name" style="cursor:pointer" data-rid="${r.id}" onclick="openRepModal(this.dataset.rid)">${r.name}</td>
+      <td>${rkRankBadge(r.currentRank)}</td>
+      <td style="min-width:260px;padding:12px 16px">${rkProgressBar(r)}</td>
+      <td>${rkPaceArrow(r.currentRank, r.rankPace)}</td>
+      <td class="td-num ${r.llPoints > 0 ? 'pos' : 'nil'}">${r.llPoints || '—'}</td>
+      <td class="td-num ${r.qInstalls > 0 ? 'pos' : 'nil'}">${r.qInstalls || '—'}</td>
+      <td class="td-num ${r.sraPoints > 0 ? 'pos' : 'nil'}">${r.sraPoints || '—'}</td>
+      <td class="td-num ${r.careerIC > 0 ? 'pos' : 'nil'}">${r.careerIC || '—'}</td>
+      <td>${rkTitleBadge(r.title)}</td>
+      <td class="td-office-tag"><span class="office-dot" style="background:${OFFICE_COLORS[r.office]||'#5A9EA0'}"></span>${r.office}</td>
+    </tr>`).join('');
+
+  if (footer) footer.textContent = `■ ${data.length} of ${rankingsData.length} reps`;
+  if (isMobile()) renderRankingsMobile(data);
+}
+
+function renderRankingsMobile(data) {
+  var list = document.getElementById('rankings-mobile-list');
+  if (!list) return;
+  if (!data.length) { list.innerHTML = '<div style="padding:24px;color:var(--text-muted);text-align:center;font-size:13px">No rankings data</div>'; return; }
+  var html = '';
+  for (var i = 0; i < data.length; i++) {
+    var r = data[i];
+    var oc = OFFICE_COLORS[r.office] || '#888';
+    var badge = r.currentRank ? rkRankBadge(r.currentRank) : '';
+    var llp = r.llPoints != null ? Math.round(r.llPoints*10)/10 : '—';
+    var sra = r.sraPoints != null ? Math.round(r.sraPoints*10)/10 : '—';
+    var qi  = r.qInstalls != null ? Math.round(r.qInstalls*10)/10 : '—';
+    var statCell = '<div style="display:grid;grid-template-columns:repeat(3,46px);gap:4px;flex-shrink:0;text-align:center">'
+      + '<div><div style="font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">LLP</div><div style="font-size:15px;font-weight:700;color:var(--off-white)">' + llp + '</div></div>'
+      + '<div><div style="font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">SRA</div><div style="font-size:15px;font-weight:700;color:var(--off-white)">' + sra + '</div></div>'
+      + '<div><div style="font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-dark)">Q Inst</div><div style="font-size:15px;font-weight:700;color:var(--off-white)">' + qi + '</div></div>'
+      + '</div>';
+    html += '<div style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border2);gap:10px;cursor:pointer" onclick="openRepModal(' + r.id + ')">'
+      + '<div style="font-size:12px;font-weight:700;color:var(--text-muted);min-width:22px;text-align:center">' + (i+1) + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:15px;font-weight:600;color:var(--off-white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + r.name + '</div>'
+      + '<div style="display:flex;gap:6px;margin-top:3px;align-items:center">'
+      + '<span style="width:7px;height:7px;border-radius:50%;background:' + oc + ';display:inline-block;flex-shrink:0"></span>'
+      + badge + '</div></div>'
+      + statCell + '</div>';
+  }
+  list.innerHTML = html;
+}
+
+
+
 
 // ── GOOGLE SHEETS LIVE FETCH ─────────────────────────────────────────────────
 const SHEETS_API_KEY = 'AIzaSyCpVnUmNfuldsnJ5BotzSSo89aVehuoctk';
