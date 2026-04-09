@@ -404,6 +404,8 @@ body.light-mode tr.group-header td{background:#2A2828;color:#27d9d9;border-top-c
 .rc-sl-badge{display:inline-block;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sand);border:1px solid rgba(242,207,156,0.4);background:rgba(242,207,156,0.08);padding:1px 6px;margin-left:7px;vertical-align:middle;position:relative;top:-1px}
 .roster-card.is-director{border-left:3px solid var(--cyan-light);padding-left:17px}
 .rc-dir-badge{display:inline-block;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan-light);border:1px solid rgba(170,221,221,0.4);background:rgba(170,221,221,0.08);padding:1px 6px;margin-left:7px;vertical-align:middle;position:relative;top:-1px}
+.roster-card.is-performance-pro{border-left:3px solid #2DC48E;padding-left:17px}
+.rc-pp-badge{display:inline-block;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#2DC48E;border:1px solid rgba(45,196,142,0.4);background:rgba(45,196,142,0.08);padding:1px 6px;margin-left:7px;vertical-align:middle;position:relative;top:-1px}
 /* ── ROSTER LIST VIEW ── */
 #roster-list{display:none;padding:0 36px 24px}
 #roster-list.active{display:block}
@@ -413,6 +415,7 @@ body.light-mode tr.group-header td{background:#2A2828;color:#27d9d9;border-top-c
 .rc-list-row.is-market-leader{border-left:3px solid var(--sand);padding-left:13px}
 .rc-list-row.is-squad-leader{border-left:3px solid var(--sand);padding-left:13px}
 .rc-list-row.is-director{border-left:3px solid var(--cyan-light);padding-left:13px}
+.rc-list-row.is-performance-pro{border-left:3px solid #2DC48E;padding-left:13px}
 .rc-list-name{font-size:14px;font-weight:600;color:var(--off-white);flex:1}
 .rc-list-meta{font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1px;color:var(--text-muted);text-transform:uppercase}
 .rc-list-squad-header{font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan-dark);padding:14px 16px 6px;border-bottom:1px solid var(--border);background:rgba(170,221,221,0.03)}
@@ -2713,12 +2716,14 @@ function renderCombineTab() {
       const pitches = wtd.pitches || 0;
       const hrs = wtd.hours_knocked || 0;
       const wtdSRA = wtd.wtd_sra || 0;
+      const wtdCAP = wtd.wtd_cap || 0;
       return `<tr class="${missed ? 'missed-draft' : ''}" style="border-bottom:1px solid rgba(170,221,221,0.07);animation:rowIn .22s ease both;animation-delay:${Math.min(i*0.015,0.35)}s">
         <td class="td-name" style="padding:11px 12px;font-weight:600;font-size:15px;white-space:nowrap;cursor:pointer" data-repid="${r.id}" onclick="openRepModal(this.dataset.repid)">${r.name}</td>
         <td style="text-align:center;padding:11px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:12px;color:var(--text-muted)">${squad}</td>
         <td style="text-align:center;padding:11px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;color:${pitchHrsColor(pitches)}">${pitches}</td>
         <td style="text-align:center;padding:11px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;color:${pitchHrsColor(hrs)}">${hrs}</td>
         <td style="text-align:center;padding:11px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;color:${wtdSRA>0?'var(--cyan-light)':'rgba(248,249,249,0.2)'}">${wtdSRA}</td>
+        <td style="text-align:center;padding:11px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;color:${wtdCAP>0?'var(--cyan-light)':'rgba(248,249,249,0.2)'}">${wtdCAP}</td>
         ${numBarCell(r.totalSRA || 0, 12)}
         ${numBarCell(r.totalCAP || 0, 7)}
         ${combineDaysCell(r.daysLeft)}
@@ -3789,11 +3794,13 @@ function rosterHandleSearch() {
   const isML  = e => (e.role||'').toLowerCase().includes('market leader');
   const isSL  = e => (e.role||'').toLowerCase().includes('squad leader');
   const isDir = e => (e.role||'').toLowerCase().includes('director');
+  const isPP  = e => (e.role||'').toLowerCase().includes('performancepro') || (e.role||'').toLowerCase().includes('performance pro');
   ac.innerHTML = matches.map((e,i) => {
     const oc = (e.office||'').replace('Orange County','OC').replace('Newport Beach','NB').replace('Riverside','RV');
     const roleTag = isML(e) ? '<span class="ac-ml"> ★ ML</span>'
                   : isSL(e) ? '<span class="ac-ml" style="color:var(--sand)"> ★ SL</span>'
                   : isDir(e) ? '<span class="ac-ml" style="color:var(--cyan-light)"> ★ Dir</span>'
+                  : isPP(e) ? '<span class="ac-ml" style="color:#2DC48E"> ★ PP</span>'
                   : '';
     return `<div class="rc-ac-item" data-id="${e.id}" onclick="rosterAcSelect('${e.id}')">
       <span>${e.name}${roleTag}</span>
@@ -3968,6 +3975,7 @@ function renderRoster(){
     const isML = (e.role||'').toLowerCase().includes('market leader');
     const isSL = (e.role||'').toLowerCase().includes('squad leader');
     const isDir = (e.role||'').toLowerCase().includes('director');
+    const isPP = (e.role||'').toLowerCase().includes('performancepro') || (e.role||'').toLowerCase().includes('performance pro');
     let squadHeader = '';
     if(rosterIsSquadView){
       const thisSquad = e.squad||'— No Squad —';
@@ -3983,9 +3991,9 @@ function renderRoster(){
     const smsHref = e.mobile ? 'sms:'+e.mobile.replace(/[^0-9+]/g,'') : '';
     const mailHref = e.email ? 'mailto:'+e.email : '';
     const cleanMobile = e.mobile ? e.mobile.replace(/[^0-9+]/g,'') : '';
-    return squadHeader + `<div class="roster-card${ns?' needs-squad':''}${isML?' is-market-leader':''}${isSL?' is-squad-leader':''}${isDir?' is-director':''}" data-id="${e.id}">
+    return squadHeader + `<div class="roster-card${ns?' needs-squad':''}${isML?' is-market-leader':''}${isSL?' is-squad-leader':''}${isDir?' is-director':''}${isPP?' is-performance-pro':''}" data-id="${e.id}">
       <div class="rc-alert"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 1l5 9H1z"/><line x1="6" y1="5" x2="6" y2="7.5"/><circle cx="6" cy="9" r=".5" fill="currentColor"/></svg> No Squad Assigned</div>
-      <div class="rc-name" style="cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)" title="View rep detail">${e.name}${isML?'<span class="rc-ml-badge">Market Leader</span>':''}${isSL?'<span class="rc-sl-badge">Squad Leader</span>':''}${isDir?'<span class="rc-dir-badge">Director</span>':''}</div>
+      <div class="rc-name" style="cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)" title="View rep detail">${e.name}${isML?'<span class="rc-ml-badge">Market Leader</span>':''}${isSL?'<span class="rc-sl-badge">Squad Leader</span>':''}${isDir?'<span class="rc-dir-badge">Director</span>':''}${isPP?'<span class="rc-pp-badge">PerformancePro</span>':''}</div>
       <div class="rc-role-wrap">
         <span class="office-dot" style="background:${oc}"></span>
         <span class="rc-role">${e.office||''}</span>
@@ -4019,14 +4027,15 @@ function renderRoster(){
       const isML  = (e.role||'').toLowerCase().includes('market leader');
       const isSL  = (e.role||'').toLowerCase().includes('squad leader');
       const isDir = (e.role||'').toLowerCase().includes('director');
+      const isPP  = (e.role||'').toLowerCase().includes('performancepro') || (e.role||'').toLowerCase().includes('performance pro');
       const oc = e.office ? e.office.replace('Orange County','OC').replace('Newport Beach','NB').replace('Riverside','RV') : '';
       let hdr = '';
       if (rosterSortMode === 'squad') {
         const sq = e.squad || '— No Squad —';
         if (sq !== _lastSquadList) { _lastSquadList = sq; hdr = `<div class="rc-list-squad-header">${sq}</div>`; }
       }
-      return hdr + `<div class="rc-list-row${isML?' is-market-leader':''}${isSL?' is-squad-leader':''}${isDir?' is-director':''}" onclick="openRepModal('${e.id}')">
-        <span class="rc-list-name">${e.name}${isML?'<span class="rc-ml-badge" style="margin-left:8px">ML</span>':''}${isSL?'<span class="rc-sl-badge" style="margin-left:8px">SL</span>':''}${isDir?'<span class="rc-dir-badge" style="margin-left:8px">Dir</span>':''}</span>
+      return hdr + `<div class="rc-list-row${isML?' is-market-leader':''}${isSL?' is-squad-leader':''}${isDir?' is-director':''}${isPP?' is-performance-pro':''}" onclick="openRepModal('${e.id}')">
+        <span class="rc-list-name">${e.name}${isML?'<span class="rc-ml-badge" style="margin-left:8px">ML</span>':''}${isSL?'<span class="rc-sl-badge" style="margin-left:8px">SL</span>':''}${isDir?'<span class="rc-dir-badge" style="margin-left:8px">Dir</span>':''}${isPP?'<span class="rc-pp-badge" style="margin-left:8px">PP</span>':''}</span>
         <span class="rc-list-meta">${oc}</span>
       </div>`;
     }).join('');
@@ -7914,7 +7923,7 @@ function renderProductivity() {
         <thead>
           <tr class="combine-band-row">
             <th colspan="2"></th>
-            <th colspan="3" class="wtd-band">← Week to Date →</th>
+            <th colspan="4" class="wtd-band">← Week to Date →</th>
             <th colspan="5"></th>
           </tr>
           <tr>
@@ -7923,6 +7932,7 @@ function renderProductivity() {
             <th style="text-align:center;padding:10px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-light);white-space:nowrap;border-top:2px solid rgba(170,221,221,0.25)">Pitches</th>
             <th style="text-align:center;padding:10px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-light);white-space:nowrap;border-top:2px solid rgba(170,221,221,0.25)">Hrs Knocked</th>
             <th style="text-align:center;padding:10px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-light);white-space:nowrap;border-top:2px solid rgba(170,221,221,0.25)">SRA</th>
+            <th style="text-align:center;padding:10px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-light);white-space:nowrap;border-top:2px solid rgba(170,221,221,0.25)">CAP</th>
             <th style="text-align:center;padding:10px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);white-space:nowrap">Total SRA</th>
             <th style="text-align:center;padding:10px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);white-space:nowrap">Total CAP</th>
             <th style="text-align:center;padding:10px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);white-space:nowrap">Days Left</th>
