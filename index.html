@@ -2269,7 +2269,7 @@ let GC_EMPLOYEES       = []; // Populated from Google Sheets — Game Changers t
 let RANKINGS_MAP       = {}; // Populated from Google Sheets (Export tab)
 let rankingsData       = []; // Same as RANKINGS_MAP but as array for Rankings tab
 // Combine tab state
-let combineState = { offices: new Set(['all']), squad: '', showMissed: false };
+let combineState = { offices: new Set(['Newport Beach', 'Orange County']), squad: '', showMissed: false, hasActivity: true };
 // Rankings tab state
 let rkOfficeFilter = new Set(); // empty = all
 let rkRankFilter   = new Set(); // empty = all
@@ -2594,19 +2594,35 @@ function renderCombineTab() {
     if (r.totalSRA >= 12 && r.totalCAP >= 7) return false; // graduated
     if (r.status === 'Termed') return false;
     if (r.status === 'Missed The Draft' && !combineState.showMissed) return false;
-    return combinePassesFilter(r);
+    if (!combinePassesFilter(r)) return false;
+    // Has Activity filter: pitches > 0
+    if (combineState.hasActivity) {
+      const wtd = wtdById[String(r.id)] || {};
+      if ((wtd.pitches || 0) <= 0) return false;
+    }
+    return true;
   }).sort((a, b) => {
-    // Parse dates for reliable sort (oldest first = top, newest = bottom)
-    const da = new Date(a.startDate), db = new Date(b.startDate);
-    return da - db;
+    // Sort descending by combined progress pct: (totalSRA/12 + totalCAP/7) / 2
+    const scoreA = ((a.totalSRA || 0) / 12 + (a.totalCAP || 0) / 7) / 2;
+    const scoreB = ((b.totalSRA || 0) / 12 + (b.totalCAP || 0) / 7) / 2;
+    return scoreB - scoreA;
   });
 
   // ── Build new hire rows ──
-  const nhRows = NEW_HIRE_EMPLOYEES.filter(r => combinePassesFilter(r))
-    .sort((a, b) => {
-      const da = new Date(a.hireDate), db = new Date(b.hireDate);
-      return da - db; // oldest first, newest at bottom
-    });
+  const nhRows = NEW_HIRE_EMPLOYEES.filter(r => {
+    if (!combinePassesFilter(r)) return false;
+    // Has Activity filter: pitches > 0
+    if (combineState.hasActivity) {
+      const wtd = wtdById[String(r.id)] || {};
+      if ((wtd.pitches || 0) <= 0) return false;
+    }
+    return true;
+  }).sort((a, b) => {
+    // Sort descending by hrs knocked
+    const hrsA = (wtdById[String(a.id)] || {}).hours_knocked || 0;
+    const hrsB = (wtdById[String(b.id)] || {}).hours_knocked || 0;
+    return hrsB - hrsA;
+  });
 
   // ── Populate squad dropdown ──
   const squadSel = document.getElementById('combine-squad-select');
@@ -2707,7 +2723,6 @@ function renderCombineTab() {
         <td style="text-align:center;padding:11px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;color:${wtdIC>0?'var(--cyan-light)':'rgba(248,249,249,0.2)'}">${wtdIC}</td>
         ${numBarCell(r.totalSRA || 0, 12)}
         ${numBarCell(r.totalCAP || 0, 7)}
-        <td style="text-align:center;padding:11px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;color:${(r.totalIC||0)>0?'var(--cyan-light)':'rgba(248,249,249,0.2)'}">${r.totalIC || 0}</td>
         ${combineDaysCell(r.daysLeft)}
         <td style="padding:11px 12px;white-space:nowrap">${badge}</td>
         ${combineOfficeCell(r.office)}
@@ -2774,6 +2789,12 @@ function combineTogleMissed(btn) {
   combineState.showMissed = !combineState.showMissed;
   btn.classList.toggle('active', combineState.showMissed);
   btn.textContent = combineState.showMissed ? 'Hide Missed Draft' : 'Show Missed Draft';
+  renderCombineTab();
+}
+
+function combineToggleActivity(btn) {
+  combineState.hasActivity = !combineState.hasActivity;
+  btn.classList.toggle('active', combineState.hasActivity);
   renderCombineTab();
 }
 
@@ -7838,10 +7859,12 @@ function renderProductivity() {
 
     <div class="filter-bar">
       <span class="filter-label">Office</span>
-      <button class="filter-btn active" id="cbtn-all" onclick="combineToggleOffice('all',this)">All</button>
-      <button class="filter-btn" id="cbtn-nb" onclick="combineToggleOffice('Newport Beach',this)">Newport Beach</button>
-      <button class="filter-btn" id="cbtn-oc" onclick="combineToggleOffice('Orange County',this)">Orange County</button>
+      <button class="filter-btn" id="cbtn-all" onclick="combineToggleOffice('all',this)">All</button>
+      <button class="filter-btn active" id="cbtn-nb" onclick="combineToggleOffice('Newport Beach',this)">Newport Beach</button>
+      <button class="filter-btn active" id="cbtn-oc" onclick="combineToggleOffice('Orange County',this)">Orange County</button>
       <button class="filter-btn" id="cbtn-rv" onclick="combineToggleOffice('Riverside',this)">Riverside</button>
+      <div class="filter-sep"></div>
+      <button class="filter-btn active" id="cbtn-activity" onclick="combineToggleActivity(this)">Has Activity</button>
       <div class="filter-sep"></div>
       <span class="filter-label">Squad</span>
       <select class="squad-select" onchange="combineState.squad=this.value;renderCombineTab()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(170,221,221,0.25);color:rgba(248,249,249,0.6);padding:6px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer" id="combine-squad-select">
@@ -7894,7 +7917,7 @@ function renderProductivity() {
           <tr class="combine-band-row">
             <th colspan="2"></th>
             <th colspan="4" class="wtd-band">← Week to Date →</th>
-            <th colspan="6"></th>
+            <th colspan="5"></th>
           </tr>
           <tr>
             <th style="text-align:left;padding:10px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);white-space:nowrap;cursor:pointer;user-select:none">Name <span style="opacity:.4">↑</span></th>
@@ -7905,7 +7928,6 @@ function renderProductivity() {
             <th style="text-align:center;padding:10px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-light);white-space:nowrap;border-top:2px solid rgba(170,221,221,0.25)">IC</th>
             <th style="text-align:center;padding:10px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);white-space:nowrap">Total SRA</th>
             <th style="text-align:center;padding:10px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);white-space:nowrap">Total CAP</th>
-            <th style="text-align:center;padding:10px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);white-space:nowrap">Total IC</th>
             <th style="text-align:center;padding:10px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);white-space:nowrap">Days Left</th>
             <th style="text-align:left;padding:10px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);white-space:nowrap">Status</th>
             <th style="text-align:left;padding:10px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);white-space:nowrap">Office</th>
