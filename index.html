@@ -2976,23 +2976,20 @@ function renderLeadershipPulse() {
     if (pct >= goal * 0.7) return '#EF9F27';
     return '#F05252';
   }
-  function icColor(val, goal) {
-    if (!val) return 'rgba(248,249,249,0.3)';
-    if (val >= goal) return '#2DC48E';
-    if (val >= goal * 0.7) return '#EF9F27';
-    return '#F05252';
-  }
 
-  var QTD_IC_GOAL = 200;
+  // QTD IC — use the same live target as the QTD progress card (getTarget reads QTD_TARGETS / editable inputs)
+  var QTD_IC_GOAL = getTarget('qtd', 'IC');
+  var qtdICPct = QTD_IC_GOAL > 0 ? Math.round(qtdIC / QTD_IC_GOAL * 100) : 0;
+  var qtdICColor = qtdIC ? barColor(qtdICPct) : 'rgba(248,249,249,0.3)';
+
   var sgColor  = pulseColor(sg.pct, 50);
   var rhsColor = pulseColor(rhs.pct, 50);
-  var qtdICColor = icColor(qtdIC, QTD_IC_GOAL);
 
   el.innerHTML =
     '<div class="pulse-card">' +
       '<div class="pulse-label">QTD IC</div>' +
       '<div class="pulse-value" style="color:' + qtdICColor + '">' + (qtdIC || '—') + '</div>' +
-      '<div class="pulse-sub">goal ' + QTD_IC_GOAL + '</div>' +
+      '<div class="pulse-sub">goal ' + QTD_IC_GOAL + ' · ' + qtdICPct + '% of target</div>' +
     '</div>' +
     '<div class="pulse-card">' +
       '<div class="pulse-label">% Reps Hit Status</div>' +
