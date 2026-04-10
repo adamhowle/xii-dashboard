@@ -535,7 +535,7 @@ body.light-mode .col-toggle-btn.open{background:#2A2828;border-color:var(--cyan-
 .ov-targets-save:hover{opacity:.85}
 /* ── Leadership Pulse Row ── */
 .pulse-row{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);background:var(--near-black)}
-.pulse-card{padding:18px 28px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:4px}
+.pulse-card{padding:18px 28px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:4px;align-items:center;text-align:center}
 .pulse-card:last-child{border-right:none}
 .pulse-label{font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--sand)}
 .pulse-value{font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:34px;font-weight:700;letter-spacing:-1px;line-height:1}
@@ -2901,21 +2901,21 @@ function ovToggleTargetsPanel() {
 // ── LEADERSHIP PULSE CALCULATIONS ──────────────────────────────────────────────
 
 function calcSelfGen() {
-  // OC-only. This sheet is OC-only but we check the Office column defensively.
-  // An SRA is truly Self Gen if: Metric == SRA, Assist/Own == Own,
+  // OC-only. sheetsRowsToObjects lowercases all headers, so keys are lowercase.
+  // An SRA is truly Self Gen if: metric == SRA, assist/own == Own,
   // AND its address does NOT appear in any Assist row at the same metric.
   if (!INSTALL_LIST.length) return { selfGen: null, total: null, pct: null };
   var sraRows = INSTALL_LIST.filter(function(r) {
-    return (r['Metric'] || '').trim() === 'SRA';
+    return (r['metric'] || '').trim().toUpperCase() === 'SRA';
   });
   var assistAddrs = new Set(
     sraRows
-      .filter(function(r) { return (r['Assist/Own'] || '').trim() === 'Assist'; })
-      .map(function(r) { return (r['Customer Address'] || '').trim().toLowerCase(); })
+      .filter(function(r) { return (r['assist/own'] || '').trim().toLowerCase() === 'assist'; })
+      .map(function(r) { return (r['customer address'] || '').trim().toLowerCase(); })
   );
   var selfGen = sraRows.filter(function(r) {
-    return (r['Assist/Own'] || '').trim() === 'Own' &&
-           !assistAddrs.has((r['Customer Address'] || '').trim().toLowerCase());
+    return (r['assist/own'] || '').trim().toLowerCase() === 'own' &&
+           !assistAddrs.has((r['customer address'] || '').trim().toLowerCase());
   }).length;
   var total = sraRows.length;
   return { selfGen: selfGen, total: total, pct: total > 0 ? Math.round(selfGen / total * 100) : null };
