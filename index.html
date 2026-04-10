@@ -533,6 +533,14 @@ body.light-mode .col-toggle-btn.open{background:#2A2828;border-color:var(--cyan-
 .ov-targets-section-label{font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;margin-top:4px}
 .ov-targets-save{background:var(--sand);color:var(--near-black);border:none;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:8px 18px;cursor:pointer;transition:opacity .15s}
 .ov-targets-save:hover{opacity:.85}
+/* ── Leadership Pulse Row ── */
+.pulse-row{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);background:var(--near-black)}
+.pulse-card{padding:18px 28px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:4px}
+.pulse-card:last-child{border-right:none}
+.pulse-label{font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--sand)}
+.pulse-value{font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:34px;font-weight:700;letter-spacing:-1px;line-height:1}
+.pulse-sub{font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;color:var(--text-muted)}
+@media(max-width:480px){.pulse-row{grid-template-columns:repeat(2,1fr)}.pulse-card{padding:12px 14px}.pulse-value{font-size:26px}}
 .overview-target-input:focus{border-bottom-color:var(--cyan-light)}
 
 /* ── RANKINGS TAB ── */
@@ -1920,6 +1928,9 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
     <button class="filter-btn active" id="ov-c-riverside" onclick="ovSetCompare('Riverside')">Riverside</button>
   </div>
 
+  <!-- ── Leadership Pulse Row ── -->
+  <div class="pulse-row" id="ov-leadership-pulse"></div>
+
   <!-- ── Primary block (twelve / selected offices) ── -->
   <div class="overview-section">
     <div class="section-banner">
@@ -2266,6 +2277,7 @@ const QTD_EMPLOYEES = []; // Populated from Google Sheets
 let ROSTER_EMPLOYEES   = []; // Populated from Google Sheets on load
 let COMBINE2_EMPLOYEES = []; // Populated from Google Sheets
 let NEW_HIRE_EMPLOYEES = []; // Populated from Google Sheets
+let INSTALL_LIST       = []; // Populated from Google Sheets — Install List tab (self gen calc)
 let REP_DETAIL_MAP     = {}; // Keyed by employee ID — populated by Rep Detail tab
 let GC_EMPLOYEES       = []; // Populated from Google Sheets — Game Changers tab
 // Safe defaults — populated when Sheets data loads
@@ -2886,7 +2898,127 @@ function ovToggleTargetsPanel() {
   }
 }
 
+// ── LEADERSHIP PULSE CALCULATIONS ──────────────────────────────────────────────
+
+function calcSelfGen() {
+  // OC-only. This sheet is OC-only but we check the Office column defensively.
+  // An SRA is truly Self Gen if: Metric == SRA, Assist/Own == Own,
+  // AND its address does NOT appear in any Assist row at the same metric.
+  if (!INSTALL_LIST.length) return { selfGen: null, total: null, pct: null };
+  var sraRows = INSTALL_LIST.filter(function(r) {
+    return (r['Metric'] || '').trim() === 'SRA';
+  });
+  var assistAddrs = new Set(
+    sraRows
+      .filter(function(r) { return (r['Assist/Own'] || '').trim() === 'Assist'; })
+      .map(function(r) { return (r['Customer Address'] || '').trim().toLowerCase(); })
+  );
+  var selfGen = sraRows.filter(function(r) {
+    return (r['Assist/Own'] || '').trim() === 'Own' &&
+           !assistAddrs.has((r['Customer Address'] || '').trim().toLowerCase());
+  }).length;
+  var total = sraRows.length;
+  return { selfGen: selfGen, total: total, pct: total > 0 ? Math.round(selfGen / total * 100) : null };
+}
+
+function calcRepsHitStatus() {
+  // Source: QTD_EMPLOYEES (QTD Points tab), OC only.
+  // Total = reps with counts_towards_club == 'Y' in OC.
+  // Hit status = above reps whose qtr_status is Level 1 / Level 2 / Level 3 / Premier / Franchise.
+  var HIT_STATUS = new Set(['LEVEL 1','LEVEL 2','LEVEL 3','PREMIER','FRANCHISE',
+                             'LEVEL I','LEVEL II','LEVEL III']);
+  var ocReps = QTD_EMPLOYEES.filter(function(e) { return e.office === 'Orange County'; });
+  var eligible = ocReps.filter(function(e) { return e.counts_towards_club === 'Y'; });
+  var total = eligible.length;
+  if (!total) return { hit: null, total: null, pct: null };
+  var hit = eligible.filter(function(e) {
+    return HIT_STATUS.has((e.qtr_status || '').trim().toUpperCase());
+  }).length;
+  return { hit: hit, total: total, pct: Math.round(hit / total * 100) };
+}
+
+function calcActiveProductive() {
+  // Source: REP_DETAIL_MAP, OC only (matched via ROSTER_EMPLOYEES).
+  var ocIds = new Set(
+    ROSTER_EMPLOYEES
+      .filter(function(e) { return e.office === 'Orange County'; })
+      .map(function(e) { return e.id; })
+  );
+  var count = 0;
+  Object.values(REP_DETAIL_MAP).forEach(function(d) {
+    if (!ocIds.has(d.id)) return;
+    var s = (d.status || '').trim();
+    if (s === 'Active' || s === 'Productive') count++;
+  });
+  // Return null if no data loaded at all
+  var hasData = Object.keys(REP_DETAIL_MAP).length > 0;
+  return hasData ? count : null;
+}
+
+function renderLeadershipPulse() {
+  var el = document.getElementById('ov-leadership-pulse');
+  if (!el) return;
+
+  var sg = calcSelfGen();
+  var rhs = calcRepsHitStatus();
+  var ap = calcActiveProductive();
+
+  // QTD IC — primary (twelve = NB + OC)
+  var primaryFilter = function(e) { return e.office === 'Newport Beach' || e.office === 'Orange County'; };
+  var qtdIC = ROSTER_EMPLOYEES.filter(primaryFilter).reduce(function(s, e) {
+    var q = QTD_MAP[e.id] || {};
+    return s + (q.qtr_ic != null ? q.qtr_ic : (q.qtd_ic || 0));
+  }, 0);
+
+  function pulseColor(pct, goal) {
+    if (pct === null) return 'rgba(248,249,249,0.3)';
+    if (pct >= goal) return '#2DC48E';
+    if (pct >= goal * 0.7) return '#EF9F27';
+    return '#F05252';
+  }
+  function icColor(val, goal) {
+    if (!val) return 'rgba(248,249,249,0.3)';
+    if (val >= goal) return '#2DC48E';
+    if (val >= goal * 0.7) return '#EF9F27';
+    return '#F05252';
+  }
+
+  var QTD_IC_GOAL = 200;
+  var sgColor  = pulseColor(sg.pct, 50);
+  var rhsColor = pulseColor(rhs.pct, 50);
+  var qtdICColor = icColor(qtdIC, QTD_IC_GOAL);
+
+  el.innerHTML =
+    '<div class="pulse-card">' +
+      '<div class="pulse-label">QTD IC</div>' +
+      '<div class="pulse-value" style="color:' + qtdICColor + '">' + (qtdIC || '—') + '</div>' +
+      '<div class="pulse-sub">goal ' + QTD_IC_GOAL + '</div>' +
+    '</div>' +
+    '<div class="pulse-card">' +
+      '<div class="pulse-label">% Reps Hit Status</div>' +
+      '<div class="pulse-value" style="color:' + rhsColor + '">' +
+        (rhs.pct !== null ? rhs.pct + '%' : '—') +
+      '</div>' +
+      '<div class="pulse-sub">' + (rhs.hit !== null ? rhs.hit + ' / ' + rhs.total + ' reps · goal 50%' : 'awaiting data') + '</div>' +
+    '</div>' +
+    '<div class="pulse-card">' +
+      '<div class="pulse-label">Self Gen %</div>' +
+      '<div class="pulse-value" style="color:' + sgColor + '">' +
+        (sg.pct !== null ? sg.pct + '%' : '—') +
+      '</div>' +
+      '<div class="pulse-sub">' + (sg.selfGen !== null ? sg.selfGen + ' / ' + sg.total + ' SRAs · goal 50%' : 'awaiting data') + '</div>' +
+    '</div>' +
+    '<div class="pulse-card">' +
+      '<div class="pulse-label">Active + Productive</div>' +
+      '<div class="pulse-value" style="color:var(--off-white)">' + (ap !== null ? ap : '—') + '</div>' +
+      '<div class="pulse-sub">OC headcount</div>' +
+    '</div>';
+}
+
 function renderOverview(){
+  // ── Leadership Pulse row ──
+  renderLeadershipPulse();
+
   // ── Primary block always = Newport Beach + Orange County ("twelve") ──
   const primaryFilter = e => e.office === 'Newport Beach' || e.office === 'Orange County';
 
@@ -6566,6 +6698,7 @@ async function fetchSheetsData(opts) {
         qtr_status:     String(r['qtr status']      || ''),
         rolling_status: String(r['rolling status']  || ''),
         days_since_sra: csvNum(r['days since last sra']),
+        counts_towards_club: String(r['counts towards club+%'] || r['counts towards club %'] || r['counts towards club'] || '').trim().toUpperCase(),
         status_change:  '',
         rec_points:     null,
         rec_stars:      ''
@@ -6679,6 +6812,15 @@ async function fetchSheetsData(opts) {
     if (nhRows.length) { NEW_HIRE_EMPLOYEES.length = 0; nhRows.forEach(function(e){ NEW_HIRE_EMPLOYEES.push(e); }); }
     ob_syncNewHires();
   } catch(e) { errors.push('New Hires: ' + e.message); }
+
+  // ── Install List (Self Gen calculation) ──────────────────────────────────────
+  try {
+    var ilRes = await fetchWithTimeout(sheetsUrl('Install List'));
+    if (!ilRes.ok) throw new Error('HTTP ' + ilRes.status);
+    var ilRows = sheetsRowsToObjects((await ilRes.json()).values || []);
+    if (ilRows.length) { INSTALL_LIST.length = 0; ilRows.forEach(function(r){ INSTALL_LIST.push(r); }); }
+    if (typeof renderLeadershipPulse === 'function') renderLeadershipPulse();
+  } catch(e) { errors.push('Install List: ' + e.message); }
 
   // ── Game Changers ─────────────────────────────────────────────────────────────
   try {
