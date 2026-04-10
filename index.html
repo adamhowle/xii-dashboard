@@ -2876,13 +2876,16 @@ async function nhTapDeal(repId, e) {
       if (foundRow > 0) {
         await sheetsWriteCell('Closed Deals', foundRow, countColIdx + 1, next);
       } else {
-        // Append new row
+        // Append new row — include rep name in column C for human readability
+        var repName = '';
+        var nhRep = NEW_HIRE_EMPLOYEES.find(function(e){ return String(e.id) === String(repId); });
+        if (nhRep) repName = nhRep.name;
         var appendUrl = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEETS_ID
-          + '/values/' + encodeURIComponent('Closed Deals!A:B') + ':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS';
+          + '/values/' + encodeURIComponent('Closed Deals!A:C') + ':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS';
         await fetch(appendUrl, {
           method: 'POST',
           headers: { 'Authorization': 'Bearer ' + sheetsAuthToken, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ values: [[repId, next]] })
+          body: JSON.stringify({ values: [[repId, next, repName]] })
         });
       }
     }
@@ -2893,6 +2896,7 @@ async function nhTapDeal(repId, e) {
 }
 
 
+function buildProgressCard(cat, target, actual, pace, prefix){
   // pace may be null if no date selected yet
   const hasPace = pace !== null && pace !== undefined;
   const p   = hasPace ? Math.round(pace / target * 100) : null;
