@@ -2290,7 +2290,7 @@ let GC_EMPLOYEES       = []; // Populated from Google Sheets — Game Changers t
 let RANKINGS_MAP       = {}; // Populated from Google Sheets (Export tab)
 let rankingsData       = []; // Same as RANKINGS_MAP but as array for Rankings tab
 // Combine tab state
-let combineState = { offices: new Set(['all']), squad: '', showMissed: false, hasActivity: true };
+let combineState = { offices: new Set(['Newport Beach', 'Orange County']), squad: '', showMissed: false, hasActivity: true };
 // Rankings tab state
 let rkOfficeFilter = new Set(); // empty = all
 let rkRankFilter   = new Set(); // empty = all
@@ -2305,7 +2305,7 @@ function shortOffice(o) {
   const u = String(o).toUpperCase();
   if (u.includes('ORANGE')) return 'Orange County';
   if (u.includes('RIVERSIDE') || u.includes('CA-21')) return 'Riverside';
-  // CA-36 / Newport Beach has merged into Orange County — remap
+  // CA-36 / Newport Beach has merged into Orange County
   if (u.includes('CORONA') || u.includes('CA-36') || u.includes('NEWPORT')) return 'Orange County';
   return String(o);
 }
@@ -2603,9 +2603,7 @@ function renderCombineTab() {
   // ── Filter helpers ──
   function combinePassesFilter(r) {
     const offices = combineState.offices;
-    // Resolve office — fall back to roster if the employee record has a blank
-    const repOffice = r.office || (rosterById[String(r.id)] || {}).office || '';
-    if (!offices.has('all') && !offices.has(repOffice)) return false;
+    if (!offices.has('all') && !offices.has(r.office)) return false;
     if (combineState.squad) {
       const squad = (rosterById[String(r.id)] || {}).squad || '';
       if (squad !== combineState.squad) return false;
@@ -2635,8 +2633,11 @@ function renderCombineTab() {
   // ── Build new hire rows ──
   const nhRows = NEW_HIRE_EMPLOYEES.filter(r => {
     if (!combinePassesFilter(r)) return false;
-    // Note: hasActivity filter intentionally NOT applied to New Hires —
-    // new hires should always be visible regardless of WTD pitch count.
+    // Has Activity filter: pitches > 0
+    if (combineState.hasActivity) {
+      const wtd = wtdById[String(r.id)] || {};
+      if ((wtd.pitches || 0) <= 0) return false;
+    }
     return true;
   }).sort((a, b) => {
     // Sort descending by hrs knocked
@@ -6893,13 +6894,7 @@ async function fetchSheetsData(opts) {
     var nhRows = sheetsRowsToObjects((await nhRes.json()).values || []).map(function(r) {
       var id = String(r['rep id'] || '').trim();
       if (!id || !/^\d+$/.test(id)) return null;
-      var nhOffice = shortOffice(String(r['office']||''));
-      // Fall back to roster if office column is blank in New Hires sheet
-      if (!nhOffice) {
-        var rosterMatch = ROSTER_EMPLOYEES.find(function(e){ return String(e.id) === id; });
-        if (rosterMatch) nhOffice = rosterMatch.office;
-      }
-      return { id, name: String(r['name']||''), office: nhOffice, hireDate: sheetsSerialToDate(r['hire date']), termDate: String(r['term date']||''), hireTime: csvNum(r['hire time']), hireSorting: csvNum(r['hire sorting']), compliance: String(r['compliance']||''), repBasic: String(r['rep basic']||'') };
+      return { id, name: String(r['name']||''), office: shortOffice(String(r['office']||'')), hireDate: sheetsSerialToDate(r['hire date']), termDate: String(r['term date']||''), hireTime: csvNum(r['hire time']), hireSorting: csvNum(r['hire sorting']), compliance: String(r['compliance']||''), repBasic: String(r['rep basic']||'') };
     }).filter(Boolean);
     if (nhRows.length) { NEW_HIRE_EMPLOYEES.length = 0; nhRows.forEach(function(e){ NEW_HIRE_EMPLOYEES.push(e); }); }
     ob_syncNewHires();
@@ -8111,8 +8106,9 @@ function renderProductivity() {
 
     <div class="filter-bar">
       <span class="filter-label">Office</span>
-      <button class="filter-btn active" id="cbtn-all" onclick="combineToggleOffice('all',this)">All</button>
-      <button class="filter-btn" id="cbtn-oc" onclick="combineToggleOffice('Orange County',this)">Orange County</button>
+      <button class="filter-btn" id="cbtn-all" onclick="combineToggleOffice('all',this)">All</button>
+      <button class="filter-btn active" id="cbtn-nb" onclick="combineToggleOffice('Newport Beach',this)">Newport Beach</button>
+      <button class="filter-btn active" id="cbtn-oc" onclick="combineToggleOffice('Orange County',this)">Orange County</button>
       <button class="filter-btn" id="cbtn-rv" onclick="combineToggleOffice('Riverside',this)">Riverside</button>
       <div class="filter-sep"></div>
       <button class="filter-btn active" id="cbtn-activity" onclick="combineToggleActivity(this)">Has Activity</button>
