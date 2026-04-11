@@ -4410,7 +4410,7 @@ function commitPodEdit(id, value) {
   setPod(id, value);
 }
 
-
+function deleteEmployee(id){
   if(!confirm('Remove this employee from the roster? They will be moved to the Terminated log.')) return;
   const idx = ROSTER_EMPLOYEES.findIndex(e=>e.id===id);
   if(idx>-1){
