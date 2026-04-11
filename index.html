@@ -3704,8 +3704,8 @@ function renderWTD(){
   document.getElementById('wtd-table').closest('.table-wrap').classList.toggle('hide-squad-col', wtdView==='squad'||wtdView==='leaders');
   document.getElementById('wtd-table').closest('.table-wrap').classList.toggle('squad-view', wtdView==='squad'||wtdView==='leaders');
   // Show/hide squad column based on view
-  document.getElementById('qtd-table').closest('.table-wrap').classList.toggle('hide-squad-col', qtdView==='squad'||qtdView==='leaders');
-  document.getElementById('qtd-table').closest('.table-wrap').classList.toggle('squad-view', qtdView==='squad'||qtdView==='leaders');
+  document.getElementById('qtd-table')?.closest('.table-wrap')?.classList.toggle('hide-squad-col', qtdView==='squad'||qtdView==='leaders');
+  document.getElementById('qtd-table')?.closest('.table-wrap')?.classList.toggle('squad-view', qtdView==='squad'||qtdView==='leaders');
   tbody.innerHTML=rows.map((r,i)=>{
     if(r.isHeader) {
       const squadName = r.squadKey || '';
@@ -3812,7 +3812,7 @@ function qtdSort(col){
   renderQTD();
 }
 function getQTDData(){
-  const search=document.getElementById('qtd-search').value.toLowerCase();
+  const search=(document.getElementById('qtd-search')?.value||'').toLowerCase();
   // Join roster (identity) with QTD perf map
   let data=ROSTER_EMPLOYEES.map(r=>{
     const p=QTD_MAP[r.id]||{};
@@ -3832,7 +3832,7 @@ function getQTDData(){
   });
   if(qtdOffices.size<3) data=data.filter(e=>qtdOffices.has(e.office));
   if(qtdSquadFilter) data=data.filter(e=>e.squad===qtdSquadFilter);
-  if(document.getElementById('qtd-f-active').classList.contains('active')) data=data.filter(e=>e.qtr_sra||e.qtr_cap||e.qtr_ic);
+  if(document.getElementById('qtd-f-active')?.classList.contains('active')) data=data.filter(e=>e.qtr_sra||e.qtr_cap||e.qtr_ic);
   if(search) data=data.filter(e=>e.name.toLowerCase().includes(search));
   data.sort((a,b)=>{
     let va=a[qtdSortCol],vb=b[qtdSortCol];
@@ -3842,6 +3842,9 @@ function getQTDData(){
   return data;
 }
 function renderQTD(){
+  // QTD Detail tab removed — panel no longer exists. Squad snapshot uses
+  // QTD data directly from QTD_MAP; this function is kept for compatibility.
+  if (!document.getElementById('qtd-tbody')) return;
   const data=getQTDData();
   const totCS =data.reduce((s,e)=>s+(e.qtd_cs||0),0);
   const totSRA=data.reduce((s,e)=>s+e.qtr_sra,0);
@@ -3941,8 +3944,8 @@ function renderQTD(){
   document.getElementById('wtd-table').closest('.table-wrap').classList.toggle('hide-squad-col', wtdView==='squad'||wtdView==='leaders');
   document.getElementById('wtd-table').closest('.table-wrap').classList.toggle('squad-view', wtdView==='squad'||wtdView==='leaders');
   // Show/hide squad column based on view
-  document.getElementById('qtd-table').closest('.table-wrap').classList.toggle('hide-squad-col', qtdView==='squad'||qtdView==='leaders');
-  document.getElementById('qtd-table').closest('.table-wrap').classList.toggle('squad-view', qtdView==='squad'||qtdView==='leaders');
+  document.getElementById('qtd-table')?.closest('.table-wrap')?.classList.toggle('hide-squad-col', qtdView==='squad'||qtdView==='leaders');
+  document.getElementById('qtd-table')?.closest('.table-wrap')?.classList.toggle('squad-view', qtdView==='squad'||qtdView==='leaders');
   tbody.innerHTML=rows.map((r,i)=>{
     if(r.isHeader) {
       const squadName = r.squadKey || '';
@@ -6279,8 +6282,6 @@ const BAKED_QTDPOINTS = []; // Populated from Google Sheets
 // ── INIT ──
 document.getElementById('wtd-f-riverside').classList.remove('active');
 document.getElementById('wtd-f-all').classList.remove('active');
-document.getElementById('qtd-f-riverside').classList.remove('active');
-document.getElementById('qtd-f-all').classList.remove('active');
 
 // Overview: compare defaults to Riverside (button state already set in HTML)
 document.getElementById('ov-c-none').classList.remove('active');
@@ -7151,7 +7152,7 @@ async function fetchSheetsData(opts) {
   // Default both date inputs to today
   var _today = new Date().toISOString().slice(0, 10);
   document.getElementById('wtd-date-input').value = _today;
-  document.getElementById('qtd-date-input').value = _today;
+  document.getElementById('qtd-date-input') && (document.getElementById('qtd-date-input').value = _today);
   buildSIFromRepPerf();
   gc_build();
   renderRankings();
