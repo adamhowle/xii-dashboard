@@ -6567,6 +6567,10 @@ function fetchWithTimeout(url, ms) {
   ]);
 }
 
+function sleep(ms) {
+  return new Promise(function(resolve) { setTimeout(resolve, ms); });
+}
+
 function sheetsRowsToObjects(values) {
   if (!values || values.length < 2) return [];
   var headers = values[0].map(function(h) { return String(h).trim().toLowerCase(); });
@@ -6897,6 +6901,9 @@ async function fetchSheetsData(opts) {
     buildPerfMaps();
   } catch(e) { errors.push('QTD Points: ' + e.message); }
 
+  // ── Pause before secondary fetches to stay under Sheets API rate limit ──────
+  await sleep(350);
+
   // ── Export (Rankings) ───────────────────────────────────────────────────────
   try {
     var exRes = await fetchWithTimeout(sheetsUrl('Export'));
@@ -6933,6 +6940,8 @@ async function fetchSheetsData(opts) {
     });
   } catch(e) { errors.push('Report: ' + e.message); }
 
+  await sleep(350);
+
   // ── Rep Detail ───────────────────────────────────────────────────────────────
   try {
     var rdRes = await fetchWithTimeout(sheetsUrl('Rep Detail'));
@@ -6961,6 +6970,8 @@ async function fetchSheetsData(opts) {
     });
   if (typeof renderProductivity === 'function') renderProductivity();
   } catch(e) { errors.push('Rep Detail: ' + e.message); }
+
+  await sleep(350);
 
   // ── Stars ────────────────────────────────────────────────────────────────────
   try {
