@@ -2222,6 +2222,24 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
   </div>
 </div>
 
+<!-- ── POD SNAPSHOT MODAL ── -->
+<div id="pod-snapshot-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2100;align-items:center;justify-content:center;padding:24px;" onclick="if(event.target===this)closePodSnapshot()">
+  <div style="background:#0e0c0d;border:1px solid rgba(242,207,156,0.28);width:100%;max-width:520px;max-height:88vh;overflow:auto;position:relative;padding:24px 28px 20px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:12px;">
+      <div>
+        <div id="pod-snapshot-title" style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:20px;font-weight:700;letter-spacing:-0.3px;color:var(--sand)"></div>
+        <div id="pod-snapshot-subtitle" style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-top:3px;"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-top:2px;">
+        <button id="pod-snap-wtd-btn" onclick="podSnapSetMode('wtd')" style="padding:5px 11px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:1px solid var(--cyan-light);color:var(--cyan-light);background:rgba(170,221,221,0.1);">WTD</button>
+        <button id="pod-snap-qtd-btn" onclick="podSnapSetMode('qtd')" style="padding:5px 11px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:1px solid rgba(248,249,249,0.2);color:var(--text-muted);background:transparent;">QTD</button>
+        <button onclick="closePodSnapshot()" style="background:transparent;border:1px solid rgba(248,249,249,0.2);color:var(--text-muted);font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:5px 11px;cursor:pointer;">✕</button>
+      </div>
+    </div>
+    <div id="pod-snapshot-body"></div>
+  </div>
+</div>
+
 <div class="tab-panel" id="panel-roster">
   <div class="stats-bar" id="roster-stats"></div>
   <div class="roster-controls">
@@ -3306,7 +3324,7 @@ function getWTDData(){
     const q=QTD_MAP[r.id]||{};
     const rk=(RANKINGS_MAP[r.id]||{});
     return {
-      id:r.id, name:r.name, office:r.office, squad:r.squad, role:r.role,
+      id:r.id, name:r.name, office:r.office, squad:r.squad, role:r.role, pod:r.pod||'',
       mobile:r.mobile||'',
       wtd_ac:p.wtd_ac||0, wtd_cs:p.wtd_cs||0, wtd_wc:p.wtd_wc||0,
       wtd_sra:p.wtd_sra||0, wtd_cap:p.wtd_cap||0, wtd_ic:p.wtd_ic||0,
@@ -3710,7 +3728,24 @@ function renderWTD(){
         return (b.wtd_cs||0)-(a.wtd_cs||0);
       });
       rows.push({isHeader:true, label:sqGoalWTD(k, members), squadKey:k});
-      members.forEach(e=>rows.push({isHeader:false,emp:e}));
+
+      // Group members by pod; podless go at the end without a header
+      const podGroups={}, podOrder=[], podless=[];
+      members.forEach(e=>{
+        const pod = e.pod ? e.pod.trim() : '';
+        if(pod){
+          if(!podGroups[pod]){podGroups[pod]=[];podOrder.push(pod);}
+          podGroups[pod].push(e);
+        } else {
+          podless.push(e);
+        }
+      });
+      const sortedPods=[...new Set(podOrder)].sort((a,b)=>a.localeCompare(b));
+      sortedPods.forEach(pod=>{
+        rows.push({isPodHeader:true, podName:pod, squadKey:k});
+        podGroups[pod].forEach(e=>rows.push({isHeader:false,emp:e}));
+      });
+      podless.forEach(e=>rows.push({isHeader:false,emp:e}));
     });
   } else if(wtdView==='leaders'){
     // Squad header with full squad totals + only the squad leader row
@@ -3762,6 +3797,16 @@ function renderWTD(){
   document.getElementById('qtd-table')?.closest('.table-wrap')?.classList.toggle('hide-squad-col', qtdView==='squad'||qtdView==='leaders');
   document.getElementById('qtd-table')?.closest('.table-wrap')?.classList.toggle('squad-view', qtdView==='squad'||qtdView==='leaders');
   tbody.innerHTML=rows.map((r,i)=>{
+    if(r.isPodHeader){
+      const safePod   = r.podName.replace(/'/g,"\\'");
+      const safeSquad = (r.squadKey||'').replace(/'/g,"\\'");
+      return `<tr onclick="openPodSnapshot('${safePod}','${safeSquad}')" style="cursor:pointer;">
+        <td colspan="12" style="padding:5px 18px 5px 36px;background:rgba(242,207,156,0.03);border-top:1px solid rgba(242,207,156,0.1);border-bottom:1px solid rgba(242,207,156,0.07);">
+          <span style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(242,207,156,0.6);">⬡ ${r.podName}</span>
+          <span style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(242,207,156,0.28);margin-left:10px;">click for snapshot</span>
+        </td>
+      </tr>`;
+    }
     if(r.isHeader) {
       const squadName = r.squadKey || '';
       const isActive = wtdSquadFilter === squadName;
@@ -4450,7 +4495,99 @@ function closeSquadSnapshot() {
   document.getElementById('squad-snapshot-modal').style.display = 'none';
 }
 
-function openSquadSnapshot(squadKey, tab) {
+// ── POD SNAPSHOT ─────────────────────────────────────────────────────────────
+let _podSnapMode = 'wtd';
+let _podSnapCurrent = { podName:'', squadKey:'' };
+
+function closePodSnapshot() {
+  document.getElementById('pod-snapshot-modal').style.display = 'none';
+}
+
+function podSnapSetMode(mode) {
+  _podSnapMode = mode;
+  const wtdBtn = document.getElementById('pod-snap-wtd-btn');
+  const qtdBtn = document.getElementById('pod-snap-qtd-btn');
+  if(wtdBtn){
+    wtdBtn.style.borderColor = mode==='wtd' ? 'var(--cyan-light)' : 'rgba(248,249,249,0.2)';
+    wtdBtn.style.color       = mode==='wtd' ? 'var(--cyan-light)' : 'var(--text-muted)';
+    wtdBtn.style.background  = mode==='wtd' ? 'rgba(170,221,221,0.1)' : 'transparent';
+  }
+  if(qtdBtn){
+    qtdBtn.style.borderColor = mode==='qtd' ? 'var(--cyan-light)' : 'rgba(248,249,249,0.2)';
+    qtdBtn.style.color       = mode==='qtd' ? 'var(--cyan-light)' : 'var(--text-muted)';
+    qtdBtn.style.background  = mode==='qtd' ? 'rgba(170,221,221,0.1)' : 'transparent';
+  }
+  renderPodSnapshot(_podSnapCurrent.podName, _podSnapCurrent.squadKey);
+}
+
+function openPodSnapshot(podName, squadKey) {
+  _podSnapCurrent = { podName, squadKey };
+  _podSnapMode    = 'wtd';
+  // Reset toggle to WTD active
+  podSnapSetMode('wtd');
+  document.getElementById('pod-snapshot-title').textContent    = podName;
+  document.getElementById('pod-snapshot-subtitle').textContent = squadKey ? squadKey + '  ·  Pod' : 'Pod';
+  renderPodSnapshot(podName, squadKey);
+  document.getElementById('pod-snapshot-modal').style.display = 'flex';
+}
+
+function renderPodSnapshot(podName, squadKey) {
+  const body = document.getElementById('pod-snapshot-body');
+  if(!body) return;
+
+  const members = ROSTER_EMPLOYEES.filter(e =>
+    e.pod && e.pod.trim() === podName &&
+    (!squadKey || e.squad === squadKey)
+  );
+
+  if(!members.length){
+    body.innerHTML = '<div style="color:var(--text-muted);font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;padding:16px 0;">No members found in this pod.</div>';
+    return;
+  }
+
+  const thS  = 'padding:8px 10px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);border-bottom:1px solid rgba(170,221,221,0.2);white-space:nowrap;';
+  const tdS  = a => `padding:9px 10px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;color:var(--off-white);border-bottom:1px solid rgba(170,221,221,0.07);text-align:${a};`;
+  const totS = a => `padding:9px 10px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;color:var(--cyan-light);border-top:1px solid rgba(170,221,221,0.2);text-align:${a};`;
+
+  if(_podSnapMode === 'wtd'){
+    const cols = [
+      {label:'Name',   key:'name',         align:'left'},
+      {label:'AC',     key:'wtd_ac',       align:'center'},
+      {label:'CS',     key:'wtd_cs',       align:'center'},
+      {label:'SRA',    key:'wtd_sra',      align:'center'},
+      {label:'IC',     key:'wtd_ic',       align:'center'},
+      {label:'Knocks', key:'knocks',       align:'center'},
+      {label:'Hrs',    key:'hours_knocked',align:'center'},
+    ];
+    const rows = members.map(r=>({name:r.name,...(WTD_MAP[r.id]||{})}))
+                        .sort((a,b)=>(b.wtd_sra||0)-(a.wtd_sra||0));
+    const tot  = {name:'TOTAL',wtd_ac:0,wtd_cs:0,wtd_sra:0,wtd_ic:0,knocks:0,hours_knocked:0};
+    rows.forEach(r=>{ tot.wtd_ac+=r.wtd_ac||0; tot.wtd_cs+=r.wtd_cs||0; tot.wtd_sra+=r.wtd_sra||0; tot.wtd_ic+=r.wtd_ic||0; tot.knocks+=r.knocks||0; tot.hours_knocked+=r.hours_knocked||0; });
+    body.innerHTML = _podTable(cols,rows,tot,thS,tdS,totS);
+  } else {
+    const cols = [
+      {label:'Name',    key:'name',   align:'left'},
+      {label:'QTR SRA', key:'qtr_sra',align:'center'},
+      {label:'QTR IC',  key:'qtr_ic', align:'center'},
+      {label:'QTR CAP', key:'qtr_cap',align:'center'},
+      {label:'QTD CS',  key:'qtd_cs', align:'center'},
+    ];
+    const rows = members.map(r=>({name:r.name,...(QTD_MAP[r.id]||{})}))
+                        .sort((a,b)=>(b.qtr_sra||0)-(a.qtr_sra||0));
+    const tot  = {name:'TOTAL',qtr_sra:0,qtr_ic:0,qtr_cap:0,qtd_cs:0};
+    rows.forEach(r=>{ tot.qtr_sra+=r.qtr_sra||0; tot.qtr_ic+=r.qtr_ic||0; tot.qtr_cap+=r.qtr_cap||0; tot.qtd_cs+=r.qtd_cs||0; });
+    body.innerHTML = _podTable(cols,rows,tot,thS,tdS,totS);
+  }
+}
+
+function _podTable(cols,rows,tot,thS,tdS,totS){
+  const hdr = `<tr>${cols.map(c=>`<th style="${thS}text-align:${c.align}">${c.label}</th>`).join('')}</tr>`;
+  const body = rows.map(row=>`<tr>${cols.map(c=>`<td style="${tdS(c.align)}">${c.key==='name'?(row.name||'—'):fmtN(row[c.key])}</td>`).join('')}</tr>`).join('');
+  const foot = `<tr>${cols.map(c=>`<td style="${totS(c.align)}">${c.key==='name'?'TOTAL':fmtN(tot[c.key])}</td>`).join('')}</tr>`;
+  return `<table style="width:100%;border-collapse:collapse;"><thead>${hdr}</thead><tbody>${body}${foot}</tbody></table>`;
+}
+
+
   const rosterMembers = ROSTER_EMPLOYEES.filter(e => e.squad === squadKey);
   if (!rosterMembers.length) return;
   const modal    = document.getElementById('squad-snapshot-modal');
@@ -7500,6 +7637,7 @@ function savePodFromModal(id) {
 // Escape key closes either panel
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
+    if (document.getElementById('pod-snapshot-modal').style.display === 'flex') { closePodSnapshot(); return; }
     if (document.getElementById('rep-modal').style.display === 'flex') { closeRepModal(); return; }
     if (document.getElementById('wtd-goals-panel').classList.contains('open')) { closeWTDGoals(); return; }
   }
