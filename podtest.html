@@ -4587,7 +4587,7 @@ function _podTable(cols,rows,tot,thS,tdS,totS){
   return `<table style="width:100%;border-collapse:collapse;"><thead>${hdr}</thead><tbody>${body}${foot}</tbody></table>`;
 }
 
-
+function openSquadSnapshot(squadKey, tab) {
   const rosterMembers = ROSTER_EMPLOYEES.filter(e => e.squad === squadKey);
   if (!rosterMembers.length) return;
   const modal    = document.getElementById('squad-snapshot-modal');
