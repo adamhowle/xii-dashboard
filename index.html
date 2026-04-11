@@ -1900,6 +1900,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
 <div id="xii-mob-menu">
   <div class="xii-mob-tab" data-tab="overview" onclick="xiiMobSwitch('overview',this)">Overview</div>
   <div class="xii-mob-tab" data-tab="wtd" onclick="xiiMobSwitch('wtd',this)">WTD Detail</div>
+  <div class="xii-mob-tab" data-tab="qtd" onclick="xiiMobSwitch('qtd',this)">QTD Detail</div>
   <div class="xii-mob-tab" data-tab="rankings" onclick="xiiMobSwitch('rankings',this)">Rankings</div>
   <div class="xii-mob-tab" data-tab="status-incentive" onclick="xiiMobSwitch('status-incentive',this)">Status Chasers</div>
   <div class="xii-mob-tab" data-tab="game-changers" onclick="xiiMobSwitch('game-changers',this)">Game Changers</div>
@@ -1913,6 +1914,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
 <div class="tab-bar">
   <div class="tab active" onclick="switchTab('overview',this)">Overview</div>
   <div class="tab" onclick="switchTab('wtd',this)">WTD Detail</div>
+  <div class="tab" onclick="switchTab('qtd',this)">QTD Detail</div>
   <div class="tab" onclick="switchTab('rankings',this)">Rankings</div>
   <div class="tab" onclick="switchTab('status-incentive',this)">Status Chasers</div>
   <div class="tab" onclick="switchTab('game-changers',this)">Game Changers</div>
@@ -2078,6 +2080,71 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
   </div>
   <!-- Mobile card list (hidden on desktop, shown on mobile) -->
   <div id="wtd-mobile-list" style="display:none;padding:0 0 80px"></div>
+</div>
+
+<!-- ══ QTD DETAIL ══ -->
+<div class="tab-panel" id="panel-qtd">
+  <div class="stats-bar" id="qtd-stats"></div>
+  <div class="filter-bar">
+    <button class="filter-btn" id="qtd-f-all" onclick="qtdToggleOffice('all')">All</button>
+    <button class="filter-btn" id="qtd-f-riverside" onclick="qtdToggleOffice('Riverside')">Riverside</button>
+    <button class="filter-btn active" id="qtd-f-newport" onclick="qtdToggleOffice('Newport Beach')">Newport Beach</button>
+    <button class="filter-btn active" id="qtd-f-oc" onclick="qtdToggleOffice('Orange County')">Orange County</button>
+    <button class="filter-btn" id="qtd-f-active" onclick="qtdToggleOffice('active')">Has Activity</button>
+    <div class="filter-sep"></div>
+    <select id="qtd-view-select" class="squad-select" style="background:rgba(255,255,255,0.05);border:1px solid rgba(170,221,221,0.25);color:rgba(248,249,249,0.6);padding:6px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer" onchange="qtdSetView(this.value,null)">
+      <option value="squad">Squad</option>
+      <option value="leaders">Leaders</option>
+      <option value="individual">Individual</option>
+      <option value="office">Office</option>
+    </select>
+    <div class="filter-sep"></div>
+    <select id="qtd-squad-select" class="squad-select" style="background:rgba(255,255,255,0.05);border:1px solid rgba(170,221,221,0.25);color:rgba(248,249,249,0.6);padding:6px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer" onchange="qtdSquadFilter=this.value;renderQTD()">
+      <option value="">All Squads</option>
+    </select>
+    <div class="ml-auto" style="display:flex;align-items:center;gap:10px">
+<div class="col-toggle-wrap" id="qtd-col-wrap">
+        <button class="col-toggle-btn" id="qtd-col-btn" onclick="toggleColDropdown('qtd')">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="10" height="10" rx="1"/><line x1="4" y1="1" x2="4" y2="11"/><line x1="8" y1="1" x2="8" y2="11"/></svg>
+          Columns
+        </button>
+        <div class="col-dropdown" id="qtd-col-dropdown"></div>
+      </div>
+      <button class="export-btn" onclick="exportCSV('qtd')">
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4v6M3 7l3 3 3-3M2 10h8"/></svg>
+        Export CSV
+      </button>
+      <div class="search-wrap">
+        <svg class="search-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#F8F9F9" stroke-width="1.5"><circle cx="5" cy="5" r="3.5"/><path d="M8 8l2.5 2.5"/></svg>
+        <input type="text" id="qtd-search" placeholder="Search name..." oninput="renderQTD()">
+      </div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table id="qtd-table">
+      <thead>
+        <tr>
+          <th onclick="qtdSort('name')">Name <span class="sa">↕</span></th>
+          <th class="col-qtd-sra" onclick="qtdSort('qtr_sra')" style="text-align:center">SRA <span class="sa">↕</span></th>
+          <th class="col-qtd-cap" onclick="qtdSort('qtr_cap')" style="text-align:center">CAP <span class="sa">↕</span></th>
+          <th class="col-qtd-ic" onclick="qtdSort('qtr_ic')" style="text-align:center">IC <span class="sa">↕</span></th>
+          <th class="col-qtd-qtrstatus" onclick="qtdSort('exp_rank')" style="text-align:center">QTR Status <span class="sa">↕</span></th>
+          <th class="col-qtd-change" onclick="qtdSort('status_change')" style="text-align:center"><span class="sa">↕</span></th>
+          <th class="col-qtd-activity" onclick="qtdSort('status')" style="text-align:center">Activity <span class="sa">↕</span></th>
+          <th class="col-qtd-dayssra" onclick="qtdSort('days_since_sra')" style="text-align:center">Days Since SRA <span class="sa">↕</span></th>
+          <th class="col-qtd-stars" onclick="qtdSort('rec_points')" style="text-align:left">Stars <span class="sa">↕</span></th>
+          <th class="col-qtd-title" onclick="qtdSort('exp_title')" style="text-align:center">Title <span class="sa">↕</span></th>
+          <th class="col-qtd-squad" onclick="qtdSort('squad')" id="qtd-th-squad">Squad <span class="sa">↕</span></th>
+          <th class="col-qtd-office" onclick="qtdSort('office')">Office <span class="sa">↕</span></th>
+          <th class="th-restore-wrap"><button class="th-restore-btn" onclick="toggleChrome()">▲ Show tabs &amp; filters</button></th>
+        </tr>
+      </thead>
+      <tbody id="qtd-tbody"></tbody>
+    </table>
+    <div class="empty-state" id="qtd-empty" style="display:none">No records found</div>
+  </div>
+  <!-- Mobile card list (hidden on desktop, shown on mobile) -->
+  <div id="qtd-mobile-list" style="display:none;padding:0 0 80px"></div>
 </div>
 
 <!-- ══ ROSTER ══ -->
@@ -3245,27 +3312,16 @@ function wtdSort(col){
 }
 function getWTDData(){
   const search=document.getElementById('wtd-search').value.toLowerCase();
-  // Join roster (identity) with WTD perf map + QTD context fields
+  // Join roster (identity) with WTD perf map
   let data=ROSTER_EMPLOYEES.map(r=>{
     const p=WTD_MAP[r.id]||{};
-    const q=QTD_MAP[r.id]||{};
-    const rk=(RANKINGS_MAP[r.id]||{});
     return {
       id:r.id, name:r.name, office:r.office, squad:r.squad, role:r.role,
-      mobile:r.mobile||'',
       wtd_ac:p.wtd_ac||0, wtd_cs:p.wtd_cs||0, wtd_wc:p.wtd_wc||0,
       wtd_sra:p.wtd_sra||0, wtd_cap:p.wtd_cap||0, wtd_ic:p.wtd_ic||0,
       knocks:p.knocks||0, pitches:p.pitches||0, hours_knocked:p.hours_knocked||0,
-      qtr_status:q.qtr_status||p.qtr_status||'',
-      qtr_sra:q.qtr_sra||0, qtr_cap:q.qtr_cap||0, qtr_ic:q.qtr_ic||0,
-      qtd_cs:q.qtd_cs||0,
-      status_change:q.status_change||'',
-      days_since_sra:q.days_since_sra||0,
-      status:q.status||'',
-      rec_stars:q.rec_stars||'',
-      rec_points:q.rec_points!=null?q.rec_points:null,
-      exp_rank:rk.currentRank||'',
-      exp_title:rk.title||''
+      qtr_status:p.qtr_status||'',
+      exp_rank:(RANKINGS_MAP[r.id]||{}).currentRank||''
     };
   });
   if(wtdOffices.size<3) data=data.filter(e=>wtdOffices.has(e.office));
@@ -3551,62 +3607,6 @@ function renderQTDMobile(data) {
   list.innerHTML = html;
 }
 
-// ── WTD SRA SMS ALERTS ────────────────────────────────────────────────────────
-// In-memory dedup — tracks rep IDs already messaged this session
-const _wtdSmsSent14 = new Set();
-const _wtdSmsSent28 = new Set();
-
-function wtdCheckSRASms(data) {
-  // Only fire for Adam
-  if ((typeof currentUserEmail === 'undefined') || currentUserEmail !== NOTIFY_EMAIL) return;
-
-  var messages = [];
-
-  data.forEach(function(e) {
-    var days = e.days_since_sra || 0;
-    if (!days) return;
-
-    function firstName(fullName) {
-      return (fullName || '').trim().split(/\s+/)[0] || fullName;
-    }
-
-    function leaderMobile(squad) {
-      var sqCfg = SQUAD_DB[squad] || {};
-      var leaderName = sqCfg.leader || '';
-      if (!leaderName) return '';
-      var leaderRoster = ROSTER_EMPLOYEES.find(function(r) { return r.name === leaderName; });
-      return leaderRoster ? (leaderRoster.mobile || '') : '';
-    }
-
-    if (days === 14 && !_wtdSmsSent14.has(e.id)) {
-      _wtdSmsSent14.add(e.id);
-      var sqCfg14 = SQUAD_DB[e.squad] || {};
-      var leaderFirstName = firstName(sqCfg14.leader || 'your leader');
-      messages.push({
-        toLabel: e.name,
-        phone: xii_fmtPhone(e.mobile || ''),
-        text: 'Hey ' + firstName(e.name) + '! Just a heads up \u2014 it\'s been 14 days since your last SRA. The week is still yours to turn around. Your leader ' + leaderFirstName + ' is in your corner and keeping an eye on your progress. Let\'s get back on track \u2014 you\'ve got this! \uD83D\uDCAA'
-      });
-    }
-
-    if (days === 28 && !_wtdSmsSent28.has(e.id)) {
-      _wtdSmsSent28.add(e.id);
-      var lMobile = leaderMobile(e.squad);
-      var sqCfg28 = SQUAD_DB[e.squad] || {};
-      var leaderFirstName28 = firstName(sqCfg28.leader || '');
-      if (leaderFirstName28) {
-        messages.push({
-          toLabel: sqCfg28.leader || 'Leader',
-          phone: xii_fmtPhone(lMobile),
-          text: 'Hey ' + leaderFirstName28 + ', just a heads up that ' + e.name + ' hasn\'t recorded an SRA in 28 days. Wanted to make sure you had the full picture. Let me know if you\'d like me to schedule a 1:1 with ' + firstName(e.name) + '.'
-        });
-      }
-    }
-  });
-
-  if (messages.length) xii_sendSMS(messages);
-}
-
 function renderWTD(){
   const data=getWTDData();
   const totCS=data.reduce((s,e)=>s+e.wtd_cs,0);
@@ -3704,8 +3704,8 @@ function renderWTD(){
   document.getElementById('wtd-table').closest('.table-wrap').classList.toggle('hide-squad-col', wtdView==='squad'||wtdView==='leaders');
   document.getElementById('wtd-table').closest('.table-wrap').classList.toggle('squad-view', wtdView==='squad'||wtdView==='leaders');
   // Show/hide squad column based on view
-  document.getElementById('qtd-table')?.closest('.table-wrap')?.classList.toggle('hide-squad-col', qtdView==='squad'||qtdView==='leaders');
-  document.getElementById('qtd-table')?.closest('.table-wrap')?.classList.toggle('squad-view', qtdView==='squad'||qtdView==='leaders');
+  document.getElementById('qtd-table').closest('.table-wrap').classList.toggle('hide-squad-col', qtdView==='squad'||qtdView==='leaders');
+  document.getElementById('qtd-table').closest('.table-wrap').classList.toggle('squad-view', qtdView==='squad'||qtdView==='leaders');
   tbody.innerHTML=rows.map((r,i)=>{
     if(r.isHeader) {
       const squadName = r.squadKey || '';
@@ -3731,16 +3731,8 @@ function renderWTD(){
     const e=r.emp;
     const oc=OFFICE_COLORS[e.office]||'#888';
     function wtdCls(val,goal){if(!val||val===0)return 'nil';if(val>goal)return 'exceeds';return 'pos';}
-    const trendHtml = e.status_change ? `<span style="margin-left:5px;font-size:11px;vertical-align:middle">${changeIcon(e.status_change)}</span>` : '';
-    var sraLightColor = '';
-    if (e.days_since_sra > 14)     sraLightColor = '#F05252';
-    else if (e.days_since_sra > 7) sraLightColor = '#EF9F27';
-    else if (e.days_since_sra > 0) sraLightColor = '#2DC48E';
-    const sraLightHtml = sraLightColor
-      ? `<span title="Days since last SRA: ${e.days_since_sra}" style="margin-left:6px;display:inline-block;width:7px;height:7px;border-radius:50%;background:${sraLightColor};vertical-align:middle;flex-shrink:0"></span>`
-      : '';
     return `<tr style="animation-delay:${Math.min(i*.01,.35)}s">
-      <td class="td-name" style="cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)"><span style="display:inline-flex;align-items:center">${e.name}${trendHtml}${sraLightHtml}</span></td>
+      <td class="td-name" style="cursor:pointer" data-repid="${e.id}" onclick="openRepModal(this.dataset.repid)">${e.name}</td>
       <td class="col-wtd-ac td-num ${wtdCls(e.wtd_ac,WTD_GOALS.ac)}">${fmtN(e.wtd_ac)}</td>
       <td class="col-wtd-cs td-num ${wtdCls(e.wtd_cs,WTD_GOALS.cs)}">${fmtN(e.wtd_cs)}</td>
       <td class="col-wtd-sra td-num ${wtdCls(e.wtd_sra,WTD_GOALS.sra)}">${fmtN(e.wtd_sra)}</td>
@@ -3759,8 +3751,6 @@ function renderWTD(){
   else updateFooter();
   // Mobile card render
   if (isMobile()) renderWTDMobile(data);
-  // SRA SMS alerts (Adam only, deduped per session)
-  wtdCheckSRASms(data);
 }
 
 // ── QTD ──
@@ -3812,7 +3802,7 @@ function qtdSort(col){
   renderQTD();
 }
 function getQTDData(){
-  const search=(document.getElementById('qtd-search')?.value||'').toLowerCase();
+  const search=document.getElementById('qtd-search').value.toLowerCase();
   // Join roster (identity) with QTD perf map
   let data=ROSTER_EMPLOYEES.map(r=>{
     const p=QTD_MAP[r.id]||{};
@@ -3832,7 +3822,7 @@ function getQTDData(){
   });
   if(qtdOffices.size<3) data=data.filter(e=>qtdOffices.has(e.office));
   if(qtdSquadFilter) data=data.filter(e=>e.squad===qtdSquadFilter);
-  if(document.getElementById('qtd-f-active')?.classList.contains('active')) data=data.filter(e=>e.qtr_sra||e.qtr_cap||e.qtr_ic);
+  if(document.getElementById('qtd-f-active').classList.contains('active')) data=data.filter(e=>e.qtr_sra||e.qtr_cap||e.qtr_ic);
   if(search) data=data.filter(e=>e.name.toLowerCase().includes(search));
   data.sort((a,b)=>{
     let va=a[qtdSortCol],vb=b[qtdSortCol];
@@ -3842,9 +3832,6 @@ function getQTDData(){
   return data;
 }
 function renderQTD(){
-  // QTD Detail tab removed — panel no longer exists. Squad snapshot uses
-  // QTD data directly from QTD_MAP; this function is kept for compatibility.
-  if (!document.getElementById('qtd-tbody')) return;
   const data=getQTDData();
   const totCS =data.reduce((s,e)=>s+(e.qtd_cs||0),0);
   const totSRA=data.reduce((s,e)=>s+e.qtr_sra,0);
@@ -3944,8 +3931,8 @@ function renderQTD(){
   document.getElementById('wtd-table').closest('.table-wrap').classList.toggle('hide-squad-col', wtdView==='squad'||wtdView==='leaders');
   document.getElementById('wtd-table').closest('.table-wrap').classList.toggle('squad-view', wtdView==='squad'||wtdView==='leaders');
   // Show/hide squad column based on view
-  document.getElementById('qtd-table')?.closest('.table-wrap')?.classList.toggle('hide-squad-col', qtdView==='squad'||qtdView==='leaders');
-  document.getElementById('qtd-table')?.closest('.table-wrap')?.classList.toggle('squad-view', qtdView==='squad'||qtdView==='leaders');
+  document.getElementById('qtd-table').closest('.table-wrap').classList.toggle('hide-squad-col', qtdView==='squad'||qtdView==='leaders');
+  document.getElementById('qtd-table').closest('.table-wrap').classList.toggle('squad-view', qtdView==='squad'||qtdView==='leaders');
   tbody.innerHTML=rows.map((r,i)=>{
     if(r.isHeader) {
       const squadName = r.squadKey || '';
@@ -3986,7 +3973,7 @@ function renderQTD(){
       <td class="col-qtd-office"><span class="office-dot" style="background:${oc}"></span><span class="td-office-tag">${e.office||'—'}</span></td>
     </tr>`;
   }).join('');
-  if(document.getElementById('panel-qtd')?.classList.contains('active'))
+  if(document.getElementById('panel-qtd').classList.contains('active'))
     document.getElementById('footer-count').textContent=`■ ${data.length} of ${ROSTER_EMPLOYEES.length} records`;
   else updateFooter();
   // Mobile card render
@@ -4396,21 +4383,7 @@ function openSquadSnapshot(squadKey, tab) {
     }).join('') + totRow;
   }
   title.textContent = squadKey;
-  // ── QTD squad summary bar ──
-  const qtdGoalSRA = sqCfg.qtr_sra || 0;
-  const qtdGoalIC  = sqCfg.qtr_ic  || 0;
-  const qtdTotSRA  = rosterMembers.reduce((s,e) => s + ((QTD_MAP[e.id]||{}).qtr_sra||0), 0);
-  const qtdTotCAP  = rosterMembers.reduce((s,e) => s + ((QTD_MAP[e.id]||{}).qtr_cap||0), 0);
-  const qtdTotIC   = rosterMembers.reduce((s,e) => s + ((QTD_MAP[e.id]||{}).qtr_ic||0),  0);
-  const sraSummColor = qtdGoalSRA && qtdTotSRA >= qtdGoalSRA ? '#2DC48E' : qtdGoalSRA && qtdTotSRA >= qtdGoalSRA * 0.75 ? '#EF9F27' : 'var(--cyan-light)';
-  const icSummColor  = qtdGoalIC  && qtdTotIC  >= qtdGoalIC  ? '#2DC48E' : qtdGoalIC  && qtdTotIC  >= qtdGoalIC  * 0.75 ? '#EF9F27' : 'var(--cyan-light)';
-  const qtdSummary = '<div style="display:flex;align-items:center;gap:24px;padding:12px 0 16px;border-bottom:1px solid rgba(170,221,221,0.2);margin-bottom:16px;flex-wrap:wrap">'
-    + '<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark)">QTD Squad</div>'
-    + '<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:'+sraSummColor+'">SRA '+qtdTotSRA+(qtdGoalSRA?' <span style="font-weight:400;color:rgba(248,249,249,0.4);font-size:11px">/ '+qtdGoalSRA+'</span>':'')+'</div>'
-    + '<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:var(--off-white)">CAP '+qtdTotCAP+'</div>'
-    + '<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:'+icSummColor+'">IC '+qtdTotIC+(qtdGoalIC?' <span style="font-weight:400;color:rgba(248,249,249,0.4);font-size:11px">/ '+qtdGoalIC+'</span>':'')+'</div>'
-    + '</div>';
-  body.innerHTML = qtdSummary + '<table style="width:100%;border-collapse:collapse;">'+headerRow+'<tbody>'+rows+'</tbody></table>';
+  body.innerHTML = '<table style="width:100%;border-collapse:collapse;">'+headerRow+'<tbody>'+rows+'</tbody></table>';
   modal.style.display = 'flex';
 }
 
@@ -5103,24 +5076,11 @@ function ob_openInfoModal(id) {
   document.getElementById('ob-im-pct').style.color = progColor;
   document.getElementById('ob-im-progfill').style.width = p.pct + '%';
   document.getElementById('ob-im-progfill').style.background = progColor;
-  const stepNames  = ['Link ✅','Offer','I9','BG','Chat','Skool','Squad','Bootcamp'];
+  const stepNames = ['Link ✅','Offer','I9','BG','Chat','Skool','Squad','Bootcamp'];
   const stepFields = [emp.infoCall, emp.jobOffer, emp.i9, emp.bgClear, emp.pronto, emp.skool, emp.squadAssign, emp.bootcamp];
-  const stepKeys   = ['infoCall','jobOffer','i9','bgClear','pronto','skool','squadAssign','bootcamp'];
-  document.getElementById('ob-im-steps').innerHTML = stepNames.map((s, i) => {
-    const isConvey = emp._conveyAuto && emp._conveyAuto.has(stepKeys[i]) && stepFields[i];
-    const style = isConvey
-      ? 'color:#EF9F27;border-color:rgba(239,159,39,.4);background:rgba(239,159,39,.08)'
-      : stepFields[i]
-        ? 'color:#2DC48E;border-color:rgba(45,196,142,.4);background:rgba(45,196,142,.08)'
-        : 'color:var(--text-muted);border-color:rgba(248,249,249,.12)';
-    return `<span style="font-size:9px;padding:2px 6px;border:0.5px solid;letter-spacing:1px;text-transform:uppercase;${style}">${s}</span>`;
-  }).join('');
-  // Amber border on Convey-backfilled contact inputs
-  ['ob-im-mobile','ob-im-referral'].forEach(function(elId) {
-    var fieldKey = elId === 'ob-im-mobile' ? 'mobile' : 'referral';
-    var el = document.getElementById(elId);
-    if (el) el.style.borderColor = (emp._conveyAuto && emp._conveyAuto.has(fieldKey)) ? 'rgba(239,159,39,.6)' : '';
-  });
+  document.getElementById('ob-im-steps').innerHTML = stepNames.map((s, i) =>
+    `<span style="font-size:9px;padding:2px 6px;border:0.5px solid;letter-spacing:1px;text-transform:uppercase;${stepFields[i] ? 'color:#2DC48E;border-color:rgba(45,196,142,.4);background:rgba(45,196,142,.08)' : 'color:var(--text-muted);border-color:rgba(248,249,249,.12)'}">${s}</span>`
+  ).join('');
   document.getElementById('ob-infoModal').classList.add('open');
 }
 
@@ -6282,6 +6242,8 @@ const BAKED_QTDPOINTS = []; // Populated from Google Sheets
 // ── INIT ──
 document.getElementById('wtd-f-riverside').classList.remove('active');
 document.getElementById('wtd-f-all').classList.remove('active');
+document.getElementById('qtd-f-riverside').classList.remove('active');
+document.getElementById('qtd-f-all').classList.remove('active');
 
 // Overview: compare defaults to Riverside (button state already set in HTML)
 document.getElementById('ov-c-none').classList.remove('active');
@@ -7152,7 +7114,7 @@ async function fetchSheetsData(opts) {
   // Default both date inputs to today
   var _today = new Date().toISOString().slice(0, 10);
   document.getElementById('wtd-date-input').value = _today;
-  document.getElementById('qtd-date-input') && (document.getElementById('qtd-date-input').value = _today);
+  document.getElementById('qtd-date-input').value = _today;
   buildSIFromRepPerf();
   gc_build();
   renderRankings();
@@ -7314,28 +7276,27 @@ function openRepModal(repId) {
     </div>
 
     <div class="rm-section">
-      <div class="rm-section-title">Performance</div>
+      <div class="rm-section-title">WTD Performance</div>
+      <div class="rm-stat-grid">
+        ${statBox('AC',           wtd.wtd_ac,        'ac')}
+        ${statBox('CS',           wtd.wtd_cs,        'cs')}
+        ${statBox('SRA',          wtd.wtd_sra,       'sra')}
+        ${statBox('CAP',          wtd.wtd_cap,       'cap')}
+        ${statBox('IC',           wtd.wtd_ic,        'ic')}
+        ${statBox('Knocks',       wtd.knocks,        null)}
+        ${statBox('Pitches',      wtd.pitches,       'pitches')}
+        ${statBox('Hrs Knocked',  wtd.hours_knocked, 'hours')}
+      </div>
+    </div>
+
+    <div class="rm-section">
+      <div class="rm-section-title">QTD Performance</div>
       <div class="rm-stat-grid">
         ${statBox('QTD SRA',  qtd.qtr_sra,  null)}
         ${statBox('QTD CAP',  qtd.qtr_cap,  null)}
         ${statBox('QTD IC',   qtd.qtr_ic,   null)}
         ${statBox('QTD CS',   qtd.qtd_cs,   null)}
       </div>
-      <div class="rm-stat-grid" style="margin-top:10px">
-        <div class="rm-stat">
-          <div class="rm-stat-val ${qtd.status ? '' : 'nil'}">${qtd.status || '—'}</div>
-          <div class="rm-stat-label">Activity</div>
-        </div>
-        <div class="rm-stat">
-          <div class="rm-stat-val" style="${qtd.days_since_sra > 14 ? 'color:#F05252' : qtd.days_since_sra > 7 ? 'color:#EF9F27' : ''}">${qtd.days_since_sra || '—'}</div>
-          <div class="rm-stat-label">Days Since SRA</div>
-        </div>
-        <div class="rm-stat">
-          <div class="rm-stat-val">${qtd.status_change ? changeIcon(qtd.status_change) : '<span style="color:rgba(248,249,249,.25)">—</span>'}</div>
-          <div class="rm-stat-label">Trend</div>
-        </div>
-      </div>
-      ${(qtd.rec_stars || qtd.rec_points != null) ? `<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">${starRating(qtd.rec_stars, qtd.rec_points)}</div>` : ''}
     </div>
 
     ${rkFull.llPoints != null ? `
