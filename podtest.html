@@ -1167,6 +1167,19 @@ body.light-mode #panel-status-incentive .filter-btn.active{
     width: 280px;
   }
 #panel-game-changers .td-progress{ width: 280px; }
+#chasers-gc-panel table { width: auto; min-width: 0; }
+#chasers-gc-panel .td-name { min-width: 160px; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#chasers-gc-panel td, #chasers-gc-panel th { white-space: nowrap; }
+/* Compact right-aligned layout for screenshotting */
+#chasers-gc-panel { display: flex; flex-direction: column; align-items: flex-end; }
+#chasers-gc-panel .stats-bar { width: auto; min-width: 0; border: 1px solid var(--border); margin: 12px 36px 0 0; }
+#chasers-gc-panel .stats-bar .stat-card { padding: 10px 20px; }
+#chasers-gc-panel .stats-bar .stat-value { font-size: 24px; }
+#chasers-gc-panel .table-wrap { padding: 0 36px 0 0; overflow: visible; }
+#chasers-gc-panel tbody tr { animation: rowIn .22s ease both; }
+#chasers-gc-panel td { padding: 8px 12px; }
+#chasers-gc-panel th { padding: 10px 12px; }
+#chasers-gc-panel .footer-bar { width: auto; padding: 8px 36px 8px 24px; border: 1px solid var(--border); margin: 4px 36px 0 0; border-top: none; }
 #panel-game-changers .prog-label{
     font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
     font-size: clamp(9px, 0.75vw, 11px);
@@ -1943,10 +1956,8 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
   <!-- Office selector bar -->
   <div class="ov-office-bar">
     <span class="filter-label">Compare —</span>
-    <button class="filter-btn" id="ov-c-none" onclick="ovSetCompare(null)">None</button>
-    <button class="filter-btn" id="ov-c-newport" onclick="ovSetCompare('Newport Beach')">Newport Beach</button>
-    <button class="filter-btn" id="ov-c-oc" onclick="ovSetCompare('Orange County')">Orange County</button>
-    <button class="filter-btn active" id="ov-c-riverside" onclick="ovSetCompare('Riverside')">Riverside</button>
+    <button class="filter-btn active" id="ov-c-oc" onclick="ovSetCompare('Orange County')">Orange County</button>
+    <button class="filter-btn" id="ov-c-riverside" onclick="ovSetCompare('Riverside')">Riverside</button>
   </div>
 
   <!-- ── Leadership Pulse Row ── -->
@@ -1989,7 +2000,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
     <div class="section-banner">
       <span class="section-banner-label">■ This Week</span>
       <span class="section-title">WTD Progress</span>
-      <span class="section-title-brand" id="ov-compare-label" style="color:var(--sand)">Riverside</span>
+      <span class="section-title-brand" id="ov-compare-label" style="color:var(--sand)">Orange County</span>
       <span class="section-subtitle" id="ov-compare-wtd-subtitle"></span>
       <button class="ov-targets-btn" id="ov-targets-btn" onclick="ovToggleTargetsPanel()">
         <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="2"/><path d="M6 1v1.5M6 9.5V11M1 6h1.5M9.5 6H11"/></svg>
@@ -1998,7 +2009,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
     </div>
     <!-- Per-office targets edit panel -->
     <div class="ov-targets-panel" id="ov-targets-panel">
-      <div class="ov-targets-panel-label" id="ov-targets-panel-label">Targets — Riverside</div>
+      <div class="ov-targets-panel-label" id="ov-targets-panel-label">Targets — Orange County</div>
       <div class="ov-targets-section-label">WTD</div>
       <div class="ov-targets-row">
         <div class="ov-targets-group"><label>CS</label><input type="number" id="wtd-cmp-target-CS" min="1"></div>
@@ -2019,7 +2030,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
     <div class="section-banner" style="margin-top:24px">
       <span class="section-banner-label">■ This Quarter</span>
       <span class="section-title">QTD Progress</span>
-      <span class="section-title-brand" id="ov-compare-label-qtd" style="color:var(--sand)">Riverside</span>
+      <span class="section-title-brand" id="ov-compare-label-qtd" style="color:var(--sand)">Orange County</span>
       <span class="section-subtitle" id="ov-compare-qtd-subtitle"></span>
     </div>
     <div class="progress-grid" id="qtd-progress-compare"></div>
@@ -2286,7 +2297,7 @@ let GC_EMPLOYEES       = []; // Populated from Google Sheets — Game Changers t
 let RANKINGS_MAP       = {}; // Populated from Google Sheets (Export tab)
 let rankingsData       = []; // Same as RANKINGS_MAP but as array for Rankings tab
 // Combine tab state
-let combineState = { offices: new Set(['Newport Beach', 'Orange County']), squad: '', showMissed: false, hasActivity: true };
+let combineState = { offices: new Set(['Orange County']), squad: '', showMissed: false, hasActivity: true };
 // Rankings tab state
 let rkOfficeFilter = new Set(); // empty = all
 let rkRankFilter   = new Set(); // empty = all
@@ -2943,7 +2954,7 @@ function buildProgressCard(cat, target, actual, pace, prefix){
 }
 // ── OVERVIEW OFFICE STATE ──
 // Primary block is always Newport Beach + Orange County ("twelve") — not user-configurable
-let ovCompareOffice = 'Riverside'; // null = hidden
+let ovCompareOffice = 'Orange County'; // null = hidden
 
 function ovSetCompare(office) {
   ovCompareOffice = office;
@@ -2952,8 +2963,6 @@ function ovSetCompare(office) {
   if (panel) { panel.classList.remove('visible'); panel.style.display = 'none'; }
   const btn = document.getElementById('ov-targets-btn');
   if (btn) btn.classList.remove('open');
-  document.getElementById('ov-c-none').classList.toggle('active', office === null);
-  document.getElementById('ov-c-newport').classList.toggle('active', office === 'Newport Beach');
   document.getElementById('ov-c-oc').classList.toggle('active', office === 'Orange County');
   document.getElementById('ov-c-riverside').classList.toggle('active', office === 'Riverside');
   renderOverview();
@@ -6284,18 +6293,21 @@ function setFilter(type, btn) {
 }
 
 function setOfficeFilter(office, btn) {
+  const panel = document.getElementById('panel-status-incentive');
   if (activeOffice === office) {
     activeOffice = null;
     btn.classList.remove('active');
-    document.querySelectorAll('.filter-btn')[0].classList.add('active');
+    document.getElementById('si-btn-all').classList.add('active');
     activeFilter = 'all';
   } else {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    panel.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     activeOffice = office;
     activeFilter = 'all';
   }
-  applyFilters();
+  gc_activeOffice = activeOffice;
+  if (chasersView === 'gc') gc_applyFilters();
+  else applyFilters();
 }
 
 function applySearch() {
@@ -6545,13 +6557,7 @@ function chasersSearch() {
   else gc_applyFilters();
 }
 
-// Override setOfficeFilter to also sync GC when in GC view
-const _origSetOfficeFilter = setOfficeFilter;
-function setOfficeFilter(office, btn) {
-  _origSetOfficeFilter(office, btn);
-  gc_activeOffice = activeOffice;
-  if (chasersView === 'gc') gc_applyFilters();
-}
+// setOfficeFilter syncs GC — handled inside the function itself
 
 
 
@@ -6570,10 +6576,9 @@ document.getElementById('wtd-f-oc').classList.add('active');
 document.getElementById('wtd-f-all').classList.remove('active');
 
 // Overview: compare defaults to Riverside (button state already set in HTML)
-document.getElementById('ov-c-none').classList.remove('active');
-document.getElementById('ov-c-riverside').classList.add('active');
-document.getElementById('ov-c-newport').classList.remove('active');
-document.getElementById('ov-c-oc').classList.remove('active');
+// Overview: default compare = Orange County
+document.getElementById('ov-c-oc').classList.add('active');
+document.getElementById('ov-c-riverside').classList.remove('active');
 
 function rkRankBadge(rank) {
   if (!rank) return '<span class="rank-badge rank-nostatus">No Status</span>';
@@ -8357,7 +8362,6 @@ document.addEventListener('keydown', function(e) {
       <div class="prod-filter-label">Office</div>
       <div class="prod-pills" id="prod-office-pills">
         <span class="prod-pill active" data-office="Orange County" onclick="prodToggleOffice('Orange County',this)">Orange County</span>
-        <span class="prod-pill active" data-office="Newport Beach" onclick="prodToggleOffice('Newport Beach',this)">Newport Beach</span>
         <span class="prod-pill" data-office="Riverside" onclick="prodToggleOffice('Riverside',this)">Riverside</span>
       </div>
     </div>
@@ -8413,7 +8417,7 @@ const PROD_HDR_CLASS = {
 };
 
 // Filter state — default: OC + NB selected, Productive + Active + Inactive selected
-let prodOffices  = new Set(['Orange County','Newport Beach']);
+let prodOffices  = new Set(['Orange County']);
 let prodStatuses = new Set(['Productive','Active','Inactive']);
 
 function prodToggleOffice(office, el) {
@@ -8567,7 +8571,6 @@ function renderProductivity() {
     <div class="filter-bar">
       <span class="filter-label">Office</span>
       <button class="filter-btn" id="cbtn-all" onclick="combineToggleOffice('all',this)">All</button>
-      <button class="filter-btn active" id="cbtn-nb" onclick="combineToggleOffice('Newport Beach',this)">Newport Beach</button>
       <button class="filter-btn active" id="cbtn-oc" onclick="combineToggleOffice('Orange County',this)">Orange County</button>
       <button class="filter-btn" id="cbtn-rv" onclick="combineToggleOffice('Riverside',this)">Riverside</button>
       <div class="filter-sep"></div>
@@ -8583,13 +8586,6 @@ function renderProductivity() {
 
     <div class="combine-goals-row">
       <span class="combine-goals-label">WTD SRA Goal</span>
-      <div class="combine-goal-group">
-        <span class="combine-goal-dot" style="background:#AADDDD"></span>
-        <span class="combine-goal-label">Newport Beach</span>
-        <input class="combine-goal-input" type="number" id="cgoal-nb" value="15" min="1" oninput="renderCombineTab()">
-        <span class="combine-goal-actual" id="cactual-nb"></span>
-      </div>
-      <div class="filter-sep"></div>
       <div class="combine-goal-group">
         <span class="combine-goal-dot" style="background:#F2CF9C"></span>
         <span class="combine-goal-label">Orange County</span>
