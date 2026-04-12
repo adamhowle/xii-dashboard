@@ -1170,16 +1170,16 @@ body.light-mode #panel-status-incentive .filter-btn.active{
 #chasers-gc-panel table { width: auto; min-width: 0; }
 #chasers-gc-panel .td-name { min-width: 160px; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #chasers-gc-panel td, #chasers-gc-panel th { white-space: nowrap; }
-/* Compact right-aligned layout for screenshotting */
-#chasers-gc-panel { display: flex; flex-direction: column; align-items: flex-end; }
-#chasers-gc-panel .stats-bar { width: auto; min-width: 0; border: 1px solid var(--border); margin: 12px 36px 0 0; }
+/* Compact top-left layout for screenshotting */
+#chasers-gc-panel { display: flex; flex-direction: column; align-items: flex-start; }
+#chasers-gc-panel .stats-bar { width: auto; min-width: 0; border: 1px solid var(--border); margin: 12px 0 0 36px; }
 #chasers-gc-panel .stats-bar .stat-card { padding: 10px 20px; }
 #chasers-gc-panel .stats-bar .stat-value { font-size: 24px; }
-#chasers-gc-panel .table-wrap { padding: 0 36px 0 0; overflow: visible; }
+#chasers-gc-panel .table-wrap { padding: 0 0 0 36px; overflow: visible; }
 #chasers-gc-panel tbody tr { animation: rowIn .22s ease both; }
 #chasers-gc-panel td { padding: 8px 12px; }
 #chasers-gc-panel th { padding: 10px 12px; }
-#chasers-gc-panel .footer-bar { width: auto; padding: 8px 36px 8px 24px; border: 1px solid var(--border); margin: 4px 36px 0 0; border-top: none; }
+#chasers-gc-panel .footer-bar { width: auto; padding: 8px 24px; border: 1px solid var(--border); margin: 4px 0 0 36px; border-top: none; }
 #panel-game-changers .prog-label{
     font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
     font-size: clamp(9px, 0.75vw, 11px);
