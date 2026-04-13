@@ -4598,33 +4598,80 @@ function openSquadSnapshot(squadKey, tab) {
     if (tab === 'wtd') return ((WTD_MAP[b.id]||{}).wtd_sra||0) - ((WTD_MAP[a.id]||{}).wtd_sra||0);
     return ((QTD_MAP[b.id]||{}).qtr_sra||0) - ((QTD_MAP[a.id]||{}).qtr_sra||0);
   });
-  const n  = sorted.length;
-  const fs = n <= 10 ? 14 : n <= 15 ? 12 : n <= 20 ? 11 : n <= 28 ? 10 : 9;
-  const pad = fs <= 10 ? '6px 10px' : '8px 14px';
+  const n   = sorted.length;
+  // Scale font + padding to fit all reps on screen without scrolling
+  const fs  = n <= 8 ? 14 : n <= 12 ? 13 : n <= 16 ? 12 : n <= 20 ? 11 : n <= 26 ? 10 : 9;
+  const vp  = fs <= 10 ? (fs <= 9 ? '4px' : '5px') : '7px';
+  const hp  = fs <= 10 ? '9px' : '12px';
+  const pad = vp+' '+hp;
   const hS  = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+(fs-2)+'px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);padding:'+pad+';text-align:center;border-bottom:1px solid rgba(170,221,221,0.18);white-space:nowrap;';
   const hNS = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+(fs-2)+'px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);padding:'+pad+';text-align:left;border-bottom:1px solid rgba(170,221,221,0.18);';
-  const tS  = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+fs+'px;padding:'+pad+';border-bottom:1px solid rgba(170,221,221,0.06);text-align:center;color:var(--off-white);';
+  const tC  = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+fs+'px;font-weight:700;padding:'+pad+';border-bottom:1px solid rgba(170,221,221,0.06);text-align:center;white-space:nowrap;';
   const tNS = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+fs+'px;font-weight:600;padding:'+pad+';border-bottom:1px solid rgba(170,221,221,0.06);text-align:left;color:var(--off-white);white-space:nowrap;';
-  function cls(val, goal) {
+  function wtdClsStyle(val, goal) {
     if (!val||val===0) return 'color:rgba(248,249,249,0.15)';
-    if (val > goal)    return 'color:var(--v-exceeds);text-shadow:0 0 8px var(--v-exceeds-glow)';
+    if (val > goal)    return 'color:var(--v-exceeds);font-weight:900;text-shadow:0 0 8px var(--v-exceeds-glow),0 0 16px rgba(39,217,217,0.3)';
     return 'color:var(--off-white)';
   }
-  function rk(id, fallback) {
-    const r = (fallback && fallback.exp_rank) ? fallback.exp_rank : ((RANKINGS_MAP[id]||{}).currentRank||'');
+  function rk(id) {
+    const r = (RANKINGS_MAP[id]||{}).currentRank || '';
     return r ? rkRankBadge(r) : '<span style="color:rgba(248,249,249,.25)">—</span>';
   }
   let headerRow, rows;
   if (tab === 'wtd') {
     const week = document.getElementById('wtd-date-input')?.value || '';
     subtitle.textContent = 'WTD Detail' + (week ? '  ·  Week of ' + week : '');
-    const tot = sorted.reduce((t,e)=>{ const w=WTD_MAP[e.id]||{}; t.ac+=w.wtd_ac||0;t.cs+=w.wtd_cs||0;t.sra+=w.wtd_sra||0;t.cap+=w.wtd_cap||0;t.ic+=w.wtd_ic||0;t.kn+=w.knocks||0; return t; },{ac:0,cs:0,sra:0,cap:0,ic:0,kn:0});
-    headerRow = '<tr><th style="'+hNS+'">Name</th><th style="'+hS+'">AC</th><th style="'+hS+'">CS</th><th style="'+hS+'">SRA</th><th style="'+hS+'">CAP</th><th style="'+hS+'">IC</th><th style="'+hS+'">Knocks</th><th style="'+hS+'">Rank</th></tr>';
-    const totRow = '<tr style="background:rgba(39,217,217,0.05)"><td style="'+tNS+'font-weight:700;color:var(--cyan-dark)">TOTALS</td><td style="'+tS+'font-weight:700">'+(tot.ac||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.cs||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.sra||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.cap||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.ic||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.kn||'—')+'</td><td style="'+tS+'"></td></tr>';
+    const tot = sorted.reduce((t,e)=>{ const w=WTD_MAP[e.id]||{}; t.ac+=w.wtd_ac||0;t.cs+=w.wtd_cs||0;t.sra+=w.wtd_sra||0;t.cap+=w.wtd_cap||0;t.ic+=w.wtd_ic||0;t.kn+=w.knocks||0;t.pt+=w.pitches||0;t.hr+=w.hours_knocked||0; return t; },{ac:0,cs:0,sra:0,cap:0,ic:0,kn:0,pt:0,hr:0});
+    headerRow = '<tr>'
+      + '<th style="'+hNS+'">Name</th>'
+      + '<th style="'+hS+'">AC</th>'
+      + '<th style="'+hS+'">CS</th>'
+      + '<th style="'+hS+'">SRA</th>'
+      + '<th style="'+hS+'">CAP</th>'
+      + '<th style="'+hS+'">IC</th>'
+      + '<th style="'+hS+'">Knocks</th>'
+      + '<th style="'+hS+'">Pitches</th>'
+      + '<th style="'+hS+'">Hrs</th>'
+      + '<th style="'+hS+'">Rank</th>'
+      + '</tr>';
+    const totRow = '<tr style="background:rgba(39,217,217,0.05);border-top:1px solid rgba(170,221,221,0.2)">'
+      + '<td style="'+tNS+'font-weight:700;color:var(--cyan-dark)">TOTALS</td>'
+      + '<td style="'+tC+'color:var(--cyan-light)">'+(tot.ac||'—')+'</td>'
+      + '<td style="'+tC+'color:var(--cyan-light)">'+(tot.cs||'—')+'</td>'
+      + '<td style="'+tC+'color:var(--cyan-light)">'+(tot.sra||'—')+'</td>'
+      + '<td style="'+tC+'color:var(--cyan-light)">'+(tot.cap||'—')+'</td>'
+      + '<td style="'+tC+'color:var(--cyan-light)">'+(tot.ic||'—')+'</td>'
+      + '<td style="'+tC+'color:var(--cyan-light)">'+(tot.kn||'—')+'</td>'
+      + '<td style="'+tC+'color:var(--cyan-light)">'+(tot.pt||'—')+'</td>'
+      + '<td style="'+tC+'color:var(--cyan-light)">'+(tot.hr||'—')+'</td>'
+      + '<td style="'+tC+'"></td>'
+      + '</tr>';
     rows = sorted.map(e => {
-      const w = WTD_MAP[e.id]||{};
+      const w  = WTD_MAP[e.id]||{};
       const il = e.name===leader;
-      return '<tr><td style="'+tNS+(il?'color:var(--cyan-light);':'')+'">'+(e.name)+(il?' <span style="font-size:9px;letter-spacing:1px;color:var(--cyan-dark)">LEADER</span>':'')+'</td><td style="'+tS+cls(w.wtd_ac,WTD_GOALS.ac)+'">'+(w.wtd_ac||'—')+'</td><td style="'+tS+cls(w.wtd_cs,WTD_GOALS.cs)+'">'+(w.wtd_cs||'—')+'</td><td style="'+tS+cls(w.wtd_sra,WTD_GOALS.sra)+'">'+(w.wtd_sra||'—')+'</td><td style="'+tS+cls(w.wtd_cap,WTD_GOALS.cap)+'">'+(w.wtd_cap||'—')+'</td><td style="'+tS+cls(w.wtd_ic,WTD_GOALS.ic)+'">'+(w.wtd_ic||'—')+'</td><td style="'+tS+(w.knocks?'color:var(--off-white)':'color:rgba(248,249,249,0.15)')+'">'+(w.knocks||'—')+'</td><td style="'+tS+'">'+rk(e.id,w)+'</td></tr>';
+      // Trend arrow
+      const q = QTD_MAP[e.id]||{};
+      const trendHtml = q.status_change ? '<span style="margin-left:4px;font-size:'+(fs-1)+'px;vertical-align:middle">'+changeIcon(q.status_change)+'</span>' : '';
+      // SRA staleness dot
+      const dsr = q.days_since_sra||0;
+      const dotColor = dsr > 14 ? '#F05252' : dsr > 7 ? '#EF9F27' : dsr > 0 ? '#2DC48E' : '';
+      const dotHtml = dotColor ? '<span title="Days since last SRA: '+dsr+'" style="margin-left:5px;display:inline-block;width:6px;height:6px;border-radius:50%;background:'+dotColor+';vertical-align:middle;flex-shrink:0"></span>' : '';
+      return '<tr>'
+        + '<td style="'+tNS+(il?'color:var(--cyan-light);':'')+'"><span style="display:inline-flex;align-items:center">'
+        +   e.name
+        +   (il ? ' <span style="margin-left:5px;font-size:'+(fs-3)+'px;letter-spacing:1px;font-weight:700;text-transform:uppercase;color:var(--cyan-dark)">LEADER</span>' : '')
+        +   trendHtml+dotHtml
+        + '</span></td>'
+        + '<td style="'+tC+wtdClsStyle(w.wtd_ac,WTD_GOALS.ac)+'">'+(w.wtd_ac||'—')+'</td>'
+        + '<td style="'+tC+wtdClsStyle(w.wtd_cs,WTD_GOALS.cs)+'">'+(w.wtd_cs||'—')+'</td>'
+        + '<td style="'+tC+wtdClsStyle(w.wtd_sra,WTD_GOALS.sra)+'">'+(w.wtd_sra||'—')+'</td>'
+        + '<td style="'+tC+wtdClsStyle(w.wtd_cap,WTD_GOALS.cap)+'">'+(w.wtd_cap||'—')+'</td>'
+        + '<td style="'+tC+wtdClsStyle(w.wtd_ic,WTD_GOALS.ic)+'">'+(w.wtd_ic||'—')+'</td>'
+        + '<td style="'+tC+(w.knocks?'color:var(--off-white)':'color:rgba(248,249,249,0.15)')+'">'+(w.knocks||'—')+'</td>'
+        + '<td style="'+tC+wtdClsStyle(w.pitches,WTD_GOALS.pitches)+'">'+(w.pitches||'—')+'</td>'
+        + '<td style="'+tC+wtdClsStyle(w.hours_knocked,WTD_GOALS.hours)+'">'+(w.hours_knocked||'—')+'</td>'
+        + '<td style="'+tC+'">'+rk(e.id)+'</td>'
+        + '</tr>';
     }).join('') + totRow;
   } else {
     subtitle.textContent = 'QTD Detail';
@@ -4634,7 +4681,7 @@ function openSquadSnapshot(squadKey, tab) {
     rows = sorted.map(e => {
       const q = QTD_MAP[e.id]||{};
       const il = e.name===leader;
-      return '<tr><td style="'+tNS+(il?'color:var(--cyan-light);':'')+'">'+(e.name)+(il?' <span style="font-size:9px;letter-spacing:1px;color:var(--cyan-dark)">LEADER</span>':'')+'</td><td style="'+tS+'">'+(q.qtr_sra||'—')+'</td><td style="'+tS+'">'+(q.qtr_cap||'—')+'</td><td style="'+tS+'">'+(q.qtr_ic||'—')+'</td><td style="'+tS+'"><span style="font-size:'+(fs-1)+'px;color:var(--text-muted)">'+(q.status||'—')+'</span></td><td style="'+tS+'">'+rk(e.id,q)+'</td></tr>';
+      return '<tr><td style="'+tNS+(il?'color:var(--cyan-light);':'')+'">'+(e.name)+(il?' <span style="font-size:9px;letter-spacing:1px;color:var(--cyan-dark)">LEADER</span>':'')+'</td><td style="'+tS+'">'+(q.qtr_sra||'—')+'</td><td style="'+tS+'">'+(q.qtr_cap||'—')+'</td><td style="'+tS+'">'+(q.qtr_ic||'—')+'</td><td style="'+tS+'"><span style="font-size:'+(fs-1)+'px;color:var(--text-muted)">'+(q.status||'—')+'</span></td><td style="'+tS+'">'+rk(e.id)+'</td></tr>';
     }).join('') + totRow;
   }
   title.textContent = squadKey;
