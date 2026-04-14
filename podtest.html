@@ -1956,8 +1956,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
   <!-- Office selector bar -->
   <div class="ov-office-bar">
     <span class="filter-label">Compare —</span>
-    <button class="filter-btn active" id="ov-c-oc" onclick="ovSetCompare('Orange County')">Orange County</button>
-    <button class="filter-btn" id="ov-c-riverside" onclick="ovSetCompare('Riverside')">Riverside</button>
+    <span id="ov-compare-filter-bar"><!-- populated by applyBranding() --></span>
   </div>
 
   <!-- ── Leadership Pulse Row ── -->
@@ -2041,10 +2040,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
 <div class="tab-panel" id="panel-wtd">
   <div class="stats-bar" id="wtd-stats"></div>
   <div class="filter-bar">
-    <button class="filter-btn" id="wtd-f-all" onclick="wtdToggleOffice('all')">All</button>
-    <button class="filter-btn" id="wtd-f-riverside" onclick="wtdToggleOffice('Riverside')">Riverside</button>
-    <button class="filter-btn active" id="wtd-f-oc" onclick="wtdToggleOffice('Orange County')">Orange County</button>
-    <button class="filter-btn" id="wtd-f-active" onclick="wtdToggleOffice('active')">Has Activity</button>
+    <span id="wtd-office-filter-bar"><!-- populated by applyBranding() --></span>
     <div class="filter-sep"></div>
     <select id="wtd-view-select" class="squad-select" style="background:rgba(255,255,255,0.05);border:1px solid rgba(170,221,221,0.25);color:rgba(248,249,249,0.6);padding:6px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer" onchange="wtdSetView(this.value,null)">
       <option value="squad">Squad</option>
@@ -2114,8 +2110,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
     <div class="filter-sep"></div>
     <span class="filter-label">Office —</span>
     <button class="filter-btn" id="si-btn-all" onclick="setFilter('all',this)">All</button>
-    <button class="filter-btn" id="si-btn-riverside" onclick="setOfficeFilter('Riverside',this)">Riverside</button>
-    <button class="filter-btn active" id="si-btn-orangecounty" onclick="setOfficeFilter('Orange County',this)">Orange County</button>
+    <span id="si-office-filter-bar"><!-- populated by applyBranding() --></span>
     <div class="filter-sep"></div>
     <div class="search-wrap">
       <svg class="search-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#F8F9F9" stroke-width="1.5"><circle cx="5" cy="5" r="3.5"/><path d="M8 8l2.5 2.5"/></svg>
@@ -2154,12 +2149,12 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
     </div>
     <div class="footer-bar">
       <span class="footer-count" id="gc-footer-count">■ Loading…</span>
-      <span class="footer-brand">■ XII — BUILDING CULTURE FORWARD ■</span>
+      <span class="footer-brand"></span>
     </div>
   </div>
   <div class="footer-bar" id="si-footer-bar">
     <span class="footer-count" id="si-footer-count">■ Loading…</span>
-    <span class="footer-brand">■ XII — BUILDING CULTURE FORWARD ■</span>
+    <span class="footer-brand"></span>
   </div>
 </div>
 <script>
@@ -2188,9 +2183,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
     <div class="rc-modal-field"><label>Office</label>
       <select id="modal-office">
         <option value="">— Select —</option>
-        <option>Riverside</option>
-        <option>Newport Beach</option>
-        <option>Orange County</option>
+        <!-- populated by applyBranding() -->
       </select>
     </div>
     <div class="rc-modal-field"><label>Squad</label>
@@ -2243,9 +2236,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
   <div class="stats-bar" id="roster-stats"></div>
   <div class="roster-controls">
     <span class="filter-label">Office —</span>
-    <button class="filter-btn" onclick="rosterFilter('all',this)">All</button>
-    <button class="filter-btn" onclick="rosterFilter('Riverside',this)">Riverside</button>
-    <button class="filter-btn active" onclick="rosterFilter('Orange County',this)">Orange County</button>
+    <span id="roster-office-filter-bar"><!-- populated by applyBranding() --></span>
     <div class="filter-sep"></div>
     <span class="filter-label">Sort —</span>
     <button class="view-btn active" id="roster-sort-name" onclick="rosterSetSort('name',this)">Name</button>
@@ -2280,10 +2271,203 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
 
 <div class="footer-bar">
   <span class="footer-count" id="footer-count">■ Loading...</span>
-  <span class="footer-brand">■ XII — BUILDING CULTURE FORWARD ■</span>
+  <span class="footer-brand"></span>
 </div>
 
 <script>
+// ══════════════════════════════════════════════════════════════════════════════
+// CONSUL_CONFIG — White-label skin. Change only this block when deploying to a
+// new office. Everything else in the file references these values automatically.
+// ══════════════════════════════════════════════════════════════════════════════
+const CONSUL_CONFIG = {
+  // ── Branding ─────────────────────────────────────────────────────────────
+  brand:   'XII',                        // Short office name (footer + auth screen)
+  tagline: 'BUILDING CULTURE FORWARD',   // Footer tagline after the brand
+
+  // ── Google Infrastructure ─────────────────────────────────────────────────
+  sheets_id:       '1Awy-KgfNtf8IBAZf-nY8pmv26n0juNk28IRTfN0usn4',
+  oauth_client_id: '824495442632-o4v639jl9rcsj7dq2fgvfcr6joj98s2c.apps.googleusercontent.com',
+
+  // ── Program Administrator (Adam — stays constant across all deployments) ──
+  admin_email: 'adam.howle@sunrun.com',
+  admin_phone: '5625371559',
+
+  // ── Office Admin (changes per deployment) ────────────────────────────────
+  // This person receives new-candidate SMS alerts and bug-report emails.
+  office_admin_email: 'adam.howle@sunrun.com',
+  office_admin_phone: '5625371559',
+
+  // ── Office Configuration ──────────────────────────────────────────────────
+  // `offices` drives all filter buttons, dropdowns, and loops.
+  // Order determines display order in filter bars.
+  // The first entry is the default-selected office on load.
+  offices: ['Orange County', 'Newport Beach', 'Riverside'],
+
+  // Dot colors for each office in tables.
+  office_colors: {
+    'Orange County':  '#F2CF9C',
+    'Newport Beach':  '#AADDDD',
+    'Riverside':      '#5A9EA0',
+  },
+
+  // Meeting info used in onboarding BG-clear SMS messages.
+  office_meeting_info: {
+    'Riverside':     { days: 'Tuesday and Thursday', time: '11am–1pm',       address: '1550 Magnolia Ave Ste 200, Corona, CA 92879' },
+    'Newport Beach': { days: 'Monday and Thursday',  time: '10:30am–12:30pm', address: '8 Whatney, Irvine CA 92618' },
+    'Orange County': { days: 'Monday and Thursday',  time: '10:30am–12:30pm', address: '8 Whatney, Irvine CA 92618' },
+  },
+};
+
+// ── Convenience aliases (used throughout the file) ────────────────────────────
+// These replace the previous standalone constants so no other code changes.
+const SHEETS_ID      = CONSUL_CONFIG.sheets_id;
+const OAUTH_CLIENT_ID = CONSUL_CONFIG.oauth_client_id;
+const NOTIFY_EMAIL   = CONSUL_CONFIG.office_admin_email;
+const ADAM_PHONE     = CONSUL_CONFIG.admin_phone;
+const ADAM_EMAIL     = CONSUL_CONFIG.admin_email;
+// OFFICE_COLORS and OFFICE_MEETING_INFO are set after DOM ready (see applyBranding).
+// They are also aliased immediately here so early code that references them works.
+let OFFICE_COLORS      = Object.assign({}, CONSUL_CONFIG.office_colors);
+const OFFICE_MEETING_INFO = CONSUL_CONFIG.office_meeting_info;
+
+// ── applyBranding() — called once on DOMContentLoaded ─────────────────────────
+// Stamps brand text into footer/header elements and dynamically generates
+// all office filter buttons and dropdowns from CONSUL_CONFIG.offices.
+function applyBranding() {
+  const brand   = CONSUL_CONFIG.brand;
+  const tagline = CONSUL_CONFIG.tagline;
+  const footerText = '\u25a0 ' + brand + ' \u2014 ' + tagline + ' \u25a0';
+
+  // Footer brand spans (all tabs)
+  document.querySelectorAll('.footer-brand').forEach(el => { el.textContent = footerText; });
+
+  // Auth screen logo brand tag
+  const authLogo = document.getElementById('xii-auth-logo');
+  if (authLogo) authLogo.innerHTML = brand.toLowerCase() + '<span>\u25a0 Performance Dashboard</span>';
+
+  // Header brand tag
+  const brandTag = document.querySelector('header .brand-tag');
+  if (brandTag) brandTag.textContent = '\u25a0 Consul';
+
+  const offices     = CONSUL_CONFIG.offices;
+  const defaultOff  = offices[0];
+
+  // ── WTD filter bar ────────────────────────────────────────────────────────
+  const wtdBar = document.getElementById('wtd-office-filter-bar');
+  if (wtdBar) {
+    wtdBar.innerHTML =
+      '<button class="filter-btn active" id="wtd-f-all" onclick="wtdToggleOffice(\'all\')">All</button>' +
+      offices.map((o, i) => {
+        const id = 'wtd-f-off-' + i;
+        const active = o === defaultOff ? ' active' : '';
+        return `<button class="filter-btn${active}" id="${id}" data-office="${o}" onclick="wtdToggleOffice('${o}')">${o}</button>`;
+      }).join('') +
+      '<button class="filter-btn active" id="wtd-f-active" onclick="wtdToggleOffice(\'active\')">Has Activity</button>';
+    // Sync state
+    wtdOffices = new Set([defaultOff]);
+  }
+
+  // ── Overview compare bar ──────────────────────────────────────────────────
+  const ovBar = document.getElementById('ov-compare-filter-bar');
+  if (ovBar) {
+    // First office is active by default; rest are secondary compare options
+    const compareOffices = offices.slice(1); // all but primary
+    ovBar.innerHTML = compareOffices.map((o, i) => {
+      const id = 'ov-c-off-' + i;
+      const active = i === 0 ? ' active' : '';
+      return `<button class="filter-btn${active}" id="${id}" data-office="${o}" onclick="ovSetCompare('${o}')">${o}</button>`;
+    }).join('');
+    ovCompareOffice = compareOffices[0] || null;
+  }
+
+  // ── Status-Incentive (Chasers) filter bar ────────────────────────────────
+  const siBar = document.getElementById('si-office-filter-bar');
+  if (siBar) {
+    siBar.innerHTML =
+      '<button class="filter-btn active" id="si-btn-all" onclick="setOfficeFilter(null,this)">All</button>' +
+      offices.map((o, i) => {
+        const id = 'si-btn-off-' + i;
+        const active = o === defaultOff ? ' active' : '';
+        return `<button class="filter-btn${active}" id="${id}" data-office="${o}" onclick="setOfficeFilter('${o}',this)">${o}</button>`;
+      }).join('');
+    activeOffice = defaultOff;
+  }
+
+  // ── Roster filter bar ─────────────────────────────────────────────────────
+  const rosterBar = document.getElementById('roster-office-filter-bar');
+  if (rosterBar) {
+    rosterBar.innerHTML =
+      '<button class="filter-btn" onclick="rosterFilter(\'all\',this)">All</button>' +
+      offices.map((o, i) => {
+        const active = o === defaultOff ? ' active' : '';
+        return `<button class="filter-btn${active}" data-office="${o}" onclick="rosterFilter('${o}',this)">${o}</button>`;
+      }).join('');
+    rosterOfficeFilter = defaultOff;
+  }
+
+  // ── Combine tab filter bar ────────────────────────────────────────────────
+  const combineBar = document.getElementById('combine-office-filter-bar');
+  if (combineBar) {
+    combineBar.innerHTML =
+      '<button class="filter-btn" id="cbtn-all" onclick="combineToggleOffice(\'all\',this)">All</button>' +
+      offices.map((o, i) => {
+        const id = 'cbtn-off-' + i;
+        const active = o === defaultOff ? ' active' : '';
+        return `<button class="filter-btn${active}" id="${id}" data-office="${o}" onclick="combineToggleOffice('${o}',this)">${o}</button>`;
+      }).join('');
+    combineState.offices = new Set([defaultOff]);
+  }
+
+  // ── Productivity tab office pills ─────────────────────────────────────────
+  const prodPills = document.getElementById('prod-office-pills');
+  if (prodPills) {
+    prodPills.innerHTML = offices.map((o, i) => {
+      const active = o === defaultOff ? ' active' : '';
+      return `<span class="prod-pill${active}" data-office="${o}" onclick="prodToggleOffice('${o}',this)">${o}</span>`;
+    }).join('');
+    prodOffices = new Set([defaultOff]);
+  }
+
+  // ── Add-rep modal office dropdown ─────────────────────────────────────────
+  const modalOffice = document.getElementById('modal-office');
+  if (modalOffice) {
+    const cur = modalOffice.value;
+    modalOffice.innerHTML = '<option value="">— Select —</option>' +
+      offices.map(o => `<option value="${o}"${o === cur ? ' selected' : ''}>${o}</option>`).join('');
+  }
+
+  // ── Overview compare labels (default text) ────────────────────────────────
+  const ovLabel    = document.getElementById('ov-compare-label');
+  const ovLabelQtd = document.getElementById('ov-compare-label-qtd');
+  const ovTargetLbl = document.getElementById('ov-targets-panel-label');
+  if (ovCompareOffice) {
+    if (ovLabel)    ovLabel.textContent    = ovCompareOffice;
+    if (ovLabelQtd) ovLabelQtd.textContent = ovCompareOffice;
+    if (ovTargetLbl) ovTargetLbl.textContent = 'Targets \u2014 ' + ovCompareOffice;
+  }
+
+  // ── Combine tab — WTD SRA goals row ──────────────────────────────────────
+  const combineGoalsRow = document.getElementById('combine-goals-row');
+  if (combineGoalsRow) {
+    combineGoalsRow.innerHTML =
+      '<span class="combine-goals-label">WTD SRA Goal</span>' +
+      offices.map((o, i) => {
+        const slug  = o.replace(/\s+/g, '').toLowerCase();
+        const color = CONSUL_CONFIG.office_colors[o] || '#AADDDD';
+        const sep   = i > 0 ? '<div class="filter-sep"></div>' : '';
+        return sep + `<div class="combine-goal-group">` +
+          `<span class="combine-goal-dot" style="background:${color}"></span>` +
+          `<span class="combine-goal-label">${o}</span>` +
+          `<input class="combine-goal-input" type="number" id="cgoal-${slug}" value="10" min="1" oninput="renderCombineTab()">` +
+          `<span class="combine-goal-actual" id="cactual-${slug}"></span>` +
+          `</div>`;
+      }).join('');
+  }
+
+  // ── Page title ────────────────────────────────────────────────────────────
+  document.title = 'Consul \u2014 ' + brand + ' Performance Dashboard';
+}
+
 const WTD_EMPLOYEES = []; // Populated from Google Sheets
 const QTD_EMPLOYEES = []; // Populated from Google Sheets
 let ROSTER_EMPLOYEES   = []; // Populated from Google Sheets on load
@@ -2297,7 +2481,7 @@ let GC_EMPLOYEES       = []; // Populated from Google Sheets — Game Changers t
 let RANKINGS_MAP       = {}; // Populated from Google Sheets (Export tab)
 let rankingsData       = []; // Same as RANKINGS_MAP but as array for Rankings tab
 // Combine tab state
-let combineState = { offices: new Set(['Orange County']), squad: '', showMissed: false, hasActivity: true };
+let combineState = { offices: new Set([CONSUL_CONFIG.offices[0]]), squad: '', showMissed: false, hasActivity: true };
 // Rankings tab state
 let rkOfficeFilter = new Set(); // empty = all
 let rkRankFilter   = new Set(); // empty = all
@@ -2412,14 +2596,14 @@ function saveOfficeTargets(office) {
   document.getElementById('ov-targets-panel').style.display = 'none';
   renderOverview();
 }
-const OFFICE_COLORS = {'Riverside':'#5A9EA0','Newport Beach':'#AADDDD','Orange County':'#F2CF9C'};
+// OFFICE_COLORS is defined at top via CONSUL_CONFIG alias — do not redeclare here
 
 // ── STATE ──
-let wtdOffices = new Set(['Orange County']);
+let wtdOffices = new Set([CONSUL_CONFIG.offices[0]]);
 let wtdActiveExtra = null; // 'active' or null
 let wtdSortCol='name', wtdSortDir=1, wtdView='squad', wtdSquadFilter='';
-let qtdOffices=new Set(['Orange County']), qtdSortCol='name', qtdSortDir=1, qtdView='squad', qtdSquadFilter='';
-let rosterOfficeFilter='Orange County', rosterSortMode='name', rosterViewMode='card';
+let qtdOffices=new Set([CONSUL_CONFIG.offices[0]]), qtdSortCol='name', qtdSortDir=1, qtdView='squad', qtdSquadFilter='';
+let rosterOfficeFilter=CONSUL_CONFIG.offices[0], rosterSortMode='name', rosterViewMode='card';
 
 // ── WTD GOALS (global, editable, persisted) ──
 const WTD_GOALS_DEFAULT = {ac:4, cs:3, sra:2, cap:1, ic:1, pitches:30, hours:30};
@@ -2669,10 +2853,10 @@ function renderCombineTab() {
 
   // ── Per-office SRA actuals ──
   const activeC = COMBINE2_EMPLOYEES.filter(r => r.status === 'In Combine');
-  [{key:'nb',office:'Newport Beach'},{key:'oc',office:'Orange County'},{key:'rv',office:'Riverside'}]
-  .forEach(({key, office}) => {
-    const goalEl = document.getElementById('cgoal-' + key);
-    const actualEl = document.getElementById('cactual-' + key);
+  CONSUL_CONFIG.offices.forEach(office => {
+    const slug = office.replace(/\s+/g,'').toLowerCase();
+    const goalEl   = document.getElementById('cgoal-' + slug);
+    const actualEl = document.getElementById('cactual-' + slug);
     if (!goalEl || !actualEl) return;
     const goal = parseInt(goalEl.value) || 10;
     const actual = activeC.filter(r => r.office === office)
@@ -2957,7 +3141,7 @@ function buildProgressCard(cat, target, actual, pace, prefix){
 }
 // ── OVERVIEW OFFICE STATE ──
 // Primary block is always Newport Beach + Orange County ("twelve") — not user-configurable
-let ovCompareOffice = 'Orange County'; // null = hidden
+let ovCompareOffice = CONSUL_CONFIG.offices[1] || CONSUL_CONFIG.offices[0]; // null = hidden
 
 function ovSetCompare(office) {
   ovCompareOffice = office;
@@ -2966,8 +3150,18 @@ function ovSetCompare(office) {
   if (panel) { panel.classList.remove('visible'); panel.style.display = 'none'; }
   const btn = document.getElementById('ov-targets-btn');
   if (btn) btn.classList.remove('open');
-  document.getElementById('ov-c-oc').classList.toggle('active', office === 'Orange County');
-  document.getElementById('ov-c-riverside').classList.toggle('active', office === 'Riverside');
+  // Toggle active state on dynamically-generated compare buttons
+  const bar = document.getElementById('ov-compare-filter-bar');
+  if (bar) bar.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.office === office);
+  });
+  // Update compare labels
+  const ovLabel    = document.getElementById('ov-compare-label');
+  const ovLabelQtd = document.getElementById('ov-compare-label-qtd');
+  const ovTargetLbl = document.getElementById('ov-targets-panel-label');
+  if (ovLabel)    ovLabel.textContent    = office;
+  if (ovLabelQtd) ovLabelQtd.textContent = office;
+  if (ovTargetLbl) ovTargetLbl.textContent = 'Targets \u2014 ' + office;
   renderOverview();
 }
 
@@ -3055,6 +3249,7 @@ function renderLeadershipPulse(qtdPace) {
   var ap = calcActiveProductive();
 
   // QTD IC — primary (twelve = NB + OC)
+  // Primary XII offices (NB + OC) — update if your office structure changes
   var primaryFilter = function(e) { return e.office === 'Newport Beach' || e.office === 'Orange County'; };
   var qtdIC = ROSTER_EMPLOYEES.filter(primaryFilter).reduce(function(s, e) {
     var q = QTD_MAP[e.id] || {};
@@ -3114,6 +3309,7 @@ function renderOverview(){
   // (moved to after qtdPace is available — see call site below)
 
   // ── Primary block always = Newport Beach + Orange County ("twelve") ──
+  // Primary XII offices (NB + OC) — update if your office structure changes
   const primaryFilter = e => e.office === 'Newport Beach' || e.office === 'Orange County';
 
   // ── WTD Actual — primary ──
@@ -3267,27 +3463,31 @@ function renderOverview(){
 
 // ── WTD FILTERS (multi-select offices) ──
 function wtdToggleOffice(val){
+  const bar = document.getElementById('wtd-office-filter-bar');
   if(val==='all'){
-    wtdOffices=new Set(['Riverside','Newport Beach','Orange County']);
-    wtdActiveExtra=null;
-    document.getElementById('wtd-f-all').classList.add('active');
-    ['riverside','newport','oc'].forEach(k=>document.getElementById('wtd-f-'+k).classList.add('active'));
-    document.getElementById('wtd-f-active').classList.remove('active');
+    wtdOffices = new Set(CONSUL_CONFIG.offices);
+    wtdActiveExtra = null;
+    if(bar) bar.querySelectorAll('.filter-btn[data-office]').forEach(b => b.classList.add('active'));
+    const allBtn = document.getElementById('wtd-f-all');
+    if(allBtn) allBtn.classList.add('active');
+    const actBtn = document.getElementById('wtd-f-active');
+    if(actBtn) actBtn.classList.remove('active');
   } else if(val==='active'){
     wtdActiveExtra = wtdActiveExtra==='active'?null:'active';
-    document.getElementById('wtd-f-active').classList.toggle('active',wtdActiveExtra==='active');
+    const actBtn = document.getElementById('wtd-f-active');
+    if(actBtn) actBtn.classList.toggle('active', wtdActiveExtra==='active');
   } else {
     if(wtdOffices.has(val)){
       wtdOffices.delete(val);
-      const id={'Riverside':'riverside','Newport Beach':'newport','Orange County':'oc'}[val];
-      document.getElementById('wtd-f-'+id).classList.remove('active');
     } else {
       wtdOffices.add(val);
-      const id={'Riverside':'riverside','Newport Beach':'newport','Orange County':'oc'}[val];
-      document.getElementById('wtd-f-'+id).classList.add('active');
     }
-    const allOn = wtdOffices.size===2;
-    document.getElementById('wtd-f-all').classList.toggle('active',allOn);
+    if(bar) bar.querySelectorAll('.filter-btn[data-office]').forEach(b => {
+      b.classList.toggle('active', wtdOffices.has(b.dataset.office));
+    });
+    const allOn = wtdOffices.size === CONSUL_CONFIG.offices.length;
+    const allBtn = document.getElementById('wtd-f-all');
+    if(allBtn) allBtn.classList.toggle('active', allOn);
   }
   renderWTD();
 }
@@ -6038,11 +6238,7 @@ let sortCol = 'QSRA';
 let sortDir = -1; // descending by default
 let searchTerm = '';
 
-const SI_OFFICE_COLORS = {
-  'Riverside': '#417375',
-  'Newport Beach': '#AADDDD',
-  'Orange County': '#F2CF9C',
-};
+const SI_OFFICE_COLORS = CONSUL_CONFIG.office_colors;
 
 // Rep Performance Export is the authority for these QTD fields.
 // Cache values when Rep Perf loads; restore them if QTD file is uploaded afterward.
@@ -6442,7 +6638,7 @@ function gc_renderTable() {
   }
   empty.style.display = 'none';
 
-  const SI_OFFICE_COLORS = { 'Riverside':'#417375', 'Newport Beach':'#AADDDD', 'Orange County':'#F2CF9C' };
+  const SI_OFFICE_COLORS = CONSUL_CONFIG.office_colors;
 
   tbody.innerHTML = gc_filteredData.map((row, i) => {
     const officeColor = SI_OFFICE_COLORS[row['Office']] || '#AADDDD';
@@ -6903,7 +7099,7 @@ function renderRankingsMobile(data) {
 
 // ── GOOGLE SHEETS LIVE FETCH ─────────────────────────────────────────────────
 const SHEETS_API_KEY = 'AIzaSyCpVnUmNfuldsnJ5BotzSSo89aVehuoctk';
-const SHEETS_ID      = '1Awy-KgfNtf8IBAZf-nY8pmv26n0juNk28IRTfN0usn4';
+// SHEETS_ID is defined at top via CONSUL_CONFIG alias — do not redeclare here
 const SHEETS_BASE    = 'https://sheets.googleapis.com/v4/spreadsheets';
 
 function sheetsUrl(tab) {
@@ -8187,7 +8383,7 @@ document.addEventListener('keydown', function(e) {
   <div id="rankings-mobile-list" style="display:none;padding:0 0 80px"></div>
   <div class="footer-bar">
     <span class="footer-count" id="rankings-footer-count">■ Loading...</span>
-    <span class="footer-brand">■ XII — BUILDING CULTURE FORWARD ■</span>
+    <span class="footer-brand"></span>
   </div>
 </div>
 
@@ -8395,8 +8591,7 @@ document.addEventListener('keydown', function(e) {
     <div class="prod-filter-group">
       <div class="prod-filter-label">Office</div>
       <div class="prod-pills" id="prod-office-pills">
-        <span class="prod-pill active" data-office="Orange County" onclick="prodToggleOffice('Orange County',this)">Orange County</span>
-        <span class="prod-pill" data-office="Riverside" onclick="prodToggleOffice('Riverside',this)">Riverside</span>
+        <!-- populated by applyBranding() -->
       </div>
     </div>
 
@@ -8435,11 +8630,8 @@ document.addEventListener('keydown', function(e) {
 <script>
 // ── PRODUCTIVITY TAB ───────────────────────────────────────────────────────────
 
-const PROD_OFFICE_COLORS = {
-  'Orange County': '#5A9EA0',
-  'Newport Beach': '#AADDDD',
-  'Riverside':     '#F2CF9C',
-};
+// PROD_OFFICE_COLORS uses the same palette as OFFICE_COLORS from CONSUL_CONFIG
+const PROD_OFFICE_COLORS = CONSUL_CONFIG.office_colors;
 
 const PROD_STATUSES = ['Productive','Active','Inactive','Combine','New Hire'];
 const PROD_HDR_CLASS = {
@@ -8451,7 +8643,7 @@ const PROD_HDR_CLASS = {
 };
 
 // Filter state — default: OC + NB selected, Productive + Active + Inactive selected
-let prodOffices  = new Set(['Orange County']);
+let prodOffices  = new Set([CONSUL_CONFIG.offices[0]]);
 let prodStatuses = new Set(['Productive','Active','Inactive']);
 
 function prodToggleOffice(office, el) {
@@ -8604,9 +8796,7 @@ function renderProductivity() {
 
     <div class="filter-bar">
       <span class="filter-label">Office</span>
-      <button class="filter-btn" id="cbtn-all" onclick="combineToggleOffice('all',this)">All</button>
-      <button class="filter-btn active" id="cbtn-oc" onclick="combineToggleOffice('Orange County',this)">Orange County</button>
-      <button class="filter-btn" id="cbtn-rv" onclick="combineToggleOffice('Riverside',this)">Riverside</button>
+      <span id="combine-office-filter-bar"><!-- populated by applyBranding() --></span>
       <div class="filter-sep"></div>
       <button class="filter-btn active" id="cbtn-activity" onclick="combineToggleActivity(this)">Has Activity</button>
       <div class="filter-sep"></div>
@@ -8618,21 +8808,9 @@ function renderProductivity() {
       <button class="view-btn" id="cbtn-missed" onclick="combineTogleMissed(this)">Show Missed Draft</button>
     </div>
 
-    <div class="combine-goals-row">
+    <div class="combine-goals-row" id="combine-goals-row">
       <span class="combine-goals-label">WTD SRA Goal</span>
-      <div class="combine-goal-group">
-        <span class="combine-goal-dot" style="background:#F2CF9C"></span>
-        <span class="combine-goal-label">Orange County</span>
-        <input class="combine-goal-input" type="number" id="cgoal-oc" value="12" min="1" oninput="renderCombineTab()">
-        <span class="combine-goal-actual" id="cactual-oc"></span>
-      </div>
-      <div class="filter-sep"></div>
-      <div class="combine-goal-group">
-        <span class="combine-goal-dot" style="background:#5A9EA0"></span>
-        <span class="combine-goal-label">Riverside</span>
-        <input class="combine-goal-input" type="number" id="cgoal-rv" value="10" min="1" oninput="renderCombineTab()">
-        <span class="combine-goal-actual" id="cactual-rv"></span>
-      </div>
+      <!-- Populated dynamically by applyBranding() from CONSUL_CONFIG.offices -->
     </div>
 
   </div><!-- end combine-controls -->
@@ -8706,7 +8884,7 @@ function renderProductivity() {
 
   <div class="footer-bar">
     <span class="footer-count" id="combine-footer">■ Loading from Google Sheets…</span>
-    <span class="footer-brand">■ XII — BUILDING CULTURE FORWARD ■</span>
+    <span class="footer-brand"></span>
   </div>
 
 </div><!-- end panel-combine -->
@@ -8991,9 +9169,8 @@ async function sheetsDeleteRosterRow(sheetRow) {
   }
 }
 
-const OAUTH_CLIENT_ID = '824495442632-o4v639jl9rcsj7dq2fgvfcr6joj98s2c.apps.googleusercontent.com';
+// OAUTH_CLIENT_ID and NOTIFY_EMAIL are defined at top via CONSUL_CONFIG aliases — do not redeclare here
 const OAUTH_SCOPE     = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/gmail.send email profile';
-const NOTIFY_EMAIL    = 'adam.howle@sunrun.com';
 
 let gisTokenClient  = null;
 let sheetsAuthToken = null; // set after user grants access
@@ -9252,6 +9429,7 @@ var xiiAccessLevel  = null; // null | 'view' | 'edit'
 
 // On page load — check localStorage for a saved session
 window.addEventListener('DOMContentLoaded', function() {
+  applyBranding(); // Stamp brand text and build all office UI from CONSUL_CONFIG
   var saved = null;
   try { saved = JSON.parse(localStorage.getItem('xii_auth') || 'null'); } catch(e) {}
   if (saved && saved.email && saved.token && saved.expires > Date.now()) {
@@ -9405,7 +9583,7 @@ function xiiReportBug() {
   document.getElementById('xii-hamburger-btn').classList.remove('open');
   const subject = 'XII Dashboard — Bug Report';
   const body    = 'Please describe the issue below:\n\n';
-  const gmailUrl = 'https://mail.google.com/mail/?view=cm&to=adam.howle%40sunrun.com&su='
+  const gmailUrl = 'https://mail.google.com/mail/?view=cm&to=' + encodeURIComponent(CONSUL_CONFIG.admin_email) + '&su='
     + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
   window.open(gmailUrl, '_blank');
 }
@@ -9579,13 +9757,7 @@ function ob_sendJobOfferSMS(emp) {
 }
 
 // ── BG CLEAR — 4 SMS MESSAGES ────────────────────────────────────────────────
-const OFFICE_MEETING_INFO = {
-  'Riverside':     { days: 'Tuesday and Thursday', time: '11am–1pm',       address: '1550 Magnolia Ave Ste 200, Corona, CA 92879' },
-  'Newport Beach': { days: 'Monday and Thursday',  time: '10:30am–12:30pm', address: '8 Whatney, Irvine CA 92618' },
-  'Orange County': { days: 'Monday and Thursday',  time: '10:30am–12:30pm', address: '8 Whatney, Irvine CA 92618' },
-};
-const ADAM_PHONE  = '5625371559';
-const ADAM_EMAIL  = 'adam.howle@sunrun.com';
+// OFFICE_MEETING_INFO, ADAM_PHONE, ADAM_EMAIL are defined at top via CONSUL_CONFIG aliases
 
 function ob_sendBGClearSMS(emp) {
   const name    = ob_cap(emp.name) || 'New Hire';
