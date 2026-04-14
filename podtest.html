@@ -5278,17 +5278,19 @@ function ob_renderTable() {
     const progColor = prog.pct === 100 ? '#2DC48E' : prog.pct > 0 ? 'var(--cyan-light)' : 'var(--border)';
     const isDupe = dupIds.has(emp.id);
     const dupeTag = isDupe ? `<span class="dupe-badge">dupe</span>` : '';
+    const isConveyNew = !!emp._isConveyNew;
+    const conveyNewTag = isConveyNew ? `<span style="font-size:9px;padding:2px 6px;border:0.5px solid rgba(239,159,39,.4);background:rgba(239,159,39,.08);color:#EF9F27;letter-spacing:1px;text-transform:uppercase;margin-left:6px;">Convey only</span>` : '';
     const hireDateDisplay = emp.startDate ? `<span style="color:#2DC48E;font-size:12px;font-weight:600;">${ob_fmtDate(emp.startDate)}</span>` : '<span style="color:var(--text-muted)">—</span>';
     const fcDisplay = emp.inputDate ? `<span style="color:var(--text-muted);font-size:12px;">${ob_fmtDate(emp.inputDate)}</span>` : '<span style="color:var(--text-muted)">—</span>';
     const leaderDisplay = (emp.leader || emp.squad || '—');
     return `
-    <tr class="${isDupe ? 'is-dupe' : ''}" style="animation-delay:${Math.min(i*0.01,0.25)}s">
+    <tr class="${isDupe ? 'is-dupe' : ''}" style="animation-delay:${Math.min(i*0.01,0.25)}s;${isConveyNew ? 'background:rgba(239,159,39,0.06);' : ''}">
       <td style="text-align:center;white-space:nowrap;padding:4px 8px;">
         <button class="btn-sunrun${emp.i9 ? ' btn-sunrun--dim' : ''}" data-eid="${emp.id}" onclick="event.stopPropagation();${emp.i9 ? '' : 'ob_openSunrunPanel(this.dataset.eid)'}" title="${emp.i9 ? 'I9 complete \u2014 already submitted' : 'Submit to Sunrun'}"${emp.i9 ? ' disabled' : ''}>CONVEY</button>
       </td>
       <td class="editable" data-eid="${emp.id}" onclick="ob_editStatusCell(this,this.dataset.eid)">${ob_statusBadge(emp.status)}</td>
       <td class="name-cell" style="cursor:pointer;" data-eid="${emp.id}" onclick="ob_openInfoModal(this.dataset.eid)">
-        <div style="font-weight:600;font-size:15px;">${ob_cap(emp.name)}${dupeTag}</div>
+        <div style="font-weight:600;font-size:15px;">${ob_cap(emp.name)}${dupeTag}${conveyNewTag}</div>
         <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
           <div style="flex:1;height:3px;background:rgba(255,255,255,0.1);min-width:50px;overflow:hidden;">
             <div style="height:100%;width:${prog.pct}%;background:${progColor};"></div>
@@ -5352,6 +5354,7 @@ function ob_openInfoModal(id) {
   document.getElementById('ob-im-office').value   = emp.office        || '';
   document.getElementById('ob-im-squad').value    = emp.squad         || '';
   document.getElementById('ob-im-referral').value = emp.referral      || '';
+  document.getElementById('ob-im-email').value    = emp.homeEmail     || '';
   document.getElementById('ob-im-leader').value   = emp.leader        || '';
   document.getElementById('ob-im-notes').value    = emp.notes         || '';
   const hdWrap = document.getElementById('ob-im-hiredate-wrap');
@@ -5404,6 +5407,7 @@ function ob_saveInfoModal() {
   emp.office        = document.getElementById('ob-im-office').value.trim();
   emp.squad         = document.getElementById('ob-im-squad').value.trim();
   emp.referral      = document.getElementById('ob-im-referral').value.trim();
+  emp.homeEmail     = document.getElementById('ob-im-email').value.trim();
   emp.leader        = document.getElementById('ob-im-leader').value.trim();
   emp.notes         = document.getElementById('ob-im-notes').value.trim();
   if (emp._sheetRow) {
@@ -5413,6 +5417,7 @@ function ob_saveInfoModal() {
     sheetsWriteCell('Onboarding', emp._sheetRow, OB_COL.office,        emp.office);
     sheetsWriteCell('Onboarding', emp._sheetRow, OB_COL.squad,         emp.squad);
     sheetsWriteCell('Onboarding', emp._sheetRow, OB_COL.referral,      emp.referral);
+    sheetsWriteCell('Onboarding', emp._sheetRow, OB_COL.email,         emp.homeEmail);
     sheetsWriteCell('Onboarding', emp._sheetRow, OB_COL.leader,        emp.leader);
     sheetsWriteCell('Onboarding', emp._sheetRow, OB_COL.notes,         emp.notes);
   }
@@ -7130,6 +7135,50 @@ function applyConveyEnrichment(conveyRows) {
       if (emp._sheetRow) sheetsWriteCell('Onboarding', emp._sheetRow, OB_COL.referral, emp.referral);
     }
   });
+
+  // ── Detect unmatched Convey rows (in Convey but not in Onboarding sheet) ──
+  // Build index of phones/names already covered by existing ob_employees.
+  var matchedPhones = new Set();
+  var matchedNames  = new Set();
+  ob_employees.forEach(function(emp) {
+    var p = conveyNormPhone(emp.mobile || '');
+    var n = (emp.name || '').trim().toLowerCase();
+    if (p) matchedPhones.add(p);
+    if (n) matchedNames.add(n);
+  });
+
+  conveyRows.forEach(function(r) {
+    var phone     = conveyNormPhone(r['mobile'] || '');
+    var firstName = (r['first_name'] || '').trim();
+    var lastName  = (r['last_name']  || '').trim();
+    var fullName  = (firstName + ' ' + lastName).trim();
+    var nameLow   = fullName.toLowerCase();
+    // Skip if already matched or no usable name
+    if (!fullName) return;
+    if (phone && matchedPhones.has(phone)) return;
+    if (nameLow && matchedNames.has(nameLow)) return;
+    // Surface as an amber-highlighted row — admin can decide whether to add to sheet
+    var newEmp = {
+      id:           'convey_' + (phone || nameLow.replace(/\s/g,'_') || String(Date.now())),
+      name:         fullName,
+      mobile:       r['mobile']        ? r['mobile'].trim()        : '',
+      homeEmail:    r['email']         ? r['email'].trim()         : '',
+      referral:     r['referral_name'] ? r['referral_name'].trim() : '',
+      office:       r['office']        ? r['office'].trim()        : '',
+      address:      r['home_address']  ? r['home_address'].trim()  : '',
+      status: '', squad: '', leader: '', notes: '',
+      interviewDate: '', startDate: '', repId: '',
+      inputDate: r['first_contact_date'] ? r['first_contact_date'].trim() : '',
+      infoCall: false, jobOffer: false, i9: false, bgClear: false,
+      pronto: false, skool: false, squadAssign: false, bootcamp: false,
+      _conveyAuto:  new Set(),
+      _isConveyNew: true,
+      _sheetRow:    null
+    };
+    ob_employees.push(newEmp);
+    if (phone)   matchedPhones.add(phone);
+    if (nameLow) matchedNames.add(nameLow);
+  });
 }
 
 async function fetchSheetsData(opts) {
@@ -7908,6 +7957,10 @@ document.addEventListener('keydown', function(e) {
       <div class="form-group">
         <label>Referral</label>
         <input id="ob-im-referral" placeholder="Referred by">
+      </div>
+      <div class="form-group full">
+        <label>Email</label>
+        <input id="ob-im-email" type="email" placeholder="personal@email.com">
       </div>
       <div class="form-group full">
         <label>Notes</label>
@@ -9566,10 +9619,11 @@ function xii_fmtPhone(raw) {
 
 // ── JOB OFFER SMS ────────────────────────────────────────────────────────────
 function ob_sendJobOfferSMS(emp) {
-  const name   = ob_cap(emp.name) || 'there';
-  const leader = ob_cap(emp.leader) || 'your leader';
-  const phone  = emp.mobile || '';
-  const text   = `Welcome to the team ${name}! The next step is giving authorization for a background check to be run, and filling out the I9 form. One tricky thing about this form is it asks you to put in the email of an authorized Sunrun representative. What they really mean is to put in the email address of someone you trust and authorize to look at your ID and upload pictures of them on their phone. Pick someone close by that you see regularly. (If you get stuck, you can reach out to ${leader} and you can show them your IDs.)`;
+  const name      = ob_cap(emp.name) || 'there';
+  const firstName = name.split(' ')[0] || name;
+  const leader    = ob_cap(emp.leader) || 'your leader';
+  const phone     = emp.mobile || '';
+  const text      = `Hello, ${firstName}.  I just got your application for Sunrun in Orange County, CA. You are also going to get a text from the Sunrun Hiring team. Please respond back to that number for any questions in your onboarding journey. The next step is getting an email giving authorization for a background check to be run, and filling out the I9 form. One tricky thing about this form is it asks you to put in the email of an authorized Sunrun representative. What they really mean is to put in the email address of someone you trust and authorize to look at your ID and upload pictures of them on their phone. Pick someone close by that you see regularly. (If you get stuck, you can reach out to your leader and you can show them your IDs.) Hope this helps, Adam Howle, Sunrun OC`;
   xii_sendSMS([{
     toLabel: name,
     phone: xii_fmtPhone(phone),
