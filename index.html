@@ -2319,6 +2319,9 @@ function shortOffice(o) {
 
 // ── Performance lookup maps (rebuilt whenever roster changes) ──
 let WTD_MAP = {}, QTD_MAP = {};
+// Authoritative QTD office totals from Totals sheet — keyed by office name
+// e.g. { 'Newport Beach': {cs:12, sra:8, cap:3, ic:2}, ... }
+let TOTALS_OFFICE = {};
 function buildPerfMaps(){
   WTD_MAP = Object.fromEntries(WTD_EMPLOYEES.map(e=>[e.id, e]));
   QTD_MAP = Object.fromEntries(QTD_EMPLOYEES.map(e=>[e.id, e]));
@@ -3122,14 +3125,26 @@ function renderOverview(){
     IC:  wtdReps.reduce((s,e) => s + (e.wtd_ic  || 0), 0),
   };
 
-  // ── QTD Actual — primary ──
-  const qtdReps = ROSTER_EMPLOYEES.filter(primaryFilter).map(e => QTD_MAP[e.id] || {});
-  const qtdActual = {
-    CS:  qtdReps.reduce((s,e) => s + (e.qtd_cs  || 0), 0),
-    SRA: qtdReps.reduce((s,e) => s + (e.qtr_sra != null ? e.qtr_sra : (e.qtd_sra || 0)), 0),
-    CAP: qtdReps.reduce((s,e) => s + (e.qtr_cap != null ? e.qtr_cap : (e.qtd_cap || 0)), 0),
-    IC:  qtdReps.reduce((s,e) => s + (e.qtr_ic  != null ? e.qtr_ic  : (e.qtd_ic  || 0)), 0),
-  };
+  // ── QTD Actual — primary (Newport Beach + Orange County) ──
+  // Reads directly from TOTALS_OFFICE (authoritative Totals sheet sums).
+  // Falls back to rep-by-rep QTD_MAP sum if Totals not yet loaded.
+  const _totNB  = TOTALS_OFFICE['Newport Beach']  || null;
+  const _totOC  = TOTALS_OFFICE['Orange County']  || null;
+  const _hasTot = _totNB || _totOC;
+  const qtdActual = _hasTot ? {
+    CS:  (_totNB ? _totNB.cs  : 0) + (_totOC ? _totOC.cs  : 0),
+    SRA: (_totNB ? _totNB.sra : 0) + (_totOC ? _totOC.sra : 0),
+    CAP: (_totNB ? _totNB.cap : 0) + (_totOC ? _totOC.cap : 0),
+    IC:  (_totNB ? _totNB.ic  : 0) + (_totOC ? _totOC.ic  : 0),
+  } : (() => {
+    const qtdReps = ROSTER_EMPLOYEES.filter(primaryFilter).map(e => QTD_MAP[e.id] || {});
+    return {
+      CS:  qtdReps.reduce((s,e) => s + (e.qtd_cs  || 0), 0),
+      SRA: qtdReps.reduce((s,e) => s + (e.qtr_sra != null ? e.qtr_sra : (e.qtd_sra || 0)), 0),
+      CAP: qtdReps.reduce((s,e) => s + (e.qtr_cap != null ? e.qtr_cap : (e.qtd_cap || 0)), 0),
+      IC:  qtdReps.reduce((s,e) => s + (e.qtr_ic  != null ? e.qtr_ic  : (e.qtd_ic  || 0)), 0),
+    };
+  })();
 
   // Primary label is always "twelve"
   document.getElementById('ov-primary-label').textContent = 'twelve';
@@ -3221,13 +3236,21 @@ function renderOverview(){
     CAP: cWtdReps.reduce((s,e) => s + (e.wtd_cap || 0), 0),
     IC:  cWtdReps.reduce((s,e) => s + (e.wtd_ic  || 0), 0),
   };
-  const cQtdReps = ROSTER_EMPLOYEES.filter(cFilter).map(e => QTD_MAP[e.id] || {});
-  const cQtdActual = {
-    CS:  cQtdReps.reduce((s,e) => s + (e.qtd_cs  || 0), 0),
-    SRA: cQtdReps.reduce((s,e) => s + (e.qtr_sra != null ? e.qtr_sra : (e.qtd_sra || 0)), 0),
-    CAP: cQtdReps.reduce((s,e) => s + (e.qtr_cap != null ? e.qtr_cap : (e.qtd_cap || 0)), 0),
-    IC:  cQtdReps.reduce((s,e) => s + (e.qtr_ic  != null ? e.qtr_ic  : (e.qtd_ic  || 0)), 0),
-  };
+  const cQtdTot = TOTALS_OFFICE[ovCompareOffice] || null;
+  const cQtdActual = cQtdTot ? {
+    CS:  cQtdTot.cs,
+    SRA: cQtdTot.sra,
+    CAP: cQtdTot.cap,
+    IC:  cQtdTot.ic,
+  } : (() => {
+    const cQtdReps = ROSTER_EMPLOYEES.filter(cFilter).map(e => QTD_MAP[e.id] || {});
+    return {
+      CS:  cQtdReps.reduce((s,e) => s + (e.qtd_cs  || 0), 0),
+      SRA: cQtdReps.reduce((s,e) => s + (e.qtr_sra != null ? e.qtr_sra : (e.qtd_sra || 0)), 0),
+      CAP: cQtdReps.reduce((s,e) => s + (e.qtr_cap != null ? e.qtr_cap : (e.qtd_cap || 0)), 0),
+      IC:  cQtdReps.reduce((s,e) => s + (e.qtr_ic  != null ? e.qtr_ic  : (e.qtd_ic  || 0)), 0),
+    };
+  })();
 
   document.getElementById('wtd-progress-compare').innerHTML =
     ['CS','SRA','CAP','IC'].map(c => buildProgressCard(
@@ -4634,7 +4657,7 @@ function openSquadSnapshot(squadKey, tab) {
     rows = sorted.map(e => {
       const q = QTD_MAP[e.id]||{};
       const il = e.name===leader;
-      return '<tr><td style="'+tNS+(il?'color:var(--cyan-light);':'')+'">'+(e.name)+(il?' <span style="font-size:9px;letter-spacing:1px;color:var(--cyan-dark)">LEADER</span>':'')+'</td><td style="'+tS+'">'+(q.qtr_sra||'—')+'</td><td style="'+tS+'">'+(q.qtr_cap||'—')+'</td><td style="'+tS+'">'+(q.qtr_ic||'—')+'</td><td style="'+tS+'"><span style="font-size:'+(fs-1)+'px;color:var(--text-muted)">'+(q.status||'—')+'</span></td><td style="'+tS+'">'+rk(e.id,q)+'</td></tr>';
+      return '<tr><td style="'+tNS+(il?'color:var(--cyan-light);':'')+'">'+(e.name)+(il?' <span style="font-size:9px;letter-spacing:1px;color:var(--cyan-dark)">LEADER</span>':'')+'</td><td style="'+tS+'">'+(q.qtr_sra||'—')+'</td><td style="'+tS+'">'+(q.qtr_cap||'—')+'</td><td style="'+tS+'">'+(q.qtr_ic||'—')+'</td><td style="'+tS+'max-width:90px;overflow:hidden;text-overflow:ellipsis;"><span style="font-size:'+(fs-1)+'px;color:var(--text-muted)">'+(q.status||'—')+'</span></td><td style="'+tS+'">'+rk(e.id,q)+'</td></tr>';
     }).join('') + totRow;
   }
   title.textContent = squadKey;
@@ -7392,6 +7415,8 @@ async function fetchSheetsData(opts) {
       e.qtr_sra = 0; e.qtr_cap = 0; e.qtr_ic  = 0;
       // qtdpts_sra / qtdpts_ic preserved — set from QTD Points, not overwritten by Totals
     });
+    // Reset office-level totals — rebuilt fresh from this load
+    TOTALS_OFFICE = {};
     totRows.forEach(function(r) {
       var id = String(r['employee id'] || '').trim();
       if (!id || !/^\d+$/.test(id)) return;
@@ -7402,6 +7427,15 @@ async function fetchSheetsData(opts) {
       var sra = csvNum(r['sra']);
       var cap = csvNum(r['cap']);
       var ic  = csvNum(r['ic']);
+      // Accumulate into office-level totals using roster office
+      var repOffice = (totRosterById[id] || {}).office || (qtdEntry && qtdEntry.office) || '';
+      if (repOffice) {
+        if (!TOTALS_OFFICE[repOffice]) TOTALS_OFFICE[repOffice] = {cs:0, sra:0, cap:0, ic:0};
+        TOTALS_OFFICE[repOffice].cs  += cs;
+        TOTALS_OFFICE[repOffice].sra += sra;
+        TOTALS_OFFICE[repOffice].cap += cap;
+        TOTALS_OFFICE[repOffice].ic  += ic;
+      }
       if (qtdEntry) {
         qtdEntry.qtd_cs  = cs;
         qtdEntry.qtd_sra = sra;
@@ -7618,7 +7652,7 @@ function openRepModal(repId) {
       </div>
       <div class="rm-stat-grid" style="margin-top:10px">
         <div class="rm-stat">
-          <div class="rm-stat-val ${qtd.status ? '' : 'nil'}">${qtd.status || '—'}</div>
+          <div class="rm-stat-val ${qtd.status ? '' : 'nil'}" style="font-size:${qtd.status && qtd.status.length > 9 ? '13px' : qtd.status && qtd.status.length > 6 ? '18px' : '26px'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${qtd.status || '—'}</div>
           <div class="rm-stat-label">Activity</div>
         </div>
         <div class="rm-stat">
