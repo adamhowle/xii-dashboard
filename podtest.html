@@ -2320,7 +2320,8 @@ const CONSUL_CONFIG = {
 
 // ── Convenience aliases (used throughout the file) ────────────────────────────
 // These replace the previous standalone constants so no other code changes.
-const SHEETS_ID      = CONSUL_CONFIG.sheets_id;
+const SHEETS_ID       = CONSUL_CONFIG.sheets_id;
+const SHEETS_BASE     = 'https://sheets.googleapis.com/v4/spreadsheets';
 const OAUTH_CLIENT_ID = CONSUL_CONFIG.oauth_client_id;
 const NOTIFY_EMAIL   = CONSUL_CONFIG.office_admin_email;
 const ADAM_PHONE     = CONSUL_CONFIG.admin_phone;
@@ -6789,15 +6790,7 @@ const BAKED_QTDPOINTS = []; // Populated from Google Sheets
 
 
 // ── INIT ──
-// WTD: OC only active at startup (wtdOffices already initialized to OC only)
-document.getElementById('wtd-f-riverside').classList.remove('active');
-document.getElementById('wtd-f-oc').classList.add('active');
-document.getElementById('wtd-f-all').classList.remove('active');
-
-// Overview: compare defaults to Riverside (button state already set in HTML)
-// Overview: default compare = Orange County
-document.getElementById('ov-c-oc').classList.add('active');
-document.getElementById('ov-c-riverside').classList.remove('active');
+// Office button states are set dynamically by applyBranding() on DOMContentLoaded
 
 function rkRankBadge(rank) {
   if (!rank) return '<span class="rank-badge rank-nostatus">No Status</span>';
@@ -7099,8 +7092,7 @@ function renderRankingsMobile(data) {
 
 // ── GOOGLE SHEETS LIVE FETCH ─────────────────────────────────────────────────
 const SHEETS_API_KEY = 'AIzaSyCpVnUmNfuldsnJ5BotzSSo89aVehuoctk';
-// SHEETS_ID is defined at top via CONSUL_CONFIG alias — do not redeclare here
-const SHEETS_BASE    = 'https://sheets.googleapis.com/v4/spreadsheets';
+// SHEETS_ID and SHEETS_BASE are defined at top via CONSUL_CONFIG alias block — do not redeclare here
 
 function sheetsUrl(tab) {
   return SHEETS_BASE + '/' + SHEETS_ID + '/values/' + encodeURIComponent(tab)
