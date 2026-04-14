@@ -4657,7 +4657,7 @@ function openSquadSnapshot(squadKey, tab) {
     rows = sorted.map(e => {
       const q = QTD_MAP[e.id]||{};
       const il = e.name===leader;
-      return '<tr><td style="'+tNS+(il?'color:var(--cyan-light);':'')+'">'+(e.name)+(il?' <span style="font-size:9px;letter-spacing:1px;color:var(--cyan-dark)">LEADER</span>':'')+'</td><td style="'+tS+'">'+(q.qtr_sra||'—')+'</td><td style="'+tS+'">'+(q.qtr_cap||'—')+'</td><td style="'+tS+'">'+(q.qtr_ic||'—')+'</td><td style="'+tS+'"><div style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:'+(fs-1)+'px;color:var(--text-muted)">'+(q.status||'—')+'</div></td><td style="'+tS+'">'+rk(e.id,q)+'</td></tr>';
+      return '<tr><td style="'+tNS+(il?'color:var(--cyan-light);':'')+'">'+(e.name)+(il?' <span style="font-size:9px;letter-spacing:1px;color:var(--cyan-dark)">LEADER</span>':'')+'</td><td style="'+tS+'">'+(q.qtr_sra||'—')+'</td><td style="'+tS+'">'+(q.qtr_cap||'—')+'</td><td style="'+tS+'">'+(q.qtr_ic||'—')+'</td><td style="'+tS+'max-width:90px;overflow:hidden;text-overflow:ellipsis;"><span style="font-size:'+(fs-1)+'px;color:var(--text-muted)">'+(q.status||'—')+'</span></td><td style="'+tS+'">'+rk(e.id,q)+'</td></tr>';
     }).join('') + totRow;
   }
   title.textContent = squadKey;
@@ -7652,7 +7652,7 @@ function openRepModal(repId) {
       </div>
       <div class="rm-stat-grid" style="margin-top:10px">
         <div class="rm-stat">
-          <div class="rm-stat-val ${qtd.status ? '' : 'nil'}">${qtd.status || '—'}</div>
+          <div class="rm-stat-val ${qtd.status ? '' : 'nil'}" style="font-size:${qtd.status && qtd.status.length > 9 ? '13px' : qtd.status && qtd.status.length > 6 ? '18px' : '26px'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${qtd.status || '—'}</div>
           <div class="rm-stat-label">Activity</div>
         </div>
         <div class="rm-stat">
