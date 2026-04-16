@@ -70,12 +70,23 @@ body.light-mode .prog-card .prog-track { background: rgba(255,255,255,0.08); }
 body.light-mode .prog-card .prog-tick { background: rgba(248,249,249,0.4); }
 body.light-mode .prog-card .prog-ou span.neg { color: #F05252; }
 body.light-mode .prog-card .prog-ou span.pos { color: #2DC48E; }
+body.light-mode .overview-target-input { color: #F8F9F9; }
 body.light-mode .roster-card { color: #F8F9F9; }
 body.light-mode .roster-card .rc-name { color: #F8F9F9; }
 body.light-mode .roster-card .rc-role { color: var(--cyan-light); }
 body.light-mode .rc-edit-field { color: #F8F9F9; background: #2A2828; }
 body.light-mode .search-wrap input { color: #F8F9F9; background: #2A2828; }
 /* ── WTD GOALS PANEL ── */
+#wtd-goals-panel { display:none; }
+#wtd-goals-panel.open { display:flex !important; }
+#wtd-goals-overlay.open { display:block !important; }
+.goals-field-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border); }
+.goals-field-row:last-child { border-bottom:none; }
+.goals-field-label { font-family:Helvetica Neue,Helvetica,Arial,sans-serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--cyan-dark); }
+.goals-field-sub { font-family:Helvetica Neue,Helvetica,Arial,sans-serif; font-size:11px; color:var(--text-muted); margin-top:3px; }
+.goals-field-input { width:72px; background:rgba(255,255,255,0.06); border:1px solid rgba(170,221,221,0.2); color:var(--off-white); font-family:Helvetica Neue,Helvetica,Arial,sans-serif; font-size:20px; font-weight:700; text-align:center; padding:8px 4px; outline:none; -moz-appearance:textfield; }
+.goals-field-input::-webkit-inner-spin-button,.goals-field-input::-webkit-outer-spin-button{-webkit-appearance:none}
+.goals-field-input:focus { border-color:rgba(39,217,217,0.5); background:rgba(39,217,217,0.06); }
 /* ── REP DETAIL MODAL ── */
 #rep-modal { display:none; }
 #rep-modal-overlay { display:none; }
@@ -525,6 +536,7 @@ body.light-mode .col-toggle-btn.open{background:#2A2828;border-color:var(--cyan-
 .overview-date-input{background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--off-white);font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:11px;padding:6px 10px;outline:none;transition:border-color .2s;color-scheme:dark;width:148px}
 .overview-date-input:focus{border-color:var(--cyan-light)}
 .overview-date-meta{font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;color:var(--cyan-dark);padding:4px 10px;background:rgba(170,221,221,0.07);border:1px solid var(--border);white-space:nowrap}
+.overview-target-input{background:transparent;border:none;border-bottom:1px solid rgba(170,221,221,0.3);color:var(--off-white);font-size:24px;font-weight:700;line-height:1;width:72px;text-align:center;font-family:inherit;outline:none;padding:0 2px}
 .ov-targets-btn{margin-left:auto;display:flex;align-items:center;gap:5px;background:transparent;border:0.5px solid var(--btn-border-idle);color:var(--btn-idle);padding:5px 11px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .15s;white-space:nowrap}
 .ov-targets-btn:hover,.ov-targets-btn.open{border-color:var(--sand);color:var(--sand)}
 .ov-targets-panel{display:none;background:var(--card-bg);border:0.5px solid var(--border);padding:18px 24px;margin-top:12px}
@@ -551,6 +563,7 @@ body.light-mode .col-toggle-btn.open{background:#2A2828;border-color:var(--cyan-
 .pulse-value{font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:34px;font-weight:700;letter-spacing:-1px;line-height:1}
 .pulse-sub{font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;color:var(--text-muted)}
 @media(max-width:480px){.pulse-row{grid-template-columns:repeat(2,1fr)}.pulse-card{padding:12px 14px}.pulse-value{font-size:26px}}
+.overview-target-input:focus{border-bottom-color:var(--cyan-light)}
 
 /* ── RANKINGS TAB ── */
 .rankings-filter-bar{display:flex;align-items:center;gap:10px;padding:14px 36px;border-bottom:1px solid var(--border);flex-wrap:wrap;transition:max-height .28s cubic-bezier(.4,0,.2,1),opacity .2s,border-color .2s,padding .28s;max-height:120px;overflow:visible;opacity:1;position:relative;z-index:50;}
@@ -1770,6 +1783,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
   .progress-grid{flex-direction:column;gap:1px;}
   .prog-card{padding:12px 14px;}
   .prog-nums{gap:12px;}
+  .overview-target-input{font-size:20px;width:58px;}
   .overview-date-bar{padding:8px 14px 10px;}
   .ov-targets-panel{margin:0 0 12px;}
 
@@ -1803,6 +1817,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
   #panel-qtd .col-toggle-wrap,
   #panel-wtd .export-btn,
   #panel-qtd .export-btn,
+  #panel-wtd #wtd-goals-btn,
   .search-wrap{display:none;}
   #wtd-squad-select,#qtd-squad-select{display:none;}
 
@@ -1914,7 +1929,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
 <!-- ── MOBILE DROPDOWN MENU ── -->
 <div id="xii-mob-menu">
   <div class="xii-mob-tab" data-tab="overview" onclick="xiiMobSwitch('overview',this)">Overview</div>
-  <div class="xii-mob-tab" data-tab="wtd" onclick="xiiMobSwitch('wtd',this)">WTD Detail</div>
+  <div class="xii-mob-tab" data-tab="wtd" onclick="xiiMobSwitch('wtd',this)">Squads</div>
   <div class="xii-mob-tab" data-tab="rankings" onclick="xiiMobSwitch('rankings',this)">Rankings</div>
   <div class="xii-mob-tab" data-tab="status-incentive" onclick="xiiMobSwitch('status-incentive',this)">Chasers</div>
   <div class="xii-mob-tab" data-tab="roster" onclick="xiiMobSwitch('roster',this)">Roster</div>
@@ -1926,7 +1941,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
 
 <div class="tab-bar">
   <div class="tab active" onclick="switchTab('overview',this)">Overview</div>
-  <div class="tab" onclick="switchTab('wtd',this)">WTD Detail</div>
+  <div class="tab" onclick="switchTab('wtd',this)">Squads</div>
   <div class="tab" onclick="switchTab('rankings',this)">Rankings</div>
   <div class="tab" onclick="switchTab('status-incentive',this)">Chasers</div>
   <div class="tab" onclick="switchTab('roster',this)">Roster</div>
@@ -2037,6 +2052,9 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
     <select id="wtd-squad-select" class="squad-select" style="background:rgba(255,255,255,0.05);border:1px solid rgba(170,221,221,0.25);color:rgba(248,249,249,0.6);padding:6px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer" onchange="wtdSquadFilter=this.value;renderWTD()">
       <option value="">All Squads</option>
     </select>
+    <div class="filter-sep"></div>
+    <button class="view-btn active" id="wtd-week-this" onclick="wtdSetWeek('this',this)">This Week</button>
+    <button class="view-btn" id="wtd-week-last" onclick="wtdSetWeek('last',this)">Last Week</button>
     <div class="ml-auto" style="display:flex;align-items:center;gap:10px">
 <div class="col-toggle-wrap" id="wtd-col-wrap">
         <button class="col-toggle-btn" id="wtd-col-btn" onclick="toggleColDropdown('wtd')">
@@ -2048,6 +2066,10 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
       <button class="export-btn" onclick="exportCSV('wtd')">
         <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4v6M3 7l3 3 3-3M2 10h8"/></svg>
         Export CSV
+      </button>
+      <button class="export-btn" id="wtd-goals-btn" onclick="openWTDGoals()" title="Edit WTD Goals">
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/></svg>
+        Goals
       </button>
       <div class="search-wrap">
         <svg class="search-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#F8F9F9" stroke-width="1.5"><circle cx="5" cy="5" r="3.5"/><path d="M8 8l2.5 2.5"/></svg>
@@ -2184,12 +2206,16 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
 <!-- ── SQUAD SNAPSHOT MODAL ── -->
 <div id="squad-snapshot-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:2000;align-items:center;justify-content:center;padding:24px;" onclick="if(event.target===this)closeSquadSnapshot()">
   <div id="squad-snapshot-inner" style="background:#0e0c0d;border:1px solid rgba(170,221,221,0.22);width:100%;max-width:1400px;max-height:92vh;overflow:auto;position:relative;padding:28px 32px 24px;">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;gap:16px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:16px;">
       <div>
         <div id="squad-snapshot-title" style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:22px;font-weight:700;letter-spacing:-0.3px;color:var(--off-white)"></div>
         <div id="squad-snapshot-subtitle" style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);margin-top:4px;"></div>
       </div>
-      <button onclick="closeSquadSnapshot()" style="background:transparent;border:1px solid rgba(248,249,249,0.2);color:var(--text-muted);font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:7px 14px;cursor:pointer;flex-shrink:0;">✕ Close</button>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-top:2px;">
+        <button id="squad-snap-wtd-btn" onclick="squadSnapSetMode('wtd')" style="padding:5px 11px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:1px solid var(--cyan-light);color:var(--cyan-light);background:rgba(170,221,221,0.1);">WTD</button>
+        <button id="squad-snap-qtd-btn" onclick="squadSnapSetMode('qtd')" style="padding:5px 11px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:1px solid rgba(248,249,249,0.2);color:var(--text-muted);background:transparent;">QTD</button>
+        <button onclick="closeSquadSnapshot()" style="background:transparent;border:1px solid rgba(248,249,249,0.2);color:var(--text-muted);font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:5px 11px;cursor:pointer;">✕</button>
+      </div>
     </div>
     <div id="squad-snapshot-body"></div>
   </div>
@@ -2262,25 +2288,25 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
 // ══════════════════════════════════════════════════════════════════════════════
 const CONSUL_CONFIG = {
   // ── Branding ─────────────────────────────────────────────────────────────
-  brand:         'EMPIRE',
-  primary_label: 'Riverside',          // Label shown on the primary Overview block
+  brand:         'TWELVE',
+  primary_label: 'Orange County',      // Label shown on the primary Overview block
   tagline:       'THE BEST OFFICE IN THE COMPANY',
 
   // ── Google Infrastructure ─────────────────────────────────────────────────
-  sheets_id:       '1Awy-KgfNtf8IBAZf-nY8pmv26n0juNk28IRTfN0usn4',
-  oauth_client_id: '824495442632-o4v639jl9rcsj7dq2fgvfcr6joj98s2c.apps.googleusercontent.com',
+  sheets_id:       '1Awy-KgfNtf8IBAZf-nY8pmv26n0juNk28IRTfN0usn4',  // ← UPDATE for twelve deployment
+  oauth_client_id: '824495442632-o4v639jl9rcsj7dq2fgvfcr6joj98s2c.apps.googleusercontent.com',  // ← UPDATE
 
   // ── Program Administrator (Adam — constant across all deployments) ────────
   admin_email: 'adam.howle@sunrun.com',
   admin_phone: '5625371559',
 
   // ── Office Admin (changes per deployment) ────────────────────────────────
-  office_admin_email: 'adam.howle@sunrun.com',
-  office_admin_phone: '5625371559',
+  office_admin_email: 'adam.howle@sunrun.com',  // ← UPDATE to twelve office admin
+  office_admin_phone: '5625371559',              // ← UPDATE
 
   // ── Office Configuration ──────────────────────────────────────────────────
   // `offices` = this deployment's own offices (drives filter bars, dropdowns).
-  offices: ['Riverside'],
+  offices: ['Orange County', 'Newport Beach'],
 
   // `compare_offices` = external offices available as Overview compare targets.
   // Can be offices outside this deployment — useful for benchmarking.
@@ -2288,12 +2314,14 @@ const CONSUL_CONFIG = {
   compare_offices: ['Riverside'],
 
   office_colors: {
-    'Riverside':     '#FF6200',
-    'Orange County': '#F2CF9C',   // used in compare section
+    'Orange County': '#F2CF9C',
+    'Newport Beach': '#AADDDD',
+    'Riverside':     '#FF6200',  // used in compare section
   },
 
   office_meeting_info: {
-    'Riverside': { days: 'Tuesday & Thursdays', time: '11:00am', address: '1550 Magnolia Ave, Corona, CA' },
+    'Orange County':  { days: 'Monday & Wednesdays', time: '10:00am', address: '' },  // ← UPDATE
+    'Newport Beach':  { days: 'Monday & Wednesdays', time: '10:00am', address: '' },  // ← UPDATE
   },
 };
 
@@ -2346,7 +2374,7 @@ function applyBranding() {
         const active = o === defaultOff ? ' active' : '';
         return `<button class="filter-btn${active}" id="${id}" data-office="${o}" onclick="wtdToggleOffice('${o}')">${o}</button>`;
       }).join('') +
-      '<button class="filter-btn active" id="wtd-f-active" onclick="wtdToggleOffice(\'active\')">Has Activity</button>';
+      '<button class="filter-btn" id="wtd-f-active" onclick="wtdToggleOffice(\'active\')">Has Activity</button>';
     // Sync state
     wtdOffices = new Set([defaultOff]);
   }
@@ -2493,6 +2521,8 @@ function shortOffice(o) {
 
 // ── Performance lookup maps (rebuilt whenever roster changes) ──
 let WTD_MAP = {}, QTD_MAP = {};
+let LW_MAP = {};           // Last Week data keyed by id: {lw_ac, lw_cs, lw_sra, lw_cap, lw_ic}
+let wtdWeekMode = 'this';  // 'this' | 'last' — controlled by This Week / Last Week toggle
 // Authoritative QTD office totals from Totals sheet — keyed by office name
 // e.g. { 'Newport Beach': {cs:12, sra:8, cap:3, ic:2}, ... }
 let TOTALS_OFFICE = {};
@@ -2502,18 +2532,22 @@ function buildPerfMaps(){
 }
 buildPerfMaps();
 
-// Goals are loaded from the 'Office Goals' Sheets tab on every refresh.
-// Update goals by editing that tab — no code change needed.
-// Fallback values are used until Sheets data arrives or if the tab is missing.
-const WTD_GOALS_FALLBACK = {CS:55, SRA:50, CAP:32, IC:18, AC:4, pitches:30, hours:30};
-const QTD_GOALS_FALLBACK = {CS:649, SRA:595, CAP:390, IC:223};
-// Live objects — populated by loadOfficeGoals() on each Sheets fetch:
-let WTD_GOALS   = Object.assign({}, WTD_GOALS_FALLBACK);
-let QTD_TARGETS = Object.assign({}, QTD_GOALS_FALLBACK);
-// Per-compare-office goals (keyed by office name):
-let OFFICE_WTD_GOALS = {};
-let OFFICE_QTD_GOALS = {};
+// Targets are editable in-page; these are the defaults loaded on first render
+const WTD_TARGETS = {CS:55, SRA:50, CAP:32, IC:18};
+const QTD_TARGETS = {CS:649, SRA:595, CAP:390, IC:223};
 
+// Per-office targets — editable via the Targets button on each compare block
+// Keys match office names exactly. Edit these values to bake in new defaults.
+const OFFICE_WTD_TARGETS = {
+  'Newport Beach': {CS:36, SRA:32, CAP:23, IC:12},
+  'Orange County':  {CS:19, SRA:18, CAP:9,  IC:6},
+  'Riverside':      {CS:52, SRA:45, CAP:23, IC:12},
+};
+const OFFICE_QTD_TARGETS = {
+  'Newport Beach': {CS:424, SRA:386, CAP:279, IC:152},
+  'Orange County':  {CS:225, SRA:209, CAP:111, IC:71},
+  'Riverside':      {CS:617, SRA:538, CAP:280, IC:156},
+};
 
 // ── DATE / PACE HELPERS ──────────────────────────────────────────────────────
 // Returns the Monday of the week containing `date` (week runs Mon–Fri)
@@ -2555,18 +2589,33 @@ function qtdPacePct(dateStr) {
   return { pct, label: `Q${qNum} ${y} — Wk ${weekNum}/${totalWeeks}` };
 }
 
-// Goals come from the Office Goals Sheets tab via loadOfficeGoals().
+// Read a target value from its editable input, falling back to the constant
+// office (optional): if provided, reads from per-office target inputs / constants
 function getTarget(prefix, cat, office) {
   if (office) {
-    const officeMap = prefix === 'wtd' ? OFFICE_WTD_GOALS : OFFICE_QTD_GOALS;
-    const fallback  = prefix === 'wtd' ? WTD_GOALS_FALLBACK : QTD_GOALS_FALLBACK;
-    return (officeMap[office] || {})[cat] || (prefix === 'wtd' ? WTD_GOALS : QTD_TARGETS)[cat] || fallback[cat];
+    const el = document.getElementById(`${prefix}-cmp-target-${cat}`);
+    if (el) { const v = parseInt(el.value); if (!isNaN(v) && v > 0) return v; }
+    const officeMap = prefix === 'wtd' ? OFFICE_WTD_TARGETS : OFFICE_QTD_TARGETS;
+    return (officeMap[office] || {})[cat] || (prefix === 'wtd' ? WTD_TARGETS : QTD_TARGETS)[cat];
   }
-  const primary  = prefix === 'wtd' ? WTD_GOALS : QTD_TARGETS;
-  const fallback = prefix === 'wtd' ? WTD_GOALS_FALLBACK : QTD_GOALS_FALLBACK;
-  return primary[cat] || fallback[cat];
+  const el = document.getElementById(`${prefix}-target-${cat}`);
+  if (el) { const v = parseInt(el.value); if (!isNaN(v) && v > 0) return v; }
+  return (prefix === 'wtd' ? WTD_TARGETS : QTD_TARGETS)[cat];
 }
 
+// Save per-office targets from the edit panel back into OFFICE_WTD_TARGETS / OFFICE_QTD_TARGETS
+function saveOfficeTargets(office) {
+  ['wtd','qtd'].forEach(prefix => {
+    const map = prefix === 'wtd' ? OFFICE_WTD_TARGETS : OFFICE_QTD_TARGETS;
+    if (!map[office]) map[office] = {};
+    ['CS','SRA','CAP','IC'].forEach(cat => {
+      const el = document.getElementById(`${prefix}-cmp-target-${cat}`);
+      if (el) { const v = parseInt(el.value); if (!isNaN(v) && v > 0) map[office][cat] = v; }
+    });
+  });
+  document.getElementById('ov-targets-panel').style.display = 'none';
+  renderOverview();
+}
 // OFFICE_COLORS is defined at top via CONSUL_CONFIG alias — do not redeclare here
 
 // ── STATE ──
@@ -2576,6 +2625,21 @@ let wtdSortCol='name', wtdSortDir=1, wtdView='squad', wtdSquadFilter='';
 let qtdOffices=new Set([CONSUL_CONFIG.offices[0]]), qtdSortCol='name', qtdSortDir=1, qtdView='squad', qtdSquadFilter='';
 let rosterOfficeFilter=CONSUL_CONFIG.offices[0], rosterSortMode='name', rosterViewMode='card';
 
+// ── WTD GOALS (global, editable, persisted) ──
+const WTD_GOALS_DEFAULT = {ac:4, cs:3, sra:2, cap:1, ic:1, pitches:30, hours:30};
+let WTD_GOALS = (function(){
+  try {
+    const saved = localStorage.getItem('xii-wtd-goals');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return Object.assign({}, WTD_GOALS_DEFAULT, parsed);
+    }
+  } catch(e) {}
+  return Object.assign({}, WTD_GOALS_DEFAULT);
+})();
+function saveWTDGoals() {
+  try { localStorage.setItem('xii-wtd-goals', JSON.stringify(WTD_GOALS)); } catch(e) {}
+}
 
 // ── HELPERS ──
 function pctClass(p){return p>=95?'pct-green':p>=85?'pct-amber':'pct-red'}
@@ -3077,8 +3141,11 @@ function buildProgressCard(cat, target, actual, pace, prefix){
     <div class="prog-card-header"><span class="prog-cat">${cat}</span>${pctBadge}</div>
     <div class="prog-nums">
       <div class="prog-num">
-        <span class="prog-num-lbl">Goal</span>
-        <span class="prog-num-val">${target}</span>
+        <span class="prog-num-lbl">Target</span>
+        <input class="overview-target-input" id="${prefix}-target-${cat}"
+          type="number" min="1" value="${target}"
+          onchange="renderOverview()" onclick="this.select()"
+          title="Click to edit target">
       </div>
       <div class="prog-num"><span class="prog-num-lbl">Actual</span><span class="prog-num-val" style="color:${bColor}">${actual}</span></div>
       <div class="prog-num"><span class="prog-num-lbl">Pace</span>${paceVal}</div>
@@ -3363,7 +3430,7 @@ function renderOverview(){
   compareSection.style.display = '';
 
   // Office label color
-  const officeColors = {'Orange County':'var(--sand)','Riverside':'var(--cyan-dark)'};
+  const officeColors = {'Newport Beach':'var(--cyan-light)','Orange County':'var(--sand)','Riverside':'var(--cyan-dark)'};
   const cColor = officeColors[ovCompareOffice] || 'var(--cyan-light)';
   document.getElementById('ov-compare-label').textContent = ovCompareOffice;
   document.getElementById('ov-compare-label').style.color = cColor;
@@ -3418,6 +3485,14 @@ function renderOverview(){
 }
 
 // ── WTD FILTERS (multi-select offices) ──
+function wtdSetWeek(mode, el) {
+  wtdWeekMode = mode;
+  document.getElementById('wtd-week-this').classList.toggle('active', mode==='this');
+  document.getElementById('wtd-week-last').classList.toggle('active', mode==='last');
+  // When Last Week is active, Has Activity filter stays independent
+  renderWTD();
+}
+
 function wtdToggleOffice(val){
   const bar = document.getElementById('wtd-office-filter-bar');
   if(val==='all'){
@@ -3493,17 +3568,25 @@ function wtdSort(col){
 }
 function getWTDData(){
   const search=document.getElementById('wtd-search').value.toLowerCase();
+  const isLW = (wtdWeekMode === 'last');
   // Join roster (identity) with WTD perf map + QTD context fields
   let data=ROSTER_EMPLOYEES.map(r=>{
-    const p=WTD_MAP[r.id]||{};
+    const p = isLW ? (LW_MAP[r.id]||{}) : (WTD_MAP[r.id]||{});
     const q=QTD_MAP[r.id]||{};
     const rk=(RANKINGS_MAP[r.id]||{});
+    // Last Week only has AC/CS/SRA/CAP/IC — map lw_ fields to standard wtd_ names
     return {
       id:r.id, name:r.name, office:r.office, squad:r.squad, role:r.role, pod:r.pod||'',
       mobile:r.mobile||'',
-      wtd_ac:p.wtd_ac||0, wtd_cs:p.wtd_cs||0, wtd_wc:p.wtd_wc||0,
-      wtd_sra:p.wtd_sra||0, wtd_cap:p.wtd_cap||0, wtd_ic:p.wtd_ic||0,
-      knocks:p.knocks||0, pitches:p.pitches||0, hours_knocked:p.hours_knocked||0,
+      wtd_ac:  isLW ? (p.lw_ac||0)  : (p.wtd_ac||0),
+      wtd_cs:  isLW ? (p.lw_cs||0)  : (p.wtd_cs||0),
+      wtd_wc:  isLW ? 0              : (p.wtd_wc||0),
+      wtd_sra: isLW ? (p.lw_sra||0) : (p.wtd_sra||0),
+      wtd_cap: isLW ? (p.lw_cap||0) : (p.wtd_cap||0),
+      wtd_ic:  isLW ? (p.lw_ic||0)  : (p.wtd_ic||0),
+      knocks:       isLW ? 0 : (p.knocks||0),
+      pitches:      isLW ? 0 : (p.pitches||0),
+      hours_knocked:isLW ? 0 : (p.hours_knocked||0),
       qtr_status:q.qtr_status||p.qtr_status||'',
       qtr_sra:q.qtr_sra||0, qtr_cap:q.qtr_cap||0, qtr_ic:q.qtr_ic||0,
       qtd_cs:q.qtd_cs||0,
@@ -3601,7 +3684,7 @@ function renderWTDMobile(data) {
     });
   } else if (wtdView === 'leaders') {
     // One squad header + just the squad leader row per squad
-    const OFFICE_ORDER = {'Orange County':0,'Riverside':1};
+    const OFFICE_ORDER = {'Newport Beach':0,'Orange County':1,'Riverside':2};
     const sortedSquads = Object.keys(SQUAD_DB).filter(k => k && k !== 'No Squad').sort((a,b) => {
       const lA = ROSTER_EMPLOYEES.find(r => r.name === SQUAD_DB[a]?.leader);
       const lB = ROSTER_EMPLOYEES.find(r => r.name === SQUAD_DB[b]?.leader);
@@ -3638,7 +3721,7 @@ function renderWTDMobile(data) {
     });
   } else if (wtdView === 'office') {
     // Group by office with office headers
-    const OFFICE_ORDER = {'Orange County':0,'Riverside':1};
+    const OFFICE_ORDER = {'Newport Beach':0,'Orange County':1,'Riverside':2};
     const officeGroups = {}, officeOrder = [];
     data.forEach(e => {
       const k = e.office || 'Unknown';
@@ -3733,7 +3816,7 @@ function renderQTDMobile(data) {
   }
 
   let html = '';
-  const OFFICE_ORDER = {'Orange County':0,'Riverside':1};
+  const OFFICE_ORDER = {'Newport Beach':0,'Orange County':1,'Riverside':2};
 
   if (qtdView === 'squad' || qtdView === 'individual') {
     const groups = {}, order = [];
@@ -3933,7 +4016,7 @@ function renderWTD(){
       if(!groups[k]){groups[k]=[];groupOrder.push(k);}
       groups[k].push(e);
     });
-    const OFFICE_ORDER={'Orange County':0,'Riverside':1};
+    const OFFICE_ORDER={'Newport Beach':0,'Orange County':1,'Riverside':2};
     const sortedKeys=Object.keys(SQUAD_DB).filter(k=>k&&k!=='No Squad').sort((a,b)=>{
       const lA=ROSTER_EMPLOYEES.find(r=>r.name===SQUAD_DB[a]?.leader);
       const lB=ROSTER_EMPLOYEES.find(r=>r.name===SQUAD_DB[b]?.leader);
@@ -4051,11 +4134,11 @@ function qtdToggleOffice(val){
   } else {
     if(qtdOffices.has(val)){
       qtdOffices.delete(val);
-      const id={'Riverside':'qtd-f-riverside','Orange County':'qtd-f-oc'}[val];
+      const id={'Riverside':'qtd-f-riverside','Newport Beach':'qtd-f-newport','Orange County':'qtd-f-oc'}[val];
       document.getElementById(id).classList.remove('active');
     } else {
       qtdOffices.add(val);
-      const id={'Riverside':'qtd-f-riverside','Orange County':'qtd-f-oc'}[val];
+      const id={'Riverside':'qtd-f-riverside','Newport Beach':'qtd-f-newport','Orange County':'qtd-f-oc'}[val];
       document.getElementById(id).classList.add('active');
     }
     const allOn=qtdOffices.size===2;
@@ -4187,7 +4270,7 @@ function renderQTD(){
       if(!groups[k]) groups[k]=[];
       groups[k].push(e);
     });
-    const OFFICE_ORDER={'Orange County':0,'Riverside':1};
+    const OFFICE_ORDER={'Newport Beach':0,'Orange County':1,'Riverside':2};
     const sortedKeys=Object.keys(SQUAD_DB).filter(k=>k&&k!=='No Squad').sort((a,b)=>{
       const lA=ROSTER_EMPLOYEES.find(r=>r.name===SQUAD_DB[a]?.leader);
       const lB=ROSTER_EMPLOYEES.find(r=>r.name===SQUAD_DB[b]?.leader);
@@ -4306,7 +4389,7 @@ function rosterHandleSearch() {
   const isDir = e => (e.role||'').toLowerCase().includes('director');
   const isPP  = e => (e.role||'').toLowerCase().includes('performancepro') || (e.role||'').toLowerCase().includes('performance pro');
   ac.innerHTML = matches.map((e,i) => {
-    const oc = (e.office||'').replace('Orange County','OC').replace('Riverside','RV');
+    const oc = (e.office||'').replace('Orange County','OC').replace('Newport Beach','NB').replace('Riverside','RV');
     const roleTag = isML(e) ? '<span class="ac-ml"> ★ ML</span>'
                   : isSL(e) ? '<span class="ac-ml" style="color:var(--sand)"> ★ SL</span>'
                   : isDir(e) ? '<span class="ac-ml" style="color:var(--cyan-light)"> ★ Dir</span>'
@@ -4456,6 +4539,7 @@ function renderRoster(){
   const search=document.getElementById('roster-search').value.toLowerCase();
   let data=[...ROSTER_EMPLOYEES];
   if(rosterOfficeFilter==='Riverside') data=data.filter(e=>e.office==='Riverside');
+  else if(rosterOfficeFilter==='Newport Beach') data=data.filter(e=>e.office==='Newport Beach');
   else if(rosterOfficeFilter==='Orange County') data=data.filter(e=>e.office==='Orange County');
   if(search) data=data.filter(e=>e.name.toLowerCase().includes(search)||(e.squad&&e.squad.toLowerCase().includes(search))||(e.mobile&&e.mobile.replace(/[^0-9]/g,'').includes(search.replace(/[^0-9]/g,''))));
 
@@ -4473,6 +4557,7 @@ function renderRoster(){
   document.getElementById('roster-stats').innerHTML=`
     <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value">${data.length}</div><div class="stat-sub">employees</div></div>
     <div class="stat-card"><div class="stat-label">Riverside</div><div class="stat-value">${data.filter(e=>e.office==='Riverside').length}</div><div class="stat-sub">reps</div></div>
+    <div class="stat-card"><div class="stat-label">Newport Beach</div><div class="stat-value">${data.filter(e=>e.office==='Newport Beach').length}</div><div class="stat-sub">reps</div></div>
     <div class="stat-card"><div class="stat-label">Orange County</div><div class="stat-value">${data.filter(e=>e.office==='Orange County').length}</div><div class="stat-sub">reps</div></div>
     <div class="stat-card"><div class="stat-label">No Squad</div><div class="stat-value" style="color:#F2CF9C">${data.filter(e=>!e.squad||e.squad==="Term'd"||e.squad==='').length}</div><div class="stat-sub">need action</div></div>`;
 
@@ -4546,7 +4631,7 @@ function renderRoster(){
       const isSL  = (e.role||'').toLowerCase().includes('squad leader');
       const isDir = (e.role||'').toLowerCase().includes('director');
       const isPP  = (e.role||'').toLowerCase().includes('performancepro') || (e.role||'').toLowerCase().includes('performance pro');
-      const oc = e.office ? e.office.replace('Orange County','OC').replace('Riverside','RV') : '';
+      const oc = e.office ? e.office.replace('Orange County','OC').replace('Newport Beach','NB').replace('Riverside','RV') : '';
       let hdr = '';
       if (rosterSortMode === 'squad') {
         const sq = e.squad || '— No Squad —';
@@ -4664,8 +4749,170 @@ function closeAddModal(){
   document.getElementById('rc-add-modal').style.display='none';
 }
 // ── SQUAD SNAPSHOT MODAL ──────────────────────────────────────────────────────
+let _squadSnapMode = 'wtd';
+let _squadSnapCurrent = '';
+
 function closeSquadSnapshot() {
   document.getElementById('squad-snapshot-modal').style.display = 'none';
+}
+
+function squadSnapSetMode(mode) {
+  _squadSnapMode = mode;
+  const wtdBtn = document.getElementById('squad-snap-wtd-btn');
+  const qtdBtn = document.getElementById('squad-snap-qtd-btn');
+  if (wtdBtn) {
+    wtdBtn.style.borderColor = mode==='wtd' ? 'var(--cyan-light)' : 'rgba(248,249,249,0.2)';
+    wtdBtn.style.color       = mode==='wtd' ? 'var(--cyan-light)' : 'var(--text-muted)';
+    wtdBtn.style.background  = mode==='wtd' ? 'rgba(170,221,221,0.1)' : 'transparent';
+  }
+  if (qtdBtn) {
+    qtdBtn.style.borderColor = mode==='qtd' ? 'var(--cyan-light)' : 'rgba(248,249,249,0.2)';
+    qtdBtn.style.color       = mode==='qtd' ? 'var(--cyan-light)' : 'var(--text-muted)';
+    qtdBtn.style.background  = mode==='qtd' ? 'rgba(170,221,221,0.1)' : 'transparent';
+  }
+  renderSquadSnapshot(_squadSnapCurrent);
+}
+
+function renderSquadSnapshot(squadKey) {
+  const body       = document.getElementById('squad-snapshot-body');
+  const subtitleEl = document.getElementById('squad-snapshot-subtitle');
+  const rosterMembers = ROSTER_EMPLOYEES.filter(e => e.squad === squadKey);
+  if (!rosterMembers.length || !body) return;
+
+  const sqCfg  = SQUAD_DB[squadKey] || {};
+  const leader = sqCfg.leader || '';
+  const tab    = _squadSnapMode;
+
+  const sorted = [...rosterMembers].sort((a, b) => {
+    if (a.name === leader) return -1;
+    if (b.name === leader) return 1;
+    if (tab === 'wtd') return ((WTD_MAP[b.id]||{}).wtd_sra||0) - ((WTD_MAP[a.id]||{}).wtd_sra||0);
+    return ((QTD_MAP[b.id]||{}).qtr_sra||0) - ((QTD_MAP[a.id]||{}).qtr_sra||0);
+  });
+
+  const n   = sorted.length;
+  const fs  = n <= 10 ? 14 : n <= 15 ? 12 : n <= 20 ? 11 : n <= 28 ? 10 : 9;
+  const pad = fs <= 10 ? '6px 10px' : '8px 14px';
+  const hS  = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+(fs-2)+'px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);padding:'+pad+';text-align:center;border-bottom:1px solid rgba(170,221,221,0.18);white-space:nowrap;';
+  const hNS = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+(fs-2)+'px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);padding:'+pad+';text-align:left;border-bottom:1px solid rgba(170,221,221,0.18);';
+  const tS  = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+fs+'px;padding:'+pad+';border-bottom:1px solid rgba(170,221,221,0.06);text-align:center;color:var(--off-white);';
+  const tNS = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+fs+'px;font-weight:600;padding:'+pad+';border-bottom:1px solid rgba(170,221,221,0.06);text-align:left;color:var(--off-white);white-space:nowrap;';
+
+  function clsWTD(val, goal) {
+    if (!val||val===0) return 'color:rgba(248,249,249,0.15)';
+    if (val > goal)    return 'color:var(--v-exceeds);text-shadow:0 0 8px rgba(39,217,217,0.4)';
+    return 'color:var(--off-white)';
+  }
+  function sraIndicator(days) {
+    if (!days || days === 0) return '';
+    const color = days > 14 ? '#F05252' : days > 7 ? '#EF9F27' : '#2DC48E';
+    return '<span title="Days since last SRA: '+days+'" style="margin-left:6px;display:inline-block;width:7px;height:7px;border-radius:50%;background:'+color+';vertical-align:middle;flex-shrink:0"></span>';
+  }
+  function rkBadge(id, q) {
+    const r = (q && q.exp_rank) ? q.exp_rank : ((RANKINGS_MAP[id]||{}).currentRank||'');
+    return r ? rkRankBadge(r) : '<span style="color:rgba(248,249,249,.25)">—</span>';
+  }
+
+  // ── QTD squad summary bar (always shown at top) ───────────────────────────
+  const qtdGoalSRA = sqCfg.qtr_sra || 0;
+  const qtdGoalIC  = sqCfg.qtr_ic  || 0;
+  const qtdTotSRA  = rosterMembers.reduce((s,e) => s + ((QTD_MAP[e.id]||{}).qtr_sra||0), 0);
+  const qtdTotCAP  = rosterMembers.reduce((s,e) => s + ((QTD_MAP[e.id]||{}).qtr_cap||0), 0);
+  const qtdTotIC   = rosterMembers.reduce((s,e) => s + ((QTD_MAP[e.id]||{}).qtr_ic||0),  0);
+  const sraSummColor = qtdGoalSRA && qtdTotSRA >= qtdGoalSRA ? '#2DC48E' : qtdGoalSRA && qtdTotSRA >= qtdGoalSRA * 0.75 ? '#EF9F27' : 'var(--cyan-light)';
+  const icSummColor  = qtdGoalIC  && qtdTotIC  >= qtdGoalIC  ? '#2DC48E' : qtdGoalIC  && qtdTotIC  >= qtdGoalIC  * 0.75 ? '#EF9F27' : 'var(--cyan-light)';
+  const qtdSummary = '<div style="display:flex;align-items:center;gap:24px;padding:12px 0 16px;border-bottom:1px solid rgba(170,221,221,0.2);margin-bottom:16px;flex-wrap:wrap">'
+    + '<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark)">QTD Squad</div>'
+    + '<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:'+sraSummColor+'">SRA '+qtdTotSRA+(qtdGoalSRA?' <span style="font-weight:400;color:rgba(248,249,249,0.4);font-size:11px">/ '+qtdGoalSRA+'</span>':'')+'</div>'
+    + '<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:var(--off-white)">CAP '+qtdTotCAP+'</div>'
+    + '<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:'+icSummColor+'">IC '+qtdTotIC+(qtdGoalIC?' <span style="font-weight:400;color:rgba(248,249,249,0.4);font-size:11px">/ '+qtdGoalIC+'</span>':'')+'</div>'
+    + '</div>';
+
+  let headerRow, rows;
+  if (tab === 'wtd') {
+    const week = document.getElementById('wtd-date-input')?.value || '';
+    subtitleEl.textContent = 'This Week' + (week ? '  ·  Week of ' + week : '');
+    const tot = sorted.reduce((t,e)=>{ const w=WTD_MAP[e.id]||{}; t.ac+=w.wtd_ac||0;t.cs+=w.wtd_cs||0;t.sra+=w.wtd_sra||0;t.cap+=w.wtd_cap||0;t.ic+=w.wtd_ic||0;t.pit+=w.pitches||0; return t; },{ac:0,cs:0,sra:0,cap:0,ic:0,pit:0});
+    headerRow = '<tr>'
+      +'<th style="'+hNS+'">Name</th>'
+      +'<th style="'+hS+'">AC</th>'
+      +'<th style="'+hS+'">CS</th>'
+      +'<th style="'+hS+'">SRA</th>'
+      +'<th style="'+hS+'">CAP</th>'
+      +'<th style="'+hS+'">IC</th>'
+      +'<th style="'+hS+'">Pitches</th>'
+      +'<th style="'+hS+'">Change</th>'
+      +'<th style="'+hS+'">Days / SRA</th>'
+      +'</tr>';
+    const totRow = '<tr style="background:rgba(39,217,217,0.05)">'
+      +'<td style="'+tNS+'font-weight:700;color:var(--cyan-dark)">TOTALS</td>'
+      +'<td style="'+tS+'font-weight:700">'+(tot.ac||'—')+'</td>'
+      +'<td style="'+tS+'font-weight:700">'+(tot.cs||'—')+'</td>'
+      +'<td style="'+tS+'font-weight:700">'+(tot.sra||'—')+'</td>'
+      +'<td style="'+tS+'font-weight:700">'+(tot.cap||'—')+'</td>'
+      +'<td style="'+tS+'font-weight:700">'+(tot.ic||'—')+'</td>'
+      +'<td style="'+tS+'font-weight:700">'+(tot.pit||'—')+'</td>'
+      +'<td style="'+tS+'"></td><td style="'+tS+'"></td>'
+      +'</tr>';
+    rows = sorted.map(e => {
+      const w  = WTD_MAP[e.id]||{};
+      const q  = QTD_MAP[e.id]||{};
+      const il = e.name===leader;
+      const days = q.days_since_sra||0;
+      const dsraStyle = days>14 ? 'font-weight:700;color:#F05252' : days>7 ? 'color:#EF9F27' : days>0 ? 'color:#2DC48E' : 'color:rgba(248,249,249,0.25)';
+      return '<tr>'
+        +'<td style="'+tNS+(il?'color:var(--cyan-light);':'')+'"><span style="display:inline-flex;align-items:center">'+(e.name)
+          +(il?' <span style="font-size:9px;letter-spacing:1px;color:var(--cyan-dark);margin-left:5px">LEADER</span>':'')
+          +(days?sraIndicator(days):'')+'</span></td>'
+        +'<td style="'+tS+clsWTD(w.wtd_ac,WTD_GOALS.ac)+'">'+(w.wtd_ac||'—')+'</td>'
+        +'<td style="'+tS+clsWTD(w.wtd_cs,WTD_GOALS.cs)+'">'+(w.wtd_cs||'—')+'</td>'
+        +'<td style="'+tS+clsWTD(w.wtd_sra,WTD_GOALS.sra)+'">'+(w.wtd_sra||'—')+'</td>'
+        +'<td style="'+tS+clsWTD(w.wtd_cap,WTD_GOALS.cap)+'">'+(w.wtd_cap||'—')+'</td>'
+        +'<td style="'+tS+clsWTD(w.wtd_ic,WTD_GOALS.ic)+'">'+(w.wtd_ic||'—')+'</td>'
+        +'<td style="'+tS+clsWTD(w.pitches,WTD_GOALS.pitches)+'">'+(w.pitches||'—')+'</td>'
+        +'<td style="'+tS+'">'+(q.status_change ? changeIcon(q.status_change) : '<span style="color:rgba(248,249,249,.2)">—</span>')+'</td>'
+        +'<td style="'+tS+dsraStyle+'">'+(days||'—')+'</td>'
+        +'</tr>';
+    }).join('') + totRow;
+  } else {
+    subtitleEl.textContent = 'QTD Detail';
+    const tot = sorted.reduce((t,e)=>{ const q=QTD_MAP[e.id]||{}; t.sra+=q.qtr_sra||0;t.cap+=q.qtr_cap||0;t.ic+=q.qtr_ic||0; return t; },{sra:0,cap:0,ic:0});
+    headerRow = '<tr>'
+      +'<th style="'+hNS+'">Name</th>'
+      +'<th style="'+hS+'">QTR SRA</th>'
+      +'<th style="'+hS+'">QTR CAP</th>'
+      +'<th style="'+hS+'">QTR IC</th>'
+      +'<th style="'+hS+'">Change</th>'
+      +'<th style="'+hS+'">Days / SRA</th>'
+      +'<th style="'+hS+'">Rank</th>'
+      +'</tr>';
+    const totRow = '<tr style="background:rgba(39,217,217,0.05)">'
+      +'<td style="'+tNS+'font-weight:700;color:var(--cyan-dark)">TOTALS</td>'
+      +'<td style="'+tS+'font-weight:700">'+(tot.sra||'—')+'</td>'
+      +'<td style="'+tS+'font-weight:700">'+(tot.cap||'—')+'</td>'
+      +'<td style="'+tS+'font-weight:700">'+(tot.ic||'—')+'</td>'
+      +'<td style="'+tS+'"></td><td style="'+tS+'"></td><td style="'+tS+'"></td>'
+      +'</tr>';
+    rows = sorted.map(e => {
+      const q    = QTD_MAP[e.id]||{};
+      const il   = e.name===leader;
+      const days = q.days_since_sra||0;
+      const dsraStyle = days>14 ? 'font-weight:700;color:#F05252' : days>7 ? 'color:#EF9F27' : days>0 ? 'color:#2DC48E' : 'color:rgba(248,249,249,0.25)';
+      return '<tr>'
+        +'<td style="'+tNS+(il?'color:var(--cyan-light);':'')+'"><span style="display:inline-flex;align-items:center">'+(e.name)
+          +(il?' <span style="font-size:9px;letter-spacing:1px;color:var(--cyan-dark);margin-left:5px">LEADER</span>':'')
+          +(days?sraIndicator(days):'')+'</span></td>'
+        +'<td style="'+tS+'">'+(q.qtr_sra||'—')+'</td>'
+        +'<td style="'+tS+'">'+(q.qtr_cap||'—')+'</td>'
+        +'<td style="'+tS+'">'+(q.qtr_ic||'—')+'</td>'
+        +'<td style="'+tS+'">'+(q.status_change ? changeIcon(q.status_change) : '<span style="color:rgba(248,249,249,.2)">—</span>')+'</td>'
+        +'<td style="'+tS+dsraStyle+'">'+(days||'—')+'</td>'
+        +'<td style="'+tS+'">'+rkBadge(e.id,q)+'</td>'
+        +'</tr>';
+    }).join('') + totRow;
+  }
+
+  body.innerHTML = qtdSummary + '<table style="width:100%;border-collapse:collapse;">'+headerRow+'<tbody>'+rows+'</tbody></table>';
 }
 
 // ── POD SNAPSHOT ─────────────────────────────────────────────────────────────
@@ -4706,132 +4953,130 @@ function openPodSnapshot(podName, squadKey) {
 
 function renderPodSnapshot(podName, squadKey) {
   const body = document.getElementById('pod-snapshot-body');
-  if(!body) return;
+  if (!body) return;
 
-  const members = ROSTER_EMPLOYEES.filter(e =>
+  const memberRoster = ROSTER_EMPLOYEES.filter(e =>
     e.pod && e.pod.trim() === podName &&
     (!squadKey || e.squad === squadKey)
   );
 
-  if(!members.length){
+  if (!memberRoster.length) {
     body.innerHTML = '<div style="color:var(--text-muted);font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;padding:16px 0;">No members found in this pod.</div>';
     return;
   }
 
-  const thS  = 'padding:8px 10px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);border-bottom:1px solid rgba(170,221,221,0.2);white-space:nowrap;';
-  const tdS  = a => `padding:9px 10px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;color:var(--off-white);border-bottom:1px solid rgba(170,221,221,0.07);text-align:${a};`;
+  const thS = 'padding:8px 10px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);border-bottom:1px solid rgba(170,221,221,0.2);white-space:nowrap;';
+  const tdS = a => `padding:9px 10px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;color:var(--off-white);border-bottom:1px solid rgba(170,221,221,0.07);text-align:${a};`;
   const totS = a => `padding:9px 10px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;color:var(--cyan-light);border-top:1px solid rgba(170,221,221,0.2);text-align:${a};`;
 
-  if(_podSnapMode === 'wtd'){
-    const cols = [
-      {label:'Name',   key:'name',         align:'left'},
-      {label:'AC',     key:'wtd_ac',       align:'center'},
-      {label:'CS',     key:'wtd_cs',       align:'center'},
-      {label:'SRA',    key:'wtd_sra',      align:'center'},
-      {label:'IC',     key:'wtd_ic',       align:'center'},
-      {label:'Knocks', key:'knocks',       align:'center'},
-      {label:'Hrs',    key:'hours_knocked',align:'center'},
-    ];
-    const rows = members.map(r=>({name:r.name,...(WTD_MAP[r.id]||{})}))
-                        .sort((a,b)=>(b.wtd_sra||0)-(a.wtd_sra||0));
-    const tot  = {name:'TOTAL',wtd_ac:0,wtd_cs:0,wtd_sra:0,wtd_ic:0,knocks:0,hours_knocked:0};
-    rows.forEach(r=>{ tot.wtd_ac+=r.wtd_ac||0; tot.wtd_cs+=r.wtd_cs||0; tot.wtd_sra+=r.wtd_sra||0; tot.wtd_ic+=r.wtd_ic||0; tot.knocks+=r.knocks||0; tot.hours_knocked+=r.hours_knocked||0; });
-    body.innerHTML = _podTable(cols,rows,tot,thS,tdS,totS);
-  } else {
-    const cols = [
-      {label:'Name',    key:'name',   align:'left'},
-      {label:'QTR SRA', key:'qtr_sra',align:'center'},
-      {label:'QTR IC',  key:'qtr_ic', align:'center'},
-      {label:'QTR CAP', key:'qtr_cap',align:'center'},
-      {label:'QTD CS',  key:'qtd_cs', align:'center'},
-    ];
-    const rows = members.map(r=>({name:r.name,...(QTD_MAP[r.id]||{})}))
-                        .sort((a,b)=>(b.qtr_sra||0)-(a.qtr_sra||0));
-    const tot  = {name:'TOTAL',qtr_sra:0,qtr_ic:0,qtr_cap:0,qtd_cs:0};
-    rows.forEach(r=>{ tot.qtr_sra+=r.qtr_sra||0; tot.qtr_ic+=r.qtr_ic||0; tot.qtr_cap+=r.qtr_cap||0; tot.qtd_cs+=r.qtd_cs||0; });
-    body.innerHTML = _podTable(cols,rows,tot,thS,tdS,totS);
+  function sraIndicator(days) {
+    if (!days || days === 0) return '';
+    const color = days > 14 ? '#F05252' : days > 7 ? '#EF9F27' : '#2DC48E';
+    return `<span title="Days since last SRA: ${days}" style="margin-left:6px;display:inline-block;width:7px;height:7px;border-radius:50%;background:${color};vertical-align:middle;flex-shrink:0"></span>`;
   }
-}
+  function clsWTD(val, goal) {
+    if (!val || val === 0) return 'color:rgba(248,249,249,0.15)';
+    if (val > goal) return 'color:var(--v-exceeds);text-shadow:0 0 8px rgba(39,217,217,0.4)';
+    return 'color:var(--off-white)';
+  }
 
-function _podTable(cols,rows,tot,thS,tdS,totS){
-  const hdr = `<tr>${cols.map(c=>`<th style="${thS}text-align:${c.align}">${c.label}</th>`).join('')}</tr>`;
-  const body = rows.map(row=>`<tr>${cols.map(c=>`<td style="${tdS(c.align)}">${c.key==='name'?(row.name||'—'):fmtN(row[c.key])}</td>`).join('')}</tr>`).join('');
-  const foot = `<tr>${cols.map(c=>`<td style="${totS(c.align)}">${c.key==='name'?'TOTAL':fmtN(tot[c.key])}</td>`).join('')}</tr>`;
-  return `<table style="width:100%;border-collapse:collapse;"><thead>${hdr}</thead><tbody>${body}${foot}</tbody></table>`;
+  if (_podSnapMode === 'wtd') {
+    const rows = memberRoster.map(r => ({_r:r, name:r.name, ...(WTD_MAP[r.id]||{}), _q:(QTD_MAP[r.id]||{})}))
+                             .sort((a,b) => (b.wtd_sra||0) - (a.wtd_sra||0));
+    const tot = {ac:0,cs:0,sra:0,cap:0,ic:0,pit:0};
+    rows.forEach(r => { tot.ac+=r.wtd_ac||0; tot.cs+=r.wtd_cs||0; tot.sra+=r.wtd_sra||0; tot.cap+=r.wtd_cap||0; tot.ic+=r.wtd_ic||0; tot.pit+=r.pitches||0; });
+
+    const hdr = `<tr>
+      <th style="${thS}text-align:left">Name</th>
+      <th style="${thS}text-align:center">AC</th>
+      <th style="${thS}text-align:center">CS</th>
+      <th style="${thS}text-align:center">SRA</th>
+      <th style="${thS}text-align:center">CAP</th>
+      <th style="${thS}text-align:center">IC</th>
+      <th style="${thS}text-align:center">Pitches</th>
+      <th style="${thS}text-align:center">Change</th>
+      <th style="${thS}text-align:center">Days / SRA</th>
+    </tr>`;
+    const dataRows = rows.map(r => {
+      const days = r._q.days_since_sra||0;
+      const dsraStyle = days>14 ? 'font-weight:700;color:#F05252' : days>7 ? 'color:#EF9F27' : days>0 ? 'color:#2DC48E' : 'color:rgba(248,249,249,0.25)';
+      return `<tr>
+        <td style="${tdS('left')}"><span style="display:inline-flex;align-items:center">${r.name}${days ? sraIndicator(days) : ''}</span></td>
+        <td style="${tdS('center')};${clsWTD(r.wtd_ac,WTD_GOALS.ac)}">${fmtN(r.wtd_ac)}</td>
+        <td style="${tdS('center')};${clsWTD(r.wtd_cs,WTD_GOALS.cs)}">${fmtN(r.wtd_cs)}</td>
+        <td style="${tdS('center')};${clsWTD(r.wtd_sra,WTD_GOALS.sra)}">${fmtN(r.wtd_sra)}</td>
+        <td style="${tdS('center')};${clsWTD(r.wtd_cap,WTD_GOALS.cap)}">${fmtN(r.wtd_cap)}</td>
+        <td style="${tdS('center')};${clsWTD(r.wtd_ic,WTD_GOALS.ic)}">${fmtN(r.wtd_ic)}</td>
+        <td style="${tdS('center')};${clsWTD(r.pitches,WTD_GOALS.pitches)}">${fmtN(r.pitches)}</td>
+        <td style="${tdS('center')}">${r._q.status_change ? changeIcon(r._q.status_change) : '<span style="color:rgba(248,249,249,.2)">—</span>'}</td>
+        <td style="${tdS('center')};${dsraStyle}">${days||'—'}</td>
+      </tr>`;
+    }).join('');
+    const footRow = `<tr>
+      <td style="${totS('left')}">TOTAL</td>
+      <td style="${totS('center')}">${fmtN(tot.ac)}</td>
+      <td style="${totS('center')}">${fmtN(tot.cs)}</td>
+      <td style="${totS('center')}">${fmtN(tot.sra)}</td>
+      <td style="${totS('center')}">${fmtN(tot.cap)}</td>
+      <td style="${totS('center')}">${fmtN(tot.ic)}</td>
+      <td style="${totS('center')}">${fmtN(tot.pit)}</td>
+      <td style="${totS('center')}"></td>
+      <td style="${totS('center')}"></td>
+    </tr>`;
+    body.innerHTML = `<table style="width:100%;border-collapse:collapse;"><thead>${hdr}</thead><tbody>${dataRows}${footRow}</tbody></table>`;
+
+  } else {
+    const rows = memberRoster.map(r => ({_r:r, name:r.name, ...(QTD_MAP[r.id]||{})}))
+                             .sort((a,b) => (b.qtr_sra||0) - (a.qtr_sra||0));
+    const tot = {sra:0,cap:0,ic:0};
+    rows.forEach(r => { tot.sra+=r.qtr_sra||0; tot.cap+=r.qtr_cap||0; tot.ic+=r.qtr_ic||0; });
+
+    const hdr = `<tr>
+      <th style="${thS}text-align:left">Name</th>
+      <th style="${thS}text-align:center">QTR SRA</th>
+      <th style="${thS}text-align:center">QTR CAP</th>
+      <th style="${thS}text-align:center">QTR IC</th>
+      <th style="${thS}text-align:center">Change</th>
+      <th style="${thS}text-align:center">Days / SRA</th>
+      <th style="${thS}text-align:center">Rank</th>
+    </tr>`;
+    const dataRows = rows.map(r => {
+      const days = r.days_since_sra||0;
+      const dsraStyle = days>14 ? 'font-weight:700;color:#F05252' : days>7 ? 'color:#EF9F27' : days>0 ? 'color:#2DC48E' : 'color:rgba(248,249,249,0.25)';
+      const rkBadge = (r.exp_rank||RANKINGS_MAP[r._r.id]?.currentRank) ? rkRankBadge(r.exp_rank||RANKINGS_MAP[r._r.id]?.currentRank) : '<span style="color:rgba(248,249,249,.25)">—</span>';
+      return `<tr>
+        <td style="${tdS('left')}"><span style="display:inline-flex;align-items:center">${r.name}${days ? sraIndicator(days) : ''}</span></td>
+        <td style="${tdS('center')}">${fmtN(r.qtr_sra)}</td>
+        <td style="${tdS('center')}">${fmtN(r.qtr_cap)}</td>
+        <td style="${tdS('center')}">${fmtN(r.qtr_ic)}</td>
+        <td style="${tdS('center')}">${r.status_change ? changeIcon(r.status_change) : '<span style="color:rgba(248,249,249,.2)">—</span>'}</td>
+        <td style="${tdS('center')};${dsraStyle}">${days||'—'}</td>
+        <td style="${tdS('center')}">${rkBadge}</td>
+      </tr>`;
+    }).join('');
+    const footRow = `<tr>
+      <td style="${totS('left')}">TOTAL</td>
+      <td style="${totS('center')}">${fmtN(tot.sra)}</td>
+      <td style="${totS('center')}">${fmtN(tot.cap)}</td>
+      <td style="${totS('center')}">${fmtN(tot.ic)}</td>
+      <td style="${totS('center')}"></td>
+      <td style="${totS('center')}"></td>
+      <td style="${totS('center')}"></td>
+    </tr>`;
+    body.innerHTML = `<table style="width:100%;border-collapse:collapse;"><thead>${hdr}</thead><tbody>${dataRows}${footRow}</tbody></table>`;
+  }
 }
 
 function openSquadSnapshot(squadKey, tab) {
   const rosterMembers = ROSTER_EMPLOYEES.filter(e => e.squad === squadKey);
   if (!rosterMembers.length) return;
-  const modal    = document.getElementById('squad-snapshot-modal');
-  const title    = document.getElementById('squad-snapshot-title');
-  const subtitle = document.getElementById('squad-snapshot-subtitle');
-  const body     = document.getElementById('squad-snapshot-body');
-  const sqCfg    = SQUAD_DB[squadKey] || {};
-  const leader   = sqCfg.leader || '';
-  const sorted   = [...rosterMembers].sort((a, b) => {
-    if (a.name === leader) return -1;
-    if (b.name === leader) return 1;
-    if (tab === 'wtd') return ((WTD_MAP[b.id]||{}).wtd_sra||0) - ((WTD_MAP[a.id]||{}).wtd_sra||0);
-    return ((QTD_MAP[b.id]||{}).qtr_sra||0) - ((QTD_MAP[a.id]||{}).qtr_sra||0);
-  });
-  const n  = sorted.length;
-  const fs = n <= 10 ? 14 : n <= 15 ? 12 : n <= 20 ? 11 : n <= 28 ? 10 : 9;
-  const pad = fs <= 10 ? '6px 10px' : '8px 14px';
-  const hS  = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+(fs-2)+'px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);padding:'+pad+';text-align:center;border-bottom:1px solid rgba(170,221,221,0.18);white-space:nowrap;';
-  const hNS = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+(fs-2)+'px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);padding:'+pad+';text-align:left;border-bottom:1px solid rgba(170,221,221,0.18);';
-  const tS  = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+fs+'px;padding:'+pad+';border-bottom:1px solid rgba(170,221,221,0.06);text-align:center;color:var(--off-white);';
-  const tNS = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+fs+'px;font-weight:600;padding:'+pad+';border-bottom:1px solid rgba(170,221,221,0.06);text-align:left;color:var(--off-white);white-space:nowrap;';
-  function cls(val, goal) {
-    if (!val||val===0) return 'color:rgba(248,249,249,0.15)';
-    if (val > goal)    return 'color:var(--v-exceeds);text-shadow:0 0 8px var(--v-exceeds-glow)';
-    return 'color:var(--off-white)';
-  }
-  function rk(id, fallback) {
-    const r = (fallback && fallback.exp_rank) ? fallback.exp_rank : ((RANKINGS_MAP[id]||{}).currentRank||'');
-    return r ? rkRankBadge(r) : '<span style="color:rgba(248,249,249,.25)">—</span>';
-  }
-  let headerRow, rows;
-  if (tab === 'wtd') {
-    const week = document.getElementById('wtd-date-input')?.value || '';
-    subtitle.textContent = 'WTD Detail' + (week ? '  ·  Week of ' + week : '');
-    const tot = sorted.reduce((t,e)=>{ const w=WTD_MAP[e.id]||{}; t.ac+=w.wtd_ac||0;t.cs+=w.wtd_cs||0;t.sra+=w.wtd_sra||0;t.cap+=w.wtd_cap||0;t.ic+=w.wtd_ic||0;t.kn+=w.knocks||0; return t; },{ac:0,cs:0,sra:0,cap:0,ic:0,kn:0});
-    headerRow = '<tr><th style="'+hNS+'">Name</th><th style="'+hS+'">AC</th><th style="'+hS+'">CS</th><th style="'+hS+'">SRA</th><th style="'+hS+'">CAP</th><th style="'+hS+'">IC</th><th style="'+hS+'">Knocks</th><th style="'+hS+'">Rank</th></tr>';
-    const totRow = '<tr style="background:rgba(39,217,217,0.05)"><td style="'+tNS+'font-weight:700;color:var(--cyan-dark)">TOTALS</td><td style="'+tS+'font-weight:700">'+(tot.ac||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.cs||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.sra||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.cap||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.ic||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.kn||'—')+'</td><td style="'+tS+'"></td></tr>';
-    rows = sorted.map(e => {
-      const w = WTD_MAP[e.id]||{};
-      const il = e.name===leader;
-      return '<tr><td style="'+tNS+(il?'color:var(--cyan-light);':'')+'">'+(e.name)+(il?' <span style="font-size:9px;letter-spacing:1px;color:var(--cyan-dark)">LEADER</span>':'')+'</td><td style="'+tS+cls(w.wtd_ac,WTD_GOALS.ac)+'">'+(w.wtd_ac||'—')+'</td><td style="'+tS+cls(w.wtd_cs,WTD_GOALS.cs)+'">'+(w.wtd_cs||'—')+'</td><td style="'+tS+cls(w.wtd_sra,WTD_GOALS.sra)+'">'+(w.wtd_sra||'—')+'</td><td style="'+tS+cls(w.wtd_cap,WTD_GOALS.cap)+'">'+(w.wtd_cap||'—')+'</td><td style="'+tS+cls(w.wtd_ic,WTD_GOALS.ic)+'">'+(w.wtd_ic||'—')+'</td><td style="'+tS+(w.knocks?'color:var(--off-white)':'color:rgba(248,249,249,0.15)')+'">'+(w.knocks||'—')+'</td><td style="'+tS+'">'+rk(e.id,w)+'</td></tr>';
-    }).join('') + totRow;
-  } else {
-    subtitle.textContent = 'QTD Detail';
-    const tot = sorted.reduce((t,e)=>{ const q=QTD_MAP[e.id]||{}; t.sra+=q.qtr_sra||0;t.cap+=q.qtr_cap||0;t.ic+=q.qtr_ic||0; return t; },{sra:0,cap:0,ic:0});
-    headerRow = '<tr><th style="'+hNS+'">Name</th><th style="'+hS+'">SRA</th><th style="'+hS+'">CAP</th><th style="'+hS+'">IC</th><th style="'+hS+'">Activity</th><th style="'+hS+'">Rank</th></tr>';
-    const totRow = '<tr style="background:rgba(39,217,217,0.05)"><td style="'+tNS+'font-weight:700;color:var(--cyan-dark)">TOTALS</td><td style="'+tS+'font-weight:700">'+(tot.sra||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.cap||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.ic||'—')+'</td><td style="'+tS+'"></td><td style="'+tS+'"></td></tr>';
-    rows = sorted.map(e => {
-      const q = QTD_MAP[e.id]||{};
-      const il = e.name===leader;
-      return '<tr><td style="'+tNS+(il?'color:var(--cyan-light);':'')+'">'+(e.name)+(il?' <span style="font-size:9px;letter-spacing:1px;color:var(--cyan-dark)">LEADER</span>':'')+'</td><td style="'+tS+'">'+(q.qtr_sra||'—')+'</td><td style="'+tS+'">'+(q.qtr_cap||'—')+'</td><td style="'+tS+'">'+(q.qtr_ic||'—')+'</td><td style="'+tS+'max-width:90px;overflow:hidden;text-overflow:ellipsis;"><span style="font-size:'+(fs-1)+'px;color:var(--text-muted)">'+(q.status||'—')+'</span></td><td style="'+tS+'">'+rk(e.id,q)+'</td></tr>';
-    }).join('') + totRow;
-  }
-  title.textContent = squadKey;
-  // ── QTD squad summary bar ──
-  const qtdGoalSRA = sqCfg.qtr_sra || 0;
-  const qtdGoalIC  = sqCfg.qtr_ic  || 0;
-  const qtdTotSRA  = rosterMembers.reduce((s,e) => s + ((QTD_MAP[e.id]||{}).qtr_sra||0), 0);
-  const qtdTotCAP  = rosterMembers.reduce((s,e) => s + ((QTD_MAP[e.id]||{}).qtr_cap||0), 0);
-  const qtdTotIC   = rosterMembers.reduce((s,e) => s + ((QTD_MAP[e.id]||{}).qtr_ic||0),  0);
-  const sraSummColor = qtdGoalSRA && qtdTotSRA >= qtdGoalSRA ? '#2DC48E' : qtdGoalSRA && qtdTotSRA >= qtdGoalSRA * 0.75 ? '#EF9F27' : 'var(--cyan-light)';
-  const icSummColor  = qtdGoalIC  && qtdTotIC  >= qtdGoalIC  ? '#2DC48E' : qtdGoalIC  && qtdTotIC  >= qtdGoalIC  * 0.75 ? '#EF9F27' : 'var(--cyan-light)';
-  const qtdSummary = '<div style="display:flex;align-items:center;gap:24px;padding:12px 0 16px;border-bottom:1px solid rgba(170,221,221,0.2);margin-bottom:16px;flex-wrap:wrap">'
-    + '<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark)">QTD Squad</div>'
-    + '<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:'+sraSummColor+'">SRA '+qtdTotSRA+(qtdGoalSRA?' <span style="font-weight:400;color:rgba(248,249,249,0.4);font-size:11px">/ '+qtdGoalSRA+'</span>':'')+'</div>'
-    + '<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:var(--off-white)">CAP '+qtdTotCAP+'</div>'
-    + '<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:'+icSummColor+'">IC '+qtdTotIC+(qtdGoalIC?' <span style="font-weight:400;color:rgba(248,249,249,0.4);font-size:11px">/ '+qtdGoalIC+'</span>':'')+'</div>'
-    + '</div>';
-  body.innerHTML = qtdSummary + '<table style="width:100%;border-collapse:collapse;">'+headerRow+'<tbody>'+rows+'</tbody></table>';
-  modal.style.display = 'flex';
+  _squadSnapCurrent = squadKey;
+  _squadSnapMode    = tab || 'wtd';
+  document.getElementById('squad-snapshot-title').textContent = squadKey;
+  squadSnapSetMode(_squadSnapMode);
+  document.getElementById('squad-snapshot-modal').style.display = 'flex';
 }
+
 
 // ── EXPORT CSV ──
 function exportCSV(tab){
@@ -6002,6 +6247,7 @@ function ob_openSunrunPanel(eid) {
   // Map office to Sunrun dropdown value
   const officeMap = {
     'Orange County': 'Orange County',
+    'Newport Beach':  'Newport Beach',
     'Riverside':      'Riverside',
   };
   const office = officeMap[emp.office] || 'Orange County';
@@ -7144,7 +7390,7 @@ function onboardRowToEmployee(r, idx) {
     referral:      String(r['referral'] || ''),
     leader:        String(r['leader'] || ''),
     squad:         String(r['squad']  || ''),
-    office:        shortOffice((function(o){ return o==='Newport Beach'?'Orange County':o; })(String(r['office'] || ''))),
+    office:        shortOffice(String(r['office'] || '')),
     homeEmail:     String(r['email'] || ''),
     address:       String(r['address'] || ''),
     inputDate:     sheetsSerialToDate(r['first contact'] || r['hire date'] || r['input date'] || ''),
@@ -7272,63 +7518,12 @@ function applyConveyEnrichment(conveyRows) {
   });
 }
 
-// ── OFFICE GOALS LOADER ─────────────────────────────────────────────────────
-// Reads the 'Office Goals' Sheets tab and populates WTD_GOALS, QTD_TARGETS,
-// OFFICE_WTD_GOALS, and OFFICE_QTD_GOALS.
-//
-// Sheet layout (tab name: 'Office Goals'):
-//   Header row:  office | wtd_cs | wtd_sra | wtd_cap | wtd_ic | wtd_ac | wtd_pitches | wtd_hours | qtd_cs | qtd_sra | qtd_cap | qtd_ic
-//   Row 1:       Orange County | 55 | 50 | 32 | 18 | 4 | 30 | 30 | 649 | 595 | 390 | 223
-//   Row 2:       Riverside     | 52 | 45 | 23 | 12 | 4 | 30 | 30 | 617 | 538 | 280 | 156
-//
-// The primary office row (CONSUL_CONFIG.offices[0]) sets WTD_GOALS / QTD_TARGETS.
-// All rows populate OFFICE_WTD_GOALS / OFFICE_QTD_GOALS for compare lookups.
-async function loadOfficeGoals() {
-  try {
-    var res = await fetchWithTimeout(sheetsUrl('Office Goals'));
-    if (!res.ok) { console.warn('[Office Goals] HTTP', res.status, '— using fallback values'); return; }
-    var rows = sheetsRowsToObjects((await res.json()).values || []);
-    if (!rows.length) { console.warn('[Office Goals] tab empty — using fallback values'); return; }
-    var primaryOffice = (CONSUL_CONFIG.offices[0] || '').toLowerCase();
-    rows.forEach(function(r) {
-      var office = String(r['office'] || '').trim();
-      if (!office) return;
-      var wtd = {
-        CS: csvNum(r['wtd_cs']), SRA: csvNum(r['wtd_sra']), CAP: csvNum(r['wtd_cap']),
-        IC: csvNum(r['wtd_ic']), AC: csvNum(r['wtd_ac']),
-        pitches: csvNum(r['wtd_pitches']), hours: csvNum(r['wtd_hours']),
-      };
-      var qtd = {
-        CS: csvNum(r['qtd_cs']), SRA: csvNum(r['qtd_sra']),
-        CAP: csvNum(r['qtd_cap']), IC: csvNum(r['qtd_ic']),
-      };
-      if (office.toLowerCase() === primaryOffice) {
-        Object.assign(WTD_GOALS, wtd);
-        Object.assign(QTD_TARGETS, qtd);
-      }
-      OFFICE_WTD_GOALS[office] = wtd;
-      OFFICE_QTD_GOALS[office] = qtd;
-    });
-    // Newport Beach reps fold into Orange County goals for compare
-    if (!OFFICE_WTD_GOALS['Newport Beach'] && OFFICE_WTD_GOALS['Orange County']) {
-      OFFICE_WTD_GOALS['Newport Beach'] = OFFICE_WTD_GOALS['Orange County'];
-      OFFICE_QTD_GOALS['Newport Beach'] = OFFICE_QTD_GOALS['Orange County'];
-    }
-    console.log('[Office Goals] loaded', rows.length, 'row(s)');
-  } catch(e) {
-    console.warn('[Office Goals] error — using fallback values:', e.message);
-  }
-}
-
 async function fetchSheetsData(opts) {
   // opts.skipOnboarding = true  — skip Onboarding re-fetch to preserve _sheetRow
   //                               values needed for checkbox/status write-back.
   opts = opts || {};
   showSyncBanner('Syncing live data...');
   var errors = [];
-
-  // Load office goals first so targets are ready when render functions run
-  await loadOfficeGoals();
 
   try {
     var rRes  = await fetch(sheetsUrl('Roster'));
@@ -7485,6 +7680,31 @@ async function fetchSheetsData(opts) {
       }
     });
   } catch(e) { errors.push('Report: ' + e.message); }
+
+  await sleep(350);
+
+  // ── Last Week (prior-week AC/CS/SRA/CAP/IC) ──────────────────────────────
+  try {
+    var lwRes = await fetchWithTimeout(sheetsUrl('Last Week'));
+    if (lwRes.ok) {
+      LW_MAP = {};
+      sheetsRowsToObjects((await lwRes.json()).values || []).forEach(function(r) {
+        var id = String(r['employee id'] || r['id'] || r['client user id'] || r['user id'] || '').trim();
+        if (!id || !/^\d+$/.test(id)) return;
+        LW_MAP[id] = {
+          lw_ac:  csvNum(r['ac']  || r['acs']      || 0),
+          lw_cs:  csvNum(r['cs']  || r['cs week']  || 0),
+          lw_sra: csvNum(r['sra'] || r['sra week'] || 0),
+          lw_cap: csvNum(r['cap'] || r['cap week'] || 0),
+          lw_ic:  csvNum(r['ic']  || r['ic week']  || 0),
+        };
+      });
+      console.log('[Last Week] loaded', Object.keys(LW_MAP).length, 'entries');
+    } else {
+      LW_MAP = {};
+      console.warn('[Last Week] tab not found (HTTP', lwRes.status, ')');
+    }
+  } catch(e) { LW_MAP = {}; console.warn('[Last Week]', e.message); }
 
   await sleep(350);
 
@@ -7670,7 +7890,7 @@ async function fetchSheetsData(opts) {
 (async function initDashboard() {
   await fetchSheetsData();
   // Default both date inputs to today
-  var _today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' }); // Pacific time — avoids UTC midnight rollover showing yesterday at 6am PT
+  var _today = new Date().toISOString().slice(0, 10);
   document.getElementById('wtd-date-input').value = _today;
   document.getElementById('qtd-date-input') && (document.getElementById('qtd-date-input').value = _today);
   buildSIFromRepPerf();
@@ -7692,6 +7912,60 @@ async function fetchSheetsData(opts) {
 })();
 
 // ── WTD GOALS PANEL ─────────────────────────────────────────────────────────
+const WTD_GOALS_META = [
+  { key:'ac',      label:'AC',          sub:'Appointments / week' },
+  { key:'cs',      label:'CS',          sub:'Closed sales / week' },
+  { key:'sra',     label:'SRA',         sub:'Solar reps added / week' },
+  { key:'cap',     label:'CAP',         sub:'CAP installs / week' },
+  { key:'ic',      label:'IC',          sub:'IC installs / week' },
+  { key:'pitches', label:'Pitches',     sub:'Pitches / week' },
+  { key:'hours',   label:'Hrs Knocked', sub:'Hours knocked / week' },
+];
+
+function openWTDGoals() {
+  const panel = document.getElementById('wtd-goals-panel');
+  const overlay = document.getElementById('wtd-goals-overlay');
+  const fields = document.getElementById('wtd-goals-fields');
+  fields.innerHTML = WTD_GOALS_META.map(m => `
+    <div class="goals-field-row">
+      <div>
+        <div class="goals-field-label">${m.label}</div>
+        <div class="goals-field-sub">${m.sub}</div>
+      </div>
+      <input class="goals-field-input" type="number" min="0" max="999"
+        data-key="${m.key}" value="${WTD_GOALS[m.key] || 0}">
+    </div>`).join('');
+  panel.classList.add('open');
+  overlay.classList.add('open');
+}
+
+function closeWTDGoals() {
+  document.getElementById('wtd-goals-panel').classList.remove('open');
+  document.getElementById('wtd-goals-overlay').classList.remove('open');
+}
+
+function applyWTDGoals() {
+  document.querySelectorAll('#wtd-goals-fields .goals-field-input').forEach(inp => {
+    const key = inp.dataset.key;
+    const val = parseInt(inp.value, 10);
+    if (!isNaN(val) && val >= 0) WTD_GOALS[key] = val;
+  });
+  saveWTDGoals();
+  closeWTDGoals();
+  renderWTD();
+  // goals updated
+}
+
+function resetWTDGoals() {
+  Object.assign(WTD_GOALS, WTD_GOALS_DEFAULT);
+  saveWTDGoals();
+  // Re-populate fields in panel
+  document.querySelectorAll('#wtd-goals-fields .goals-field-input').forEach(inp => {
+    inp.value = WTD_GOALS[inp.dataset.key] || 0;
+  });
+  renderWTD();
+  // goals reset
+}
 
 // ── REP DETAIL MODAL ─────────────────────────────────────────────────────────
 function openRepModal(repId) {
@@ -7852,6 +8126,7 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     if (document.getElementById('pod-snapshot-modal').style.display === 'flex') { closePodSnapshot(); return; }
     if (document.getElementById('rep-modal').style.display === 'flex') { closeRepModal(); return; }
+    if (document.getElementById('wtd-goals-panel').classList.contains('open')) { closeWTDGoals(); return; }
   }
 });
 
@@ -7874,6 +8149,7 @@ document.addEventListener('keydown', function(e) {
         <select id="ob-mf-office" style="background:rgba(255,255,255,0.05);border:0.5px solid rgba(170,221,221,0.25);color:var(--off-white);font-family:Helvetica Neue,sans-serif;font-size:15px;padding:10px 12px;outline:none;width:100%;box-sizing:border-box;color-scheme:dark;">
           <option value="">— Select —</option>
           <option>Riverside</option>
+          <option>Newport Beach</option>
           <option>Orange County</option>
         </select></div>
       <div><label style="display:block;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);margin-bottom:4px;">Leader</label>
@@ -8028,6 +8304,7 @@ document.addEventListener('keydown', function(e) {
           <option value="">— Select —</option>
           <option value="Riverside">Riverside</option>
           <option value="Orange County">Orange County</option>
+          <option value="Newport Beach">Newport Beach</option>
           <option value="Other">Other</option>
         </select>
       </div>
@@ -8110,6 +8387,7 @@ document.addEventListener('keydown', function(e) {
           <option value="">— Select Office —</option>
           <option value="Riverside">Riverside</option>
           <option value="Orange County">Orange County</option>
+          <option value="Newport Beach">Newport Beach</option>
           <option value="Other">Other</option>
         </select>
       </div>
@@ -8264,6 +8542,7 @@ document.addEventListener('keydown', function(e) {
       <div class="rk-chk-panel" id="rk-panel-office">
         <label class="rk-chk-item checked"><input type="checkbox" id="rkc-office-all" checked onchange="rkChkAll('office')"> All Offices</label>
         <label class="rk-chk-item"><input type="checkbox" id="rkc-office-rv"  value="Riverside"     onchange="rkChkChange('office')"> Riverside</label>
+        <label class="rk-chk-item"><input type="checkbox" id="rkc-office-nb"  value="Newport Beach" onchange="rkChkChange('office')"> Newport Beach</label>
         <label class="rk-chk-item"><input type="checkbox" id="rkc-office-oc"  value="Orange County" onchange="rkChkChange('office')"> Orange County</label>
       </div>
     </div>
@@ -8827,6 +9106,12 @@ function renderProductivity() {
 
 
 <!-- ── WTD GOALS PANEL ─────────────────────────────────────────────────────── -->
+<div id="wtd-goals-overlay" onclick="closeWTDGoals()" style="display:none;position:fixed;inset:0;z-index:199;background:rgba(0,0,0,0.45)"></div>
+<div id="wtd-goals-panel" style="display:none;position:fixed;top:0;right:0;height:100%;width:320px;background:#1a1718;border-left:1px solid rgba(170,221,221,0.18);z-index:200;flex-direction:column;overflow-y:auto">
+  <div style="padding:28px 28px 0;display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan-dark);margin-bottom:6px">WTD Goals</div>
+      <div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:20px;font-weight:700;color:var(--off-white)">Weekly Targets</div>
     </div>
     <button onclick="closeWTDGoals()" style="background:none;border:1px solid rgba(170,221,221,0.2);color:var(--text-muted);cursor:pointer;padding:8px 10px;font-size:16px;line-height:1">✕</button>
   </div>
