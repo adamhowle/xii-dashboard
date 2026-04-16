@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Consul — Performance Dashboard</title>
-<meta name="description" content="Consul Performance Dashboard">
-<meta property="og:title" content="Consul — Performance Dashboard">
+<title>Consul — Empire Performance Dashboard</title>
+<meta name="description" content="Empire Performance Dashboard — Powered by Consul">
+<meta property="og:title" content="Consul — Empire Performance Dashboard">
 <meta property="og:description" content="Consul Performance Dashboard">
 <meta name="robots" content="noindex, nofollow">
 <style>
 :root {
-  --cyan-light: #AADDDD;
-  --cyan-dark: #5A9EA0;
+  --cyan-light: #FF6200;
+  --cyan-dark: #C44B00;
   --near-black: #000000;
   --sand: #F2CF9C;
   --wine: #685236;
   --off-white: #F8F9F9;
   --text-muted: rgba(248,249,249,0.55);
-  --border: rgba(170,221,221,0.2);
-  --row-hover: rgba(170,221,221,0.08);
+  --border: rgba(255,98,0,0.22);
+  --row-hover: rgba(255,98,0,0.08);
   --card-bg: rgba(255,255,255,0.05);
   /* Performance value states */
   --v-exceeds: #27d9d9;
@@ -37,15 +37,15 @@
 }
 /* ── LIGHT MODE ── */
 body.light-mode {
-  --cyan-light: #0E8C8C;
-  --cyan-dark: #1D5557;
+  --cyan-light: #CC4F00;
+  --cyan-dark: #8B3600;
   --near-black: #E7E5E4;
   --sand: #8B5E20;
   --wine: #5C3D1E;
   --off-white: #1A1718;
   --text-muted: rgba(26,23,24,0.52);
-  --border: rgba(45,102,104,0.22);
-  --row-hover: rgba(45,102,104,0.06);
+  --border: rgba(180,70,0,0.22);
+  --row-hover: rgba(180,70,0,0.06);
   --card-bg: #2A2828;
   --r-franchise: #EF9F27;
   --r-premier:   #7A5800;
@@ -1911,7 +1911,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
 
 <header>
   <div class="header-left">
-    <span class="brand-logo">twelve</span>
+    <span class="brand-logo" id="header-brand-logo">twelve</span>
     <span class="brand-tag">■ Consul</span>
   </div>
   <div class="header-right">
@@ -1929,7 +1929,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
 <!-- ── MOBILE DROPDOWN MENU ── -->
 <div id="xii-mob-menu">
   <div class="xii-mob-tab" data-tab="overview" onclick="xiiMobSwitch('overview',this)">Overview</div>
-  <div class="xii-mob-tab" data-tab="wtd" onclick="xiiMobSwitch('wtd',this)">WTD Detail</div>
+  <div class="xii-mob-tab" data-tab="wtd" onclick="xiiMobSwitch('wtd',this)">Squads</div>
   <div class="xii-mob-tab" data-tab="rankings" onclick="xiiMobSwitch('rankings',this)">Rankings</div>
   <div class="xii-mob-tab" data-tab="status-incentive" onclick="xiiMobSwitch('status-incentive',this)">Chasers</div>
   <div class="xii-mob-tab" data-tab="roster" onclick="xiiMobSwitch('roster',this)">Roster</div>
@@ -1941,7 +1941,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
 
 <div class="tab-bar">
   <div class="tab active" onclick="switchTab('overview',this)">Overview</div>
-  <div class="tab" onclick="switchTab('wtd',this)">WTD Detail</div>
+  <div class="tab" onclick="switchTab('wtd',this)">Squads</div>
   <div class="tab" onclick="switchTab('rankings',this)">Rankings</div>
   <div class="tab" onclick="switchTab('status-incentive',this)">Chasers</div>
   <div class="tab" onclick="switchTab('roster',this)">Roster</div>
@@ -1956,8 +1956,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
   <!-- Office selector bar -->
   <div class="ov-office-bar">
     <span class="filter-label">Compare —</span>
-    <button class="filter-btn active" id="ov-c-oc" onclick="ovSetCompare('Orange County')">Orange County</button>
-    <button class="filter-btn" id="ov-c-riverside" onclick="ovSetCompare('Riverside')">Riverside</button>
+    <span id="ov-compare-filter-bar"><!-- populated by applyBranding() --></span>
   </div>
 
   <!-- ── Leadership Pulse Row ── -->
@@ -2041,10 +2040,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
 <div class="tab-panel" id="panel-wtd">
   <div class="stats-bar" id="wtd-stats"></div>
   <div class="filter-bar">
-    <button class="filter-btn" id="wtd-f-all" onclick="wtdToggleOffice('all')">All</button>
-    <button class="filter-btn" id="wtd-f-riverside" onclick="wtdToggleOffice('Riverside')">Riverside</button>
-    <button class="filter-btn active" id="wtd-f-oc" onclick="wtdToggleOffice('Orange County')">Orange County</button>
-    <button class="filter-btn" id="wtd-f-active" onclick="wtdToggleOffice('active')">Has Activity</button>
+    <span id="wtd-office-filter-bar"><!-- populated by applyBranding() --></span>
     <div class="filter-sep"></div>
     <select id="wtd-view-select" class="squad-select" style="background:rgba(255,255,255,0.05);border:1px solid rgba(170,221,221,0.25);color:rgba(248,249,249,0.6);padding:6px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer" onchange="wtdSetView(this.value,null)">
       <option value="squad">Squad</option>
@@ -2056,6 +2052,9 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
     <select id="wtd-squad-select" class="squad-select" style="background:rgba(255,255,255,0.05);border:1px solid rgba(170,221,221,0.25);color:rgba(248,249,249,0.6);padding:6px 12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer" onchange="wtdSquadFilter=this.value;renderWTD()">
       <option value="">All Squads</option>
     </select>
+    <div class="filter-sep"></div>
+    <button class="view-btn active" id="wtd-week-this" onclick="wtdSetWeek('this',this)">This Week</button>
+    <button class="view-btn" id="wtd-week-last" onclick="wtdSetWeek('last',this)">Last Week</button>
     <div class="ml-auto" style="display:flex;align-items:center;gap:10px">
 <div class="col-toggle-wrap" id="wtd-col-wrap">
         <button class="col-toggle-btn" id="wtd-col-btn" onclick="toggleColDropdown('wtd')">
@@ -2114,8 +2113,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
     <div class="filter-sep"></div>
     <span class="filter-label">Office —</span>
     <button class="filter-btn" id="si-btn-all" onclick="setFilter('all',this)">All</button>
-    <button class="filter-btn" id="si-btn-riverside" onclick="setOfficeFilter('Riverside',this)">Riverside</button>
-    <button class="filter-btn active" id="si-btn-orangecounty" onclick="setOfficeFilter('Orange County',this)">Orange County</button>
+    <span id="si-office-filter-bar"><!-- populated by applyBranding() --></span>
     <div class="filter-sep"></div>
     <div class="search-wrap">
       <svg class="search-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#F8F9F9" stroke-width="1.5"><circle cx="5" cy="5" r="3.5"/><path d="M8 8l2.5 2.5"/></svg>
@@ -2154,12 +2152,12 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
     </div>
     <div class="footer-bar">
       <span class="footer-count" id="gc-footer-count">■ Loading…</span>
-      <span class="footer-brand">■ XII — BUILDING CULTURE FORWARD ■</span>
+      <span class="footer-brand"></span>
     </div>
   </div>
   <div class="footer-bar" id="si-footer-bar">
     <span class="footer-count" id="si-footer-count">■ Loading…</span>
-    <span class="footer-brand">■ XII — BUILDING CULTURE FORWARD ■</span>
+    <span class="footer-brand"></span>
   </div>
 </div>
 <script>
@@ -2188,9 +2186,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
     <div class="rc-modal-field"><label>Office</label>
       <select id="modal-office">
         <option value="">— Select —</option>
-        <option>Riverside</option>
-        <option>Newport Beach</option>
-        <option>Orange County</option>
+        <!-- populated by applyBranding() -->
       </select>
     </div>
     <div class="rc-modal-field"><label>Squad</label>
@@ -2210,12 +2206,16 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
 <!-- ── SQUAD SNAPSHOT MODAL ── -->
 <div id="squad-snapshot-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:2000;align-items:center;justify-content:center;padding:24px;" onclick="if(event.target===this)closeSquadSnapshot()">
   <div id="squad-snapshot-inner" style="background:#0e0c0d;border:1px solid rgba(170,221,221,0.22);width:100%;max-width:1400px;max-height:92vh;overflow:auto;position:relative;padding:28px 32px 24px;">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;gap:16px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:16px;">
       <div>
         <div id="squad-snapshot-title" style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:22px;font-weight:700;letter-spacing:-0.3px;color:var(--off-white)"></div>
         <div id="squad-snapshot-subtitle" style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);margin-top:4px;"></div>
       </div>
-      <button onclick="closeSquadSnapshot()" style="background:transparent;border:1px solid rgba(248,249,249,0.2);color:var(--text-muted);font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:7px 14px;cursor:pointer;flex-shrink:0;">✕ Close</button>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-top:2px;">
+        <button id="squad-snap-wtd-btn" onclick="squadSnapSetMode('wtd')" style="padding:5px 11px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:1px solid var(--cyan-light);color:var(--cyan-light);background:rgba(170,221,221,0.1);">WTD</button>
+        <button id="squad-snap-qtd-btn" onclick="squadSnapSetMode('qtd')" style="padding:5px 11px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:1px solid rgba(248,249,249,0.2);color:var(--text-muted);background:transparent;">QTD</button>
+        <button onclick="closeSquadSnapshot()" style="background:transparent;border:1px solid rgba(248,249,249,0.2);color:var(--text-muted);font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:5px 11px;cursor:pointer;">✕</button>
+      </div>
     </div>
     <div id="squad-snapshot-body"></div>
   </div>
@@ -2243,9 +2243,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
   <div class="stats-bar" id="roster-stats"></div>
   <div class="roster-controls">
     <span class="filter-label">Office —</span>
-    <button class="filter-btn" onclick="rosterFilter('all',this)">All</button>
-    <button class="filter-btn" onclick="rosterFilter('Riverside',this)">Riverside</button>
-    <button class="filter-btn active" onclick="rosterFilter('Orange County',this)">Orange County</button>
+    <span id="roster-office-filter-bar"><!-- populated by applyBranding() --></span>
     <div class="filter-sep"></div>
     <span class="filter-label">Sort —</span>
     <button class="view-btn active" id="roster-sort-name" onclick="rosterSetSort('name',this)">Name</button>
@@ -2280,10 +2278,225 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
 
 <div class="footer-bar">
   <span class="footer-count" id="footer-count">■ Loading...</span>
-  <span class="footer-brand">■ XII — BUILDING CULTURE FORWARD ■</span>
+  <span class="footer-brand"></span>
 </div>
 
 <script>
+// ══════════════════════════════════════════════════════════════════════════════
+// CONSUL_CONFIG — White-label skin. Change only this block when deploying to a
+// new office. Everything else in the file references these values automatically.
+// ══════════════════════════════════════════════════════════════════════════════
+const CONSUL_CONFIG = {
+  brand:         'TWELVE',
+  primary_label: 'Orange County',
+  tagline:       'XII — BUILDING CULTURE FORWARD',
+  sheets_id:       '1Awy-KgfNtf8IBAZf-nY8pmv26n0juNk28IRTfN0usn4',  // ← UPDATE for twelve sheet
+  oauth_client_id: '824495442632-o4v639jl9rcsj7dq2fgvfcr6joj98s2c.apps.googleusercontent.com',  // ← UPDATE
+  admin_email: 'adam.howle@sunrun.com',  admin_phone: '5625371559',
+  office_admin_email: 'adam.howle@sunrun.com',  office_admin_phone: '5625371559',  // ← UPDATE
+  offices: ['Orange County', 'Newport Beach'],
+  compare_offices: ['Riverside'],
+  office_colors: { 'Orange County': '#F2CF9C', 'Newport Beach': '#AADDDD', 'Riverside': '#FF6200' },
+  office_meeting_info: {
+    'Orange County': { days: '', time: '', address: '' },  // ← UPDATE
+    'Newport Beach': { days: '', time: '', address: '' },  // ← UPDATE
+  },
+  // Skin accent colors — pure black background, standard cyan brand
+  accent: {
+    cyan_light: '#AADDDD', cyan_dark: '#5A9EA0', near_black: '#000000',
+    border: 'rgba(170,221,221,0.2)', row_hover: 'rgba(170,221,221,0.08)',
+    light_cyan_light: '#AADDDD', light_cyan_dark: '#1D5557', light_near_black: '#F0EDE8',
+    light_border: 'rgba(45,102,104,0.22)', light_row_hover: 'rgba(45,102,104,0.06)',
+  },
+};
+
+// ── Convenience aliases (used throughout the file) ────────────────────────────
+// These replace the previous standalone constants so no other code changes.
+const SHEETS_ID       = CONSUL_CONFIG.sheets_id;
+const SHEETS_BASE     = 'https://sheets.googleapis.com/v4/spreadsheets';
+const OAUTH_CLIENT_ID = CONSUL_CONFIG.oauth_client_id;
+const NOTIFY_EMAIL   = CONSUL_CONFIG.office_admin_email;
+const ADAM_PHONE     = CONSUL_CONFIG.admin_phone;
+const ADAM_EMAIL     = CONSUL_CONFIG.admin_email;
+// OFFICE_COLORS and OFFICE_MEETING_INFO are set after DOM ready (see applyBranding).
+// They are also aliased immediately here so early code that references them works.
+let OFFICE_COLORS      = Object.assign({}, CONSUL_CONFIG.office_colors);
+const OFFICE_MEETING_INFO = CONSUL_CONFIG.office_meeting_info;
+
+// ── applyBranding() — called once on DOMContentLoaded ─────────────────────────
+// Stamps brand text into footer/header elements and dynamically generates
+// all office filter buttons and dropdowns from CONSUL_CONFIG.offices.
+function applyBranding() {
+  // Helper: ordered office list — own offices first, then compare, never NB
+  function _filterOffices() {
+    return [...new Set([...CONSUL_CONFIG.offices, ...(CONSUL_CONFIG.compare_offices||[])])].filter(o => o !== 'Newport Beach');
+  }
+  const brand   = CONSUL_CONFIG.brand;
+  const tagline = CONSUL_CONFIG.tagline;
+  // Inject skin accent colors into CSS vars
+  const acc = CONSUL_CONFIG.accent;
+  if (acc) {
+    const rs = document.documentElement.style;
+    if (acc.cyan_light)  rs.setProperty('--cyan-light',  acc.cyan_light);
+    if (acc.cyan_dark)   rs.setProperty('--cyan-dark',   acc.cyan_dark);
+    if (acc.near_black)  rs.setProperty('--near-black',  acc.near_black);
+    if (acc.border)      rs.setProperty('--border',      acc.border);
+    if (acc.row_hover)   rs.setProperty('--row-hover',   acc.row_hover);
+    if (!document.getElementById('consul-accent-light')) {
+      const lm = [];
+      if (acc.light_cyan_light) lm.push('--cyan-light:' + acc.light_cyan_light);
+      if (acc.light_cyan_dark)  lm.push('--cyan-dark:'  + acc.light_cyan_dark);
+      if (acc.light_near_black) lm.push('--near-black:' + acc.light_near_black);
+      if (acc.light_border)     lm.push('--border:'     + acc.light_border);
+      if (acc.light_row_hover)  lm.push('--row-hover:'  + acc.light_row_hover);
+      if (lm.length) {
+        const st = document.createElement('style');
+        st.id = 'consul-accent-light';
+        st.textContent = 'body.light-mode{' + lm.join(';') + '}';
+        document.head.appendChild(st);
+      }
+    }
+  }
+  const footerText = '\u25a0 ' + brand + ' \u2014 ' + tagline + ' \u25a0';
+
+  // Footer brand spans (all tabs)
+  document.querySelectorAll('.footer-brand').forEach(el => { el.textContent = footerText; });
+
+  // ── Header brand logo (large word mark)
+  const headerLogo = document.getElementById('header-brand-logo');
+  if (headerLogo) headerLogo.textContent = brand.toLowerCase();
+
+  // Auth screen logo brand tag
+  const authLogo = document.getElementById('xii-auth-logo');
+  if (authLogo) authLogo.innerHTML = brand.toLowerCase() + '<span>\u25a0 Performance Dashboard</span>';
+
+  // Header brand tag
+  const brandTag = document.querySelector('header .brand-tag');
+  if (brandTag) brandTag.textContent = '\u25a0 Consul';
+
+  const offices     = CONSUL_CONFIG.offices;
+  const defaultOff  = offices[0];
+
+  // ── WTD filter bar ────────────────────────────────────────────────────────
+  const wtdBar = document.getElementById('wtd-office-filter-bar');
+  if (wtdBar) {
+    const _wOff = _filterOffices();
+    wtdBar.innerHTML =
+      '<button class="filter-btn active" id="wtd-f-all" onclick="wtdToggleOffice(\'all\')">All</button>' +
+      _wOff.map((o,i) => `<button class="filter-btn" id="wtd-f-off-${i}" data-office="${o}" onclick="wtdToggleOffice('${o}')">${o}</button>`).join('') +
+      '<button class="filter-btn" id="wtd-f-active" onclick="wtdToggleOffice(\'active\')">Has Activity</button>';
+    wtdOffices = new Set(_wOff);
+  }
+
+  // ── Overview compare bar ──────────────────────────────────────────────────
+  const ovBar = document.getElementById('ov-compare-filter-bar');
+  const compareOffices = CONSUL_CONFIG.compare_offices || [];
+  if (ovBar) {
+    if (compareOffices.length === 0) {
+      ovBar.innerHTML = '';
+      ovCompareOffice = null;
+    } else {
+      // First button is "None" (default — no compare), then each compare office
+      ovBar.innerHTML =
+        '<button class="filter-btn active" id="ov-c-none" data-office="" onclick="ovSetCompare(null)">None</button>' +
+        compareOffices.map((o, i) => {
+          const id = 'ov-c-off-' + i;
+          return `<button class="filter-btn" id="${id}" data-office="${o}" onclick="ovSetCompare('${o}')">${o}</button>`;
+        }).join('');
+      ovCompareOffice = null; // default: no compare selected
+    }
+  }
+
+  // ── Status-Incentive (Chasers) filter bar ────────────────────────────────
+  const siBar = document.getElementById('si-office-filter-bar');
+  if (siBar) {
+    const _sOff = _filterOffices();
+    siBar.innerHTML =
+      '<button class="filter-btn" id="si-btn-all" onclick="setOfficeFilter(null,this)">All</button>' +
+      _sOff.map((o, i) => {
+        const active = o === defaultOff ? ' active' : '';
+        return `<button class="filter-btn${active}" id="si-btn-off-${i}" data-office="${o}" onclick="setOfficeFilter('${o}',this)">${o}</button>`;
+      }).join('');
+    activeOffice = defaultOff;
+  }
+
+  // ── Roster filter bar ─────────────────────────────────────────────────────
+  const rosterBar = document.getElementById('roster-office-filter-bar');
+  if (rosterBar) {
+    const _rOff = _filterOffices();
+    rosterBar.innerHTML =
+      '<button class="filter-btn" onclick="rosterFilter(\'all\',this)">All</button>' +
+      _rOff.map((o, i) => {
+        const active = o === defaultOff ? ' active' : '';
+        return `<button class="filter-btn${active}" data-office="${o}" onclick="rosterFilter('${o}',this)">${o}</button>`;
+      }).join('');
+    rosterOfficeFilter = defaultOff;
+  }
+
+  // ── Combine tab filter bar ────────────────────────────────────────────────
+  const combineBar = document.getElementById('combine-office-filter-bar');
+  if (combineBar) {
+    const _cOff = _filterOffices();
+    combineBar.innerHTML =
+      '<button class="filter-btn" id="cbtn-all" onclick="combineToggleOffice(\'all\',this)">All</button>' +
+      _cOff.map((o, i) => {
+        const active = o === defaultOff ? ' active' : '';
+        return `<button class="filter-btn${active}" id="cbtn-off-${i}" data-office="${o}" onclick="combineToggleOffice('${o}',this)">${o}</button>`;
+      }).join('');
+    combineState.offices = new Set([defaultOff]);
+  }
+
+  // ── Productivity tab office pills ─────────────────────────────────────────
+  const prodPills = document.getElementById('prod-office-pills');
+  if (prodPills) {
+    const _pOff = _filterOffices();
+    prodPills.innerHTML = _pOff.map((o, i) => {
+      const active = o === defaultOff ? ' active' : '';
+      return `<span class="prod-pill${active}" data-office="${o}" onclick="prodToggleOffice('${o}',this)">${o}</span>`;
+    }).join('');
+    prodOffices = new Set([defaultOff]);
+  }
+
+  // ── Add-rep modal office dropdown ─────────────────────────────────────────
+  const modalOffice = document.getElementById('modal-office');
+  if (modalOffice) {
+    const cur = modalOffice.value;
+    modalOffice.innerHTML = '<option value="">— Select —</option>' +
+      offices.map(o => `<option value="${o}"${o === cur ? ' selected' : ''}>${o}</option>`).join('');
+  }
+
+  // ── Overview compare labels (default text) ────────────────────────────────
+  const ovLabel    = document.getElementById('ov-compare-label');
+  const ovLabelQtd = document.getElementById('ov-compare-label-qtd');
+  const ovTargetLbl = document.getElementById('ov-targets-panel-label');
+  if (ovCompareOffice) {
+    if (ovLabel)    ovLabel.textContent    = ovCompareOffice;
+    if (ovLabelQtd) ovLabelQtd.textContent = ovCompareOffice;
+    if (ovTargetLbl) ovTargetLbl.textContent = 'Targets \u2014 ' + ovCompareOffice;
+  }
+
+  // ── Combine tab — WTD SRA goals row ──────────────────────────────────────
+  const combineGoalsRow = document.getElementById('combine-goals-row');
+  if (combineGoalsRow) {
+    combineGoalsRow.innerHTML =
+      '<span class="combine-goals-label">WTD SRA Goal</span>' +
+      offices.map((o, i) => {
+        const slug  = o.replace(/\s+/g, '').toLowerCase();
+        const color = CONSUL_CONFIG.office_colors[o] || '#AADDDD';
+        const sep   = i > 0 ? '<div class="filter-sep"></div>' : '';
+        return sep + `<div class="combine-goal-group">` +
+          `<span class="combine-goal-dot" style="background:${color}"></span>` +
+          `<span class="combine-goal-label">${o}</span>` +
+          `<input class="combine-goal-input" type="number" id="cgoal-${slug}" value="10" min="1" oninput="renderCombineTab()">` +
+          `<span class="combine-goal-actual" id="cactual-${slug}"></span>` +
+          `</div>`;
+      }).join('');
+  }
+
+  // ── Page title ────────────────────────────────────────────────────────────
+  document.title = 'Consul \u2014 ' + brand + ' Performance Dashboard';
+}
+
 const WTD_EMPLOYEES = []; // Populated from Google Sheets
 const QTD_EMPLOYEES = []; // Populated from Google Sheets
 let ROSTER_EMPLOYEES   = []; // Populated from Google Sheets on load
@@ -2297,7 +2510,7 @@ let GC_EMPLOYEES       = []; // Populated from Google Sheets — Game Changers t
 let RANKINGS_MAP       = {}; // Populated from Google Sheets (Export tab)
 let rankingsData       = []; // Same as RANKINGS_MAP but as array for Rankings tab
 // Combine tab state
-let combineState = { offices: new Set(['Orange County']), squad: '', showMissed: false, hasActivity: true };
+let combineState = { offices: new Set([CONSUL_CONFIG.offices[0]]), squad: '', showMissed: false, hasActivity: true };
 // Rankings tab state
 let rkOfficeFilter = new Set(); // empty = all
 let rkRankFilter   = new Set(); // empty = all
@@ -2319,6 +2532,8 @@ function shortOffice(o) {
 
 // ── Performance lookup maps (rebuilt whenever roster changes) ──
 let WTD_MAP = {}, QTD_MAP = {};
+let LW_MAP = {};
+let wtdWeekMode = "this";
 // Authoritative QTD office totals from Totals sheet — keyed by office name
 // e.g. { 'Newport Beach': {cs:12, sra:8, cap:3, ic:2}, ... }
 let TOTALS_OFFICE = {};
@@ -2332,18 +2547,44 @@ buildPerfMaps();
 const WTD_TARGETS = {CS:55, SRA:50, CAP:32, IC:18};
 const QTD_TARGETS = {CS:649, SRA:595, CAP:390, IC:223};
 
-// Per-office targets — editable via the Targets button on each compare block
-// Keys match office names exactly. Edit these values to bake in new defaults.
+// Per-office targets — loaded from 'Office Goals' Sheets tab at runtime.
+// Defaults below are used until Sheets data arrives. Edit the sheet, not here.
 const OFFICE_WTD_TARGETS = {
-  'Newport Beach': {CS:36, SRA:32, CAP:23, IC:12},
-  'Orange County':  {CS:19, SRA:18, CAP:9,  IC:6},
-  'Riverside':      {CS:52, SRA:45, CAP:23, IC:12},
+  'Newport Beach': {CS:36,  SRA:32,  CAP:23, IC:12},
+  'Orange County':  {CS:55,  SRA:50,  CAP:32, IC:18},
+  'Riverside':      {CS:52,  SRA:45,  CAP:23, IC:12},
 };
 const OFFICE_QTD_TARGETS = {
-  'Newport Beach': {CS:424, SRA:386, CAP:279, IC:152},
-  'Orange County':  {CS:225, SRA:209, CAP:111, IC:71},
-  'Riverside':      {CS:617, SRA:538, CAP:280, IC:156},
+  'Newport Beach': {CS:424,  SRA:386, CAP:279, IC:152},
+  'Orange County':  {CS:649,  SRA:595, CAP:390, IC:223},
+  'Riverside':      {CS:617,  SRA:538, CAP:280, IC:156},
 };
+
+// loadOfficeGoals() populates OFFICE_WTD_TARGETS and OFFICE_QTD_TARGETS from Sheets
+async function loadOfficeGoals() {
+  try {
+    var res = await fetchWithTimeout(sheetsUrl('Office Goals'));
+    if (!res.ok) return;
+    var rows = sheetsRowsToObjects((await res.json()).values || []);
+    rows.forEach(function(r) {
+      var office = String(r['office'] || '').trim();
+      if (!office) return;
+      OFFICE_WTD_TARGETS[office] = {
+        CS:  csvNum(r['wtd_cs']  || r['cs']  || 0) || OFFICE_WTD_TARGETS[office]?.CS,
+        SRA: csvNum(r['wtd_sra'] || r['sra'] || 0) || OFFICE_WTD_TARGETS[office]?.SRA,
+        CAP: csvNum(r['wtd_cap'] || r['cap'] || 0) || OFFICE_WTD_TARGETS[office]?.CAP,
+        IC:  csvNum(r['wtd_ic']  || r['ic']  || 0) || OFFICE_WTD_TARGETS[office]?.IC,
+      };
+      OFFICE_QTD_TARGETS[office] = {
+        CS:  csvNum(r['qtd_cs']  || 0) || OFFICE_QTD_TARGETS[office]?.CS,
+        SRA: csvNum(r['qtd_sra'] || 0) || OFFICE_QTD_TARGETS[office]?.SRA,
+        CAP: csvNum(r['qtd_cap'] || 0) || OFFICE_QTD_TARGETS[office]?.CAP,
+        IC:  csvNum(r['qtd_ic']  || 0) || OFFICE_QTD_TARGETS[office]?.IC,
+      };
+    });
+    console.log('[Office Goals] loaded targets for', rows.map(r=>r['office']).filter(Boolean));
+  } catch(e) { console.warn('[Office Goals]', e.message); }
+}
 
 // ── DATE / PACE HELPERS ──────────────────────────────────────────────────────
 // Returns the Monday of the week containing `date` (week runs Mon–Fri)
@@ -2412,14 +2653,14 @@ function saveOfficeTargets(office) {
   document.getElementById('ov-targets-panel').style.display = 'none';
   renderOverview();
 }
-const OFFICE_COLORS = {'Riverside':'#5A9EA0','Newport Beach':'#AADDDD','Orange County':'#F2CF9C'};
+// OFFICE_COLORS is defined at top via CONSUL_CONFIG alias — do not redeclare here
 
 // ── STATE ──
-let wtdOffices = new Set(['Orange County']);
+let wtdOffices = new Set([CONSUL_CONFIG.offices[0]]);
 let wtdActiveExtra = null; // 'active' or null
 let wtdSortCol='name', wtdSortDir=1, wtdView='squad', wtdSquadFilter='';
-let qtdOffices=new Set(['Orange County']), qtdSortCol='name', qtdSortDir=1, qtdView='squad', qtdSquadFilter='';
-let rosterOfficeFilter='Orange County', rosterSortMode='name', rosterViewMode='card';
+let qtdOffices=new Set([CONSUL_CONFIG.offices[0]]), qtdSortCol='name', qtdSortDir=1, qtdView='squad', qtdSquadFilter='';
+let rosterOfficeFilter=CONSUL_CONFIG.offices[0], rosterSortMode='name', rosterViewMode='card';
 
 // ── WTD GOALS (global, editable, persisted) ──
 const WTD_GOALS_DEFAULT = {ac:4, cs:3, sra:2, cap:1, ic:1, pitches:30, hours:30};
@@ -2488,8 +2729,8 @@ function toggleChrome(){
   if(btn)btn.textContent='▼ Hide tabs & filters';
 })();
 function changeIcon(c){
-  if(c==='Up')return '<span class="change-up">▲ Up</span>';
-  if(c==='Down')return '<span class="change-down">▼ Down</span>';
+  if(c==='Up')return '<span class="change-up" style="font-size:11px">▲</span>';
+  if(c==='Down')return '<span class="change-down" style="font-size:11px">▼</span>';
   if(c==='Same')return '';
   return '';
 }
@@ -2669,10 +2910,10 @@ function renderCombineTab() {
 
   // ── Per-office SRA actuals ──
   const activeC = COMBINE2_EMPLOYEES.filter(r => r.status === 'In Combine');
-  [{key:'nb',office:'Newport Beach'},{key:'oc',office:'Orange County'},{key:'rv',office:'Riverside'}]
-  .forEach(({key, office}) => {
-    const goalEl = document.getElementById('cgoal-' + key);
-    const actualEl = document.getElementById('cactual-' + key);
+  CONSUL_CONFIG.offices.forEach(office => {
+    const slug = office.replace(/\s+/g,'').toLowerCase();
+    const goalEl   = document.getElementById('cgoal-' + slug);
+    const actualEl = document.getElementById('cactual-' + slug);
     if (!goalEl || !actualEl) return;
     const goal = parseInt(goalEl.value) || 10;
     const actual = activeC.filter(r => r.office === office)
@@ -2957,17 +3198,29 @@ function buildProgressCard(cat, target, actual, pace, prefix){
 }
 // ── OVERVIEW OFFICE STATE ──
 // Primary block is always Newport Beach + Orange County ("twelve") — not user-configurable
-let ovCompareOffice = 'Orange County'; // null = hidden
+let ovCompareOffice = null; // null = compare section hidden; set by applyBranding
 
 function ovSetCompare(office) {
-  ovCompareOffice = office;
+  ovCompareOffice = office; // null = hide compare section
   // Close targets panel when switching offices
   const panel = document.getElementById('ov-targets-panel');
   if (panel) { panel.classList.remove('visible'); panel.style.display = 'none'; }
   const btn = document.getElementById('ov-targets-btn');
   if (btn) btn.classList.remove('open');
-  document.getElementById('ov-c-oc').classList.toggle('active', office === 'Orange County');
-  document.getElementById('ov-c-riverside').classList.toggle('active', office === 'Riverside');
+  // Toggle active state — match null (None button) or office name
+  const bar = document.getElementById('ov-compare-filter-bar');
+  if (bar) bar.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.office === (office || ''));
+  });
+  // Update compare labels
+  if (office) {
+    const ovLabel    = document.getElementById('ov-compare-label');
+    const ovLabelQtd = document.getElementById('ov-compare-label-qtd');
+    const ovTargetLbl = document.getElementById('ov-targets-panel-label');
+    if (ovLabel)    ovLabel.textContent    = office;
+    if (ovLabelQtd) ovLabelQtd.textContent = office;
+    if (ovTargetLbl) ovTargetLbl.textContent = 'Targets \u2014 ' + office;
+  }
   renderOverview();
 }
 
@@ -3055,7 +3308,8 @@ function renderLeadershipPulse(qtdPace) {
   var ap = calcActiveProductive();
 
   // QTD IC — primary (twelve = NB + OC)
-  var primaryFilter = function(e) { return e.office === 'Newport Beach' || e.office === 'Orange County'; };
+  // Primary offices = CONSUL_CONFIG.offices
+  var primaryFilter = function(e) { return CONSUL_CONFIG.offices.includes(e.office); };
   var qtdIC = ROSTER_EMPLOYEES.filter(primaryFilter).reduce(function(s, e) {
     var q = QTD_MAP[e.id] || {};
     return s + (q.qtr_ic != null ? q.qtr_ic : (q.qtd_ic || 0));
@@ -3114,7 +3368,8 @@ function renderOverview(){
   // (moved to after qtdPace is available — see call site below)
 
   // ── Primary block always = Newport Beach + Orange County ("twelve") ──
-  const primaryFilter = e => e.office === 'Newport Beach' || e.office === 'Orange County';
+  // Primary offices = CONSUL_CONFIG.offices
+  const primaryFilter = e => CONSUL_CONFIG.offices.includes(e.office);
 
   // ── WTD Actual — primary ──
   const wtdReps = ROSTER_EMPLOYEES.filter(primaryFilter).map(e => WTD_MAP[e.id] || {});
@@ -3128,14 +3383,14 @@ function renderOverview(){
   // ── QTD Actual — primary (Newport Beach + Orange County) ──
   // Reads directly from TOTALS_OFFICE (authoritative Totals sheet sums).
   // Falls back to rep-by-rep QTD_MAP sum if Totals not yet loaded.
-  const _totNB  = TOTALS_OFFICE['Newport Beach']  || null;
-  const _totOC  = TOTALS_OFFICE['Orange County']  || null;
-  const _hasTot = _totNB || _totOC;
+  const _primaryTots = CONSUL_CONFIG.offices.map(o => TOTALS_OFFICE[o] || null);
+  const _hasTot = _primaryTots.some(t => t !== null);
+  const _totSum = (key) => _primaryTots.reduce((s, t) => s + (t ? (t[key] || 0) : 0), 0);
   const qtdActual = _hasTot ? {
-    CS:  (_totNB ? _totNB.cs  : 0) + (_totOC ? _totOC.cs  : 0),
-    SRA: (_totNB ? _totNB.sra : 0) + (_totOC ? _totOC.sra : 0),
-    CAP: (_totNB ? _totNB.cap : 0) + (_totOC ? _totOC.cap : 0),
-    IC:  (_totNB ? _totNB.ic  : 0) + (_totOC ? _totOC.ic  : 0),
+    CS:  _totSum('cs'),
+    SRA: _totSum('sra'),
+    CAP: _totSum('cap'),
+    IC:  _totSum('ic'),
   } : (() => {
     const qtdReps = ROSTER_EMPLOYEES.filter(primaryFilter).map(e => QTD_MAP[e.id] || {});
     return {
@@ -3146,9 +3401,10 @@ function renderOverview(){
     };
   })();
 
-  // Primary label is always "twelve"
-  document.getElementById('ov-primary-label').textContent = 'twelve';
-  document.getElementById('ov-primary-label-qtd').textContent = 'twelve';
+  // Primary label from config
+  const _primaryLbl = CONSUL_CONFIG.primary_label || CONSUL_CONFIG.brand;
+  document.getElementById('ov-primary-label').textContent = _primaryLbl;
+  document.getElementById('ov-primary-label-qtd').textContent = _primaryLbl;
 
   // ── WTD Pace — derived from CSV date ──
   const wtdDateStr = document.getElementById('wtd-date-input').value;
@@ -3266,28 +3522,28 @@ function renderOverview(){
 }
 
 // ── WTD FILTERS (multi-select offices) ──
+function wtdSetWeek(mode, el) {
+  wtdWeekMode = mode;
+  document.getElementById('wtd-week-this').classList.toggle('active', mode==='this');
+  document.getElementById('wtd-week-last').classList.toggle('active', mode==='last');
+  renderWTD();
+}
+
 function wtdToggleOffice(val){
-  if(val==='all'){
-    wtdOffices=new Set(['Riverside','Newport Beach','Orange County']);
-    wtdActiveExtra=null;
-    document.getElementById('wtd-f-all').classList.add('active');
-    ['riverside','newport','oc'].forEach(k=>document.getElementById('wtd-f-'+k).classList.add('active'));
-    document.getElementById('wtd-f-active').classList.remove('active');
-  } else if(val==='active'){
-    wtdActiveExtra = wtdActiveExtra==='active'?null:'active';
-    document.getElementById('wtd-f-active').classList.toggle('active',wtdActiveExtra==='active');
+  const bar = document.getElementById('wtd-office-filter-bar');
+  const allOff = [...new Set([...CONSUL_CONFIG.offices,...(CONSUL_CONFIG.compare_offices||[])])].filter(o=>o!=='Newport Beach');
+  if(val==='active'){
+    wtdActiveExtra = wtdActiveExtra==='active' ? null : 'active';
+    const actBtn = document.getElementById('wtd-f-active');
+    if(actBtn) actBtn.classList.toggle('active', wtdActiveExtra==='active');
+  } else if(val==='all'){
+    wtdOffices = new Set(allOff);
+    if(bar) bar.querySelectorAll('.filter-btn[data-office]').forEach(b=>b.classList.add('active'));
+    const allBtn=document.getElementById('wtd-f-all'); if(allBtn) allBtn.classList.add('active');
   } else {
-    if(wtdOffices.has(val)){
-      wtdOffices.delete(val);
-      const id={'Riverside':'riverside','Newport Beach':'newport','Orange County':'oc'}[val];
-      document.getElementById('wtd-f-'+id).classList.remove('active');
-    } else {
-      wtdOffices.add(val);
-      const id={'Riverside':'riverside','Newport Beach':'newport','Orange County':'oc'}[val];
-      document.getElementById('wtd-f-'+id).classList.add('active');
-    }
-    const allOn = wtdOffices.size===2;
-    document.getElementById('wtd-f-all').classList.toggle('active',allOn);
+    wtdOffices = new Set([val]);
+    if(bar) bar.querySelectorAll('.filter-btn[data-office]').forEach(b=>b.classList.toggle('active',b.dataset.office===val));
+    const allBtn=document.getElementById('wtd-f-all'); if(allBtn) allBtn.classList.remove('active');
   }
   renderWTD();
 }
@@ -3337,17 +3593,23 @@ function wtdSort(col){
 }
 function getWTDData(){
   const search=document.getElementById('wtd-search').value.toLowerCase();
-  // Join roster (identity) with WTD perf map + QTD context fields
+  const isLW=(wtdWeekMode==='last');
   let data=ROSTER_EMPLOYEES.map(r=>{
-    const p=WTD_MAP[r.id]||{};
+    const p=isLW?(LW_MAP[r.id]||{}):(WTD_MAP[r.id]||{});
     const q=QTD_MAP[r.id]||{};
     const rk=(RANKINGS_MAP[r.id]||{});
     return {
       id:r.id, name:r.name, office:r.office, squad:r.squad, role:r.role, pod:r.pod||'',
       mobile:r.mobile||'',
-      wtd_ac:p.wtd_ac||0, wtd_cs:p.wtd_cs||0, wtd_wc:p.wtd_wc||0,
-      wtd_sra:p.wtd_sra||0, wtd_cap:p.wtd_cap||0, wtd_ic:p.wtd_ic||0,
-      knocks:p.knocks||0, pitches:p.pitches||0, hours_knocked:p.hours_knocked||0,
+      wtd_ac:  isLW?(p.lw_ac||0) :(p.wtd_ac||0),
+      wtd_cs:  isLW?(p.lw_cs||0) :(p.wtd_cs||0),
+      wtd_wc:  isLW?0             :(p.wtd_wc||0),
+      wtd_sra: isLW?(p.lw_sra||0):(p.wtd_sra||0),
+      wtd_cap: isLW?(p.lw_cap||0):(p.wtd_cap||0),
+      wtd_ic:  isLW?(p.lw_ic||0) :(p.wtd_ic||0),
+      knocks:        isLW?0:(p.knocks||0),
+      pitches:       isLW?0:(p.pitches||0),
+      hours_knocked: isLW?0:(p.hours_knocked||0),
       qtr_status:q.qtr_status||p.qtr_status||'',
       qtr_sra:q.qtr_sra||0, qtr_cap:q.qtr_cap||0, qtr_ic:q.qtr_ic||0,
       qtd_cs:q.qtd_cs||0,
@@ -3360,7 +3622,8 @@ function getWTDData(){
       exp_title:rk.title||''
     };
   });
-  if(wtdOffices.size<3) data=data.filter(e=>wtdOffices.has(e.office));
+  const _allWtd=[...new Set([...CONSUL_CONFIG.offices,...(CONSUL_CONFIG.compare_offices||[])])].filter(o=>o!=='Newport Beach');
+  if(wtdOffices.size < _allWtd.length) data=data.filter(e=>wtdOffices.has(e.office));
   if(wtdSquadFilter) data=data.filter(e=>e.squad===wtdSquadFilter);
   if(wtdActiveExtra==='active') data=data.filter(e=>e.wtd_cs||e.wtd_sra||e.wtd_cap||e.wtd_ic||e.wtd_ac);
   if(search) data=data.filter(e=>e.name.toLowerCase().includes(search));
@@ -3850,7 +4113,7 @@ function renderWTD(){
     const e=r.emp;
     const oc=OFFICE_COLORS[e.office]||'#888';
     function wtdCls(val,goal){if(!val||val===0)return 'nil';if(val>goal)return 'exceeds';return 'pos';}
-    const trendHtml = e.status_change ? `<span style="margin-left:5px;font-size:11px;vertical-align:middle">${changeIcon(e.status_change)}</span>` : '';
+    const trendHtml = e.status_change ? changeIcon(e.status_change) : '';
     var sraLightColor = '';
     if (e.days_since_sra > 14)     sraLightColor = '#F05252';
     else if (e.days_since_sra > 7) sraLightColor = '#EF9F27';
@@ -4510,8 +4773,113 @@ function closeAddModal(){
   document.getElementById('rc-add-modal').style.display='none';
 }
 // ── SQUAD SNAPSHOT MODAL ──────────────────────────────────────────────────────
+let _squadSnapMode = 'wtd';
+let _squadSnapCurrent = '';
+
 function closeSquadSnapshot() {
   document.getElementById('squad-snapshot-modal').style.display = 'none';
+}
+
+function squadSnapSetMode(mode) {
+  _squadSnapMode = mode;
+  const wb=document.getElementById('squad-snap-wtd-btn'), qb=document.getElementById('squad-snap-qtd-btn');
+  if(wb){wb.style.borderColor=mode==='wtd'?'var(--cyan-light)':'rgba(248,249,249,0.2)';wb.style.color=mode==='wtd'?'var(--cyan-light)':'var(--text-muted)';wb.style.background=mode==='wtd'?'rgba(170,221,221,0.1)':'transparent';}
+  if(qb){qb.style.borderColor=mode==='qtd'?'var(--cyan-light)':'rgba(248,249,249,0.2)';qb.style.color=mode==='qtd'?'var(--cyan-light)':'var(--text-muted)';qb.style.background=mode==='qtd'?'rgba(170,221,221,0.1)':'transparent';}
+  renderSquadSnapshot(_squadSnapCurrent);
+}
+
+function renderSquadSnapshot(squadKey) {
+  const body=document.getElementById('squad-snapshot-body');
+  const subtitleEl=document.getElementById('squad-snapshot-subtitle');
+  const rosterMembers=ROSTER_EMPLOYEES.filter(e=>e.squad===squadKey);
+  if(!rosterMembers.length||!body) return;
+  const sqCfg=SQUAD_DB[squadKey]||{}, leader=sqCfg.leader||'', tab=_squadSnapMode;
+  let sorted=[...rosterMembers].sort((a,b)=>{
+    if(a.name===leader) return -1; if(b.name===leader) return 1;
+    if(tab==='wtd') return ((WTD_MAP[b.id]||{}).wtd_sra||0)-((WTD_MAP[a.id]||{}).wtd_sra||0);
+    return ((QTD_MAP[b.id]||{}).qtr_sra||0)-((QTD_MAP[a.id]||{}).qtr_sra||0);
+  });
+  // Always filter to reps with activity — WTD: any WTD number; QTD: any QTD number
+  if(tab==='wtd'){
+    sorted=sorted.filter(e=>{const w=WTD_MAP[e.id]||{};return w.wtd_ac||w.wtd_cs||w.wtd_sra||w.wtd_cap||w.wtd_ic;});
+  } else {
+    sorted=sorted.filter(e=>{const q=QTD_MAP[e.id]||{};return q.qtr_sra||q.qtr_cap||q.qtr_ic;});
+  }
+  if(!sorted.length){
+    body.innerHTML='<div style="padding:20px;color:var(--text-muted);font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;">No activity yet this '+(tab==='wtd'?'week':'quarter')+' in this squad.</div>';
+    document.getElementById('squad-snapshot-modal').style.display='flex';
+    return;
+  }
+  const n=sorted.length;
+  const fs=n<=10?14:n<=15?12:n<=20?11:n<=28?10:9;
+  const pad=fs<=10?'6px 10px':'8px 14px';
+  const hS='font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+(fs-2)+'px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);padding:'+pad+';text-align:center;border-bottom:1px solid rgba(170,221,221,0.18);white-space:nowrap;';
+  const hNS='font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+(fs-2)+'px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);padding:'+pad+';text-align:left;border-bottom:1px solid rgba(170,221,221,0.18);';
+  const tS='font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+fs+'px;padding:'+pad+';border-bottom:1px solid rgba(170,221,221,0.06);text-align:center;color:var(--off-white);';
+  const tNS='font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+fs+'px;font-weight:600;padding:'+pad+';border-bottom:1px solid rgba(170,221,221,0.06);text-align:left;color:var(--off-white);white-space:nowrap;';
+  function clsWTD(v,g){if(!v||v===0)return 'color:rgba(248,249,249,0.15)';if(v>g)return 'color:var(--v-exceeds);text-shadow:0 0 8px rgba(39,217,217,0.4)';return 'color:var(--off-white)';}
+  function sraIndicator(d){if(!d)return '';const col=d>14?'#F05252':d>7?'#EF9F27':'#2DC48E';return '<span title="Days since last SRA: '+d+'" style="margin-left:6px;display:inline-block;width:7px;height:7px;border-radius:50%;background:'+col+';vertical-align:middle;flex-shrink:0"></span>';}
+  function rkBadge(id,q){const r=(q&&q.exp_rank)?q.exp_rank:((RANKINGS_MAP[id]||{}).currentRank||'');return r?rkRankBadge(r):'<span style="color:rgba(248,249,249,.25)">—</span>';}
+  // QTD squad summary bar (always shown at top)
+  const qG_sra=sqCfg.qtr_sra||0,qG_ic=sqCfg.qtr_ic||0;
+  const qT_sra=rosterMembers.reduce((s,e)=>s+((QTD_MAP[e.id]||{}).qtr_sra||0),0);
+  const qT_cap=rosterMembers.reduce((s,e)=>s+((QTD_MAP[e.id]||{}).qtr_cap||0),0);
+  const qT_ic=rosterMembers.reduce((s,e)=>s+((QTD_MAP[e.id]||{}).qtr_ic||0),0);
+  const sCol=qG_sra&&qT_sra>=qG_sra?'#2DC48E':qG_sra&&qT_sra>=qG_sra*.75?'#EF9F27':'var(--cyan-light)';
+  const iCol=qG_ic&&qT_ic>=qG_ic?'#2DC48E':qG_ic&&qT_ic>=qG_ic*.75?'#EF9F27':'var(--cyan-light)';
+  const qtdBar='<div style="display:flex;align-items:center;gap:24px;padding:12px 0 16px;border-bottom:1px solid rgba(170,221,221,0.2);margin-bottom:16px;flex-wrap:wrap">'
+    +'<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark)">QTD Squad</div>'
+    +'<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:'+sCol+'">SRA '+qT_sra+(qG_sra?' <span style="font-weight:400;color:rgba(248,249,249,0.4);font-size:11px">/ '+qG_sra+'</span>':'')+'</div>'
+    +'<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:var(--off-white)">CAP '+qT_cap+'</div>'
+    +'<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:'+iCol+'">IC '+qT_ic+(qG_ic?' <span style="font-weight:400;color:rgba(248,249,249,0.4);font-size:11px">/ '+qG_ic+'</span>':'')+'</div>'
+    +'</div>';
+  let hdr,rows;
+  if(tab==='wtd'){
+    const wk=document.getElementById('wtd-date-input')?.value||'';
+    subtitleEl.textContent='This Week'+(wk?'  ·  Week of '+wk:'');
+    const tot=sorted.reduce((t,e)=>{const w=WTD_MAP[e.id]||{};t.ac+=w.wtd_ac||0;t.cs+=w.wtd_cs||0;t.sra+=w.wtd_sra||0;t.cap+=w.wtd_cap||0;t.ic+=w.wtd_ic||0;t.pit+=w.pitches||0;return t;},{ac:0,cs:0,sra:0,cap:0,ic:0,pit:0});
+    hdr='<tr><th style="'+hNS+'">Name</th><th style="'+hS+'">AC</th><th style="'+hS+'">CS</th><th style="'+hS+'">SRA</th><th style="'+hS+'">CAP</th><th style="'+hS+'">IC</th><th style="'+hS+'">Pitches</th><th style="'+hS+'">Days/SRA</th></tr>';
+    const totRow='<tr style="background:rgba(39,217,217,0.05)"><td style="'+tNS+'font-weight:700;color:var(--cyan-dark)">TOTALS</td>'
+      +'<td style="'+tS+'font-weight:700">'+(tot.ac||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.cs||'—')+'</td>'
+      +'<td style="'+tS+'font-weight:700">'+(tot.sra||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.cap||'—')+'</td>'
+      +'<td style="'+tS+'font-weight:700">'+(tot.ic||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.pit||'—')+'</td><td style="'+tS+'"></td></tr>';
+    rows=sorted.map(e=>{
+      const w=WTD_MAP[e.id]||{},q=QTD_MAP[e.id]||{},il=e.name===leader;
+      const days=q.days_since_sra||0;
+      const ds=days>14?'font-weight:700;color:#F05252':days>7?'color:#EF9F27':days>0?'color:#2DC48E':'color:rgba(248,249,249,0.25)';
+      const chg=q.status_change?changeIcon(q.status_change):'';
+      return '<tr><td style="'+tNS+(il?'color:var(--cyan-light);':'')+'"><span style="display:inline-flex;align-items:center">'+e.name
+        +(il?' <span style="font-size:9px;letter-spacing:1px;color:var(--cyan-dark);margin-left:5px">LEADER</span>':'')
+        +(chg?'<span style="margin-left:4px">'+chg+'</span>':'')+(days?sraIndicator(days):'')+'</span></td>'
+        +'<td style="'+tS+clsWTD(w.wtd_ac,WTD_GOALS.ac)+'">'+(w.wtd_ac||'—')+'</td>'
+        +'<td style="'+tS+clsWTD(w.wtd_cs,WTD_GOALS.cs)+'">'+(w.wtd_cs||'—')+'</td>'
+        +'<td style="'+tS+clsWTD(w.wtd_sra,WTD_GOALS.sra)+'">'+(w.wtd_sra||'—')+'</td>'
+        +'<td style="'+tS+clsWTD(w.wtd_cap,WTD_GOALS.cap)+'">'+(w.wtd_cap||'—')+'</td>'
+        +'<td style="'+tS+clsWTD(w.wtd_ic,WTD_GOALS.ic)+'">'+(w.wtd_ic||'—')+'</td>'
+        +'<td style="'+tS+clsWTD(w.pitches,WTD_GOALS.pitches)+'">'+(w.pitches||'—')+'</td>'
+        +'<td style="'+tS+ds+'">'+(days||'—')+'</td></tr>';
+    }).join('')+totRow;
+  } else {
+    subtitleEl.textContent='QTD Detail';
+    const tot=sorted.reduce((t,e)=>{const q=QTD_MAP[e.id]||{};t.sra+=q.qtr_sra||0;t.cap+=q.qtr_cap||0;t.ic+=q.qtr_ic||0;return t;},{sra:0,cap:0,ic:0});
+    hdr='<tr><th style="'+hNS+'">Name</th><th style="'+hS+'">QTR SRA</th><th style="'+hS+'">QTR CAP</th><th style="'+hS+'">QTR IC</th><th style="'+hS+'">Days/SRA</th><th style="'+hS+'">Rank</th></tr>';
+    const totRow='<tr style="background:rgba(39,217,217,0.05)"><td style="'+tNS+'font-weight:700;color:var(--cyan-dark)">TOTALS</td>'
+      +'<td style="'+tS+'font-weight:700">'+(tot.sra||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.cap||'—')+'</td>'
+      +'<td style="'+tS+'font-weight:700">'+(tot.ic||'—')+'</td><td style="'+tS+'"></td><td style="'+tS+'"></td></tr>';
+    rows=sorted.map(e=>{
+      const q=QTD_MAP[e.id]||{},il=e.name===leader;
+      const days=q.days_since_sra||0;
+      const ds=days>14?'font-weight:700;color:#F05252':days>7?'color:#EF9F27':days>0?'color:#2DC48E':'color:rgba(248,249,249,0.25)';
+      const chg=q.status_change?changeIcon(q.status_change):'';
+      return '<tr><td style="'+tNS+(il?'color:var(--cyan-light);':'')+'"><span style="display:inline-flex;align-items:center">'+e.name
+        +(il?' <span style="font-size:9px;letter-spacing:1px;color:var(--cyan-dark);margin-left:5px">LEADER</span>':'')
+        +(chg?'<span style="margin-left:4px">'+chg+'</span>':'')+(days?sraIndicator(days):'')+'</span></td>'
+        +'<td style="'+tS+'">'+(q.qtr_sra||'—')+'</td><td style="'+tS+'">'+(q.qtr_cap||'—')+'</td><td style="'+tS+'">'+(q.qtr_ic||'—')+'</td>'
+        +'<td style="'+tS+ds+'">'+(days||'—')+'</td><td style="'+tS+'">'+rkBadge(e.id,q)+'</td></tr>';
+    }).join('')+totRow;
+  }
+  body.innerHTML=qtdBar+'<table style="width:100%;border-collapse:collapse;">'+hdr+'<tbody>'+rows+'</tbody></table>';
+  document.getElementById('squad-snapshot-modal').style.display='flex';
 }
 
 // ── POD SNAPSHOT ─────────────────────────────────────────────────────────────
@@ -4564,6 +4932,12 @@ function renderPodSnapshot(podName, squadKey) {
     return;
   }
 
+  // Always filter to reps with activity
+  const activeMembers = _podSnapMode==='wtd'
+    ? members.filter(e=>{const w=WTD_MAP[e.id]||{};return w.wtd_ac||w.wtd_cs||w.wtd_sra||w.wtd_cap||w.wtd_ic;})
+    : members.filter(e=>{const q=QTD_MAP[e.id]||{};return q.qtr_sra||q.qtr_cap||q.qtr_ic;});
+  const showMembers = activeMembers.length ? activeMembers : members; // Fall back to all if none active
+
   const thS  = 'padding:8px 10px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);border-bottom:1px solid rgba(170,221,221,0.2);white-space:nowrap;';
   const tdS  = a => `padding:9px 10px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;color:var(--off-white);border-bottom:1px solid rgba(170,221,221,0.07);text-align:${a};`;
   const totS = a => `padding:9px 10px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;color:var(--cyan-light);border-top:1px solid rgba(170,221,221,0.2);text-align:${a};`;
@@ -4578,7 +4952,7 @@ function renderPodSnapshot(podName, squadKey) {
       {label:'Knocks', key:'knocks',       align:'center'},
       {label:'Hrs',    key:'hours_knocked',align:'center'},
     ];
-    const rows = members.map(r=>({name:r.name,...(WTD_MAP[r.id]||{})}))
+    const rows = showMembers.map(r=>({name:r.name,...(WTD_MAP[r.id]||{})}))
                         .sort((a,b)=>(b.wtd_sra||0)-(a.wtd_sra||0));
     const tot  = {name:'TOTAL',wtd_ac:0,wtd_cs:0,wtd_sra:0,wtd_ic:0,knocks:0,hours_knocked:0};
     rows.forEach(r=>{ tot.wtd_ac+=r.wtd_ac||0; tot.wtd_cs+=r.wtd_cs||0; tot.wtd_sra+=r.wtd_sra||0; tot.wtd_ic+=r.wtd_ic||0; tot.knocks+=r.knocks||0; tot.hours_knocked+=r.hours_knocked||0; });
@@ -4591,7 +4965,7 @@ function renderPodSnapshot(podName, squadKey) {
       {label:'QTR CAP', key:'qtr_cap',align:'center'},
       {label:'QTD CS',  key:'qtd_cs', align:'center'},
     ];
-    const rows = members.map(r=>({name:r.name,...(QTD_MAP[r.id]||{})}))
+    const rows = showMembers.map(r=>({name:r.name,...(QTD_MAP[r.id]||{})}))
                         .sort((a,b)=>(b.qtr_sra||0)-(a.qtr_sra||0));
     const tot  = {name:'TOTAL',qtr_sra:0,qtr_ic:0,qtr_cap:0,qtd_cs:0};
     rows.forEach(r=>{ tot.qtr_sra+=r.qtr_sra||0; tot.qtr_ic+=r.qtr_ic||0; tot.qtr_cap+=r.qtr_cap||0; tot.qtd_cs+=r.qtd_cs||0; });
@@ -4607,78 +4981,12 @@ function _podTable(cols,rows,tot,thS,tdS,totS){
 }
 
 function openSquadSnapshot(squadKey, tab) {
-  const rosterMembers = ROSTER_EMPLOYEES.filter(e => e.squad === squadKey);
-  if (!rosterMembers.length) return;
-  const modal    = document.getElementById('squad-snapshot-modal');
-  const title    = document.getElementById('squad-snapshot-title');
-  const subtitle = document.getElementById('squad-snapshot-subtitle');
-  const body     = document.getElementById('squad-snapshot-body');
-  const sqCfg    = SQUAD_DB[squadKey] || {};
-  const leader   = sqCfg.leader || '';
-  const sorted   = [...rosterMembers].sort((a, b) => {
-    if (a.name === leader) return -1;
-    if (b.name === leader) return 1;
-    if (tab === 'wtd') return ((WTD_MAP[b.id]||{}).wtd_sra||0) - ((WTD_MAP[a.id]||{}).wtd_sra||0);
-    return ((QTD_MAP[b.id]||{}).qtr_sra||0) - ((QTD_MAP[a.id]||{}).qtr_sra||0);
-  });
-  const n  = sorted.length;
-  const fs = n <= 10 ? 14 : n <= 15 ? 12 : n <= 20 ? 11 : n <= 28 ? 10 : 9;
-  const pad = fs <= 10 ? '6px 10px' : '8px 14px';
-  const hS  = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+(fs-2)+'px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);padding:'+pad+';text-align:center;border-bottom:1px solid rgba(170,221,221,0.18);white-space:nowrap;';
-  const hNS = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+(fs-2)+'px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark);padding:'+pad+';text-align:left;border-bottom:1px solid rgba(170,221,221,0.18);';
-  const tS  = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+fs+'px;padding:'+pad+';border-bottom:1px solid rgba(170,221,221,0.06);text-align:center;color:var(--off-white);';
-  const tNS = 'font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:'+fs+'px;font-weight:600;padding:'+pad+';border-bottom:1px solid rgba(170,221,221,0.06);text-align:left;color:var(--off-white);white-space:nowrap;';
-  function cls(val, goal) {
-    if (!val||val===0) return 'color:rgba(248,249,249,0.15)';
-    if (val > goal)    return 'color:var(--v-exceeds);text-shadow:0 0 8px var(--v-exceeds-glow)';
-    return 'color:var(--off-white)';
-  }
-  function rk(id, fallback) {
-    const r = (fallback && fallback.exp_rank) ? fallback.exp_rank : ((RANKINGS_MAP[id]||{}).currentRank||'');
-    return r ? rkRankBadge(r) : '<span style="color:rgba(248,249,249,.25)">—</span>';
-  }
-  let headerRow, rows;
-  if (tab === 'wtd') {
-    const week = document.getElementById('wtd-date-input')?.value || '';
-    subtitle.textContent = 'WTD Detail' + (week ? '  ·  Week of ' + week : '');
-    const tot = sorted.reduce((t,e)=>{ const w=WTD_MAP[e.id]||{}; t.ac+=w.wtd_ac||0;t.cs+=w.wtd_cs||0;t.sra+=w.wtd_sra||0;t.cap+=w.wtd_cap||0;t.ic+=w.wtd_ic||0;t.kn+=w.knocks||0; return t; },{ac:0,cs:0,sra:0,cap:0,ic:0,kn:0});
-    headerRow = '<tr><th style="'+hNS+'">Name</th><th style="'+hS+'">AC</th><th style="'+hS+'">CS</th><th style="'+hS+'">SRA</th><th style="'+hS+'">CAP</th><th style="'+hS+'">IC</th><th style="'+hS+'">Knocks</th><th style="'+hS+'">Rank</th></tr>';
-    const totRow = '<tr style="background:rgba(39,217,217,0.05)"><td style="'+tNS+'font-weight:700;color:var(--cyan-dark)">TOTALS</td><td style="'+tS+'font-weight:700">'+(tot.ac||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.cs||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.sra||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.cap||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.ic||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.kn||'—')+'</td><td style="'+tS+'"></td></tr>';
-    rows = sorted.map(e => {
-      const w = WTD_MAP[e.id]||{};
-      const il = e.name===leader;
-      return '<tr><td style="'+tNS+(il?'color:var(--cyan-light);':'')+'">'+(e.name)+(il?' <span style="font-size:9px;letter-spacing:1px;color:var(--cyan-dark)">LEADER</span>':'')+'</td><td style="'+tS+cls(w.wtd_ac,WTD_GOALS.ac)+'">'+(w.wtd_ac||'—')+'</td><td style="'+tS+cls(w.wtd_cs,WTD_GOALS.cs)+'">'+(w.wtd_cs||'—')+'</td><td style="'+tS+cls(w.wtd_sra,WTD_GOALS.sra)+'">'+(w.wtd_sra||'—')+'</td><td style="'+tS+cls(w.wtd_cap,WTD_GOALS.cap)+'">'+(w.wtd_cap||'—')+'</td><td style="'+tS+cls(w.wtd_ic,WTD_GOALS.ic)+'">'+(w.wtd_ic||'—')+'</td><td style="'+tS+(w.knocks?'color:var(--off-white)':'color:rgba(248,249,249,0.15)')+'">'+(w.knocks||'—')+'</td><td style="'+tS+'">'+rk(e.id,w)+'</td></tr>';
-    }).join('') + totRow;
-  } else {
-    subtitle.textContent = 'QTD Detail';
-    const tot = sorted.reduce((t,e)=>{ const q=QTD_MAP[e.id]||{}; t.sra+=q.qtr_sra||0;t.cap+=q.qtr_cap||0;t.ic+=q.qtr_ic||0; return t; },{sra:0,cap:0,ic:0});
-    headerRow = '<tr><th style="'+hNS+'">Name</th><th style="'+hS+'">SRA</th><th style="'+hS+'">CAP</th><th style="'+hS+'">IC</th><th style="'+hS+'">Activity</th><th style="'+hS+'">Rank</th></tr>';
-    const totRow = '<tr style="background:rgba(39,217,217,0.05)"><td style="'+tNS+'font-weight:700;color:var(--cyan-dark)">TOTALS</td><td style="'+tS+'font-weight:700">'+(tot.sra||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.cap||'—')+'</td><td style="'+tS+'font-weight:700">'+(tot.ic||'—')+'</td><td style="'+tS+'"></td><td style="'+tS+'"></td></tr>';
-    rows = sorted.map(e => {
-      const q = QTD_MAP[e.id]||{};
-      const il = e.name===leader;
-      return '<tr><td style="'+tNS+(il?'color:var(--cyan-light);':'')+'">'+(e.name)+(il?' <span style="font-size:9px;letter-spacing:1px;color:var(--cyan-dark)">LEADER</span>':'')+'</td><td style="'+tS+'">'+(q.qtr_sra||'—')+'</td><td style="'+tS+'">'+(q.qtr_cap||'—')+'</td><td style="'+tS+'">'+(q.qtr_ic||'—')+'</td><td style="'+tS+'max-width:90px;overflow:hidden;text-overflow:ellipsis;"><span style="font-size:'+(fs-1)+'px;color:var(--text-muted)">'+(q.status||'—')+'</span></td><td style="'+tS+'">'+rk(e.id,q)+'</td></tr>';
-    }).join('') + totRow;
-  }
-  title.textContent = squadKey;
-  // ── QTD squad summary bar ──
-  const qtdGoalSRA = sqCfg.qtr_sra || 0;
-  const qtdGoalIC  = sqCfg.qtr_ic  || 0;
-  const qtdTotSRA  = rosterMembers.reduce((s,e) => s + ((QTD_MAP[e.id]||{}).qtr_sra||0), 0);
-  const qtdTotCAP  = rosterMembers.reduce((s,e) => s + ((QTD_MAP[e.id]||{}).qtr_cap||0), 0);
-  const qtdTotIC   = rosterMembers.reduce((s,e) => s + ((QTD_MAP[e.id]||{}).qtr_ic||0),  0);
-  const sraSummColor = qtdGoalSRA && qtdTotSRA >= qtdGoalSRA ? '#2DC48E' : qtdGoalSRA && qtdTotSRA >= qtdGoalSRA * 0.75 ? '#EF9F27' : 'var(--cyan-light)';
-  const icSummColor  = qtdGoalIC  && qtdTotIC  >= qtdGoalIC  ? '#2DC48E' : qtdGoalIC  && qtdTotIC  >= qtdGoalIC  * 0.75 ? '#EF9F27' : 'var(--cyan-light)';
-  const qtdSummary = '<div style="display:flex;align-items:center;gap:24px;padding:12px 0 16px;border-bottom:1px solid rgba(170,221,221,0.2);margin-bottom:16px;flex-wrap:wrap">'
-    + '<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dark)">QTD Squad</div>'
-    + '<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:'+sraSummColor+'">SRA '+qtdTotSRA+(qtdGoalSRA?' <span style="font-weight:400;color:rgba(248,249,249,0.4);font-size:11px">/ '+qtdGoalSRA+'</span>':'')+'</div>'
-    + '<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:var(--off-white)">CAP '+qtdTotCAP+'</div>'
-    + '<div style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:'+icSummColor+'">IC '+qtdTotIC+(qtdGoalIC?' <span style="font-weight:400;color:rgba(248,249,249,0.4);font-size:11px">/ '+qtdGoalIC+'</span>':'')+'</div>'
-    + '</div>';
-  body.innerHTML = qtdSummary + '<table style="width:100%;border-collapse:collapse;">'+headerRow+'<tbody>'+rows+'</tbody></table>';
-  modal.style.display = 'flex';
+  if (!ROSTER_EMPLOYEES.some(e => e.squad === squadKey)) return;
+  _squadSnapCurrent = squadKey;
+  _squadSnapMode    = tab || 'wtd';
+  document.getElementById('squad-snapshot-title').textContent = squadKey;
+  squadSnapSetMode(_squadSnapMode);
 }
-
 // ── EXPORT CSV ──
 function exportCSV(tab){
   let rows=[], headers=[];
@@ -6038,11 +6346,7 @@ let sortCol = 'QSRA';
 let sortDir = -1; // descending by default
 let searchTerm = '';
 
-const SI_OFFICE_COLORS = {
-  'Riverside': '#417375',
-  'Newport Beach': '#AADDDD',
-  'Orange County': '#F2CF9C',
-};
+const SI_OFFICE_COLORS = CONSUL_CONFIG.office_colors;
 
 // Rep Performance Export is the authority for these QTD fields.
 // Cache values when Rep Perf loads; restore them if QTD file is uploaded afterward.
@@ -6442,7 +6746,7 @@ function gc_renderTable() {
   }
   empty.style.display = 'none';
 
-  const SI_OFFICE_COLORS = { 'Riverside':'#417375', 'Newport Beach':'#AADDDD', 'Orange County':'#F2CF9C' };
+  const SI_OFFICE_COLORS = CONSUL_CONFIG.office_colors;
 
   tbody.innerHTML = gc_filteredData.map((row, i) => {
     const officeColor = SI_OFFICE_COLORS[row['Office']] || '#AADDDD';
@@ -6593,15 +6897,7 @@ const BAKED_QTDPOINTS = []; // Populated from Google Sheets
 
 
 // ── INIT ──
-// WTD: OC only active at startup (wtdOffices already initialized to OC only)
-document.getElementById('wtd-f-riverside').classList.remove('active');
-document.getElementById('wtd-f-oc').classList.add('active');
-document.getElementById('wtd-f-all').classList.remove('active');
-
-// Overview: compare defaults to Riverside (button state already set in HTML)
-// Overview: default compare = Orange County
-document.getElementById('ov-c-oc').classList.add('active');
-document.getElementById('ov-c-riverside').classList.remove('active');
+// Office button states are set dynamically by applyBranding() on DOMContentLoaded
 
 function rkRankBadge(rank) {
   if (!rank) return '<span class="rank-badge rank-nostatus">No Status</span>';
@@ -6903,8 +7199,7 @@ function renderRankingsMobile(data) {
 
 // ── GOOGLE SHEETS LIVE FETCH ─────────────────────────────────────────────────
 const SHEETS_API_KEY = 'AIzaSyCpVnUmNfuldsnJ5BotzSSo89aVehuoctk';
-const SHEETS_ID      = '1Awy-KgfNtf8IBAZf-nY8pmv26n0juNk28IRTfN0usn4';
-const SHEETS_BASE    = 'https://sheets.googleapis.com/v4/spreadsheets';
+// SHEETS_ID and SHEETS_BASE are defined at top via CONSUL_CONFIG alias block — do not redeclare here
 
 function sheetsUrl(tab) {
   return SHEETS_BASE + '/' + SHEETS_ID + '/values/' + encodeURIComponent(tab)
@@ -7294,6 +7589,30 @@ async function fetchSheetsData(opts) {
       }
     });
   } catch(e) { errors.push('Report: ' + e.message); }
+
+  await sleep(350);
+
+  // ── Office Goals (per-office WTD/QTD targets for overview compare bars) ────
+  await loadOfficeGoals();
+
+  await sleep(350);
+
+  // ── Last Week ────────────────────────────────────────────────────────────────
+  try {
+    var lwRes = await fetchWithTimeout(sheetsUrl('Last Week'));
+    if (lwRes.ok) {
+      LW_MAP = {};
+      sheetsRowsToObjects((await lwRes.json()).values || []).forEach(function(r) {
+        var id = String(r['employee id']||r['id']||r['client user id']||r['user id']||'').trim();
+        if (!id || !/^\d+$/.test(id)) return;
+        LW_MAP[id] = {
+          lw_ac:  csvNum(r['ac']||r['acs']||0), lw_cs:  csvNum(r['cs']||r['cs week']||0),
+          lw_sra: csvNum(r['sra']||r['sra week']||0), lw_cap: csvNum(r['cap']||r['cap week']||0),
+          lw_ic:  csvNum(r['ic']||r['ic week']||0),
+        };
+      });
+    } else { LW_MAP = {}; }
+  } catch(e) { LW_MAP = {}; }
 
   await sleep(350);
 
@@ -8187,7 +8506,7 @@ document.addEventListener('keydown', function(e) {
   <div id="rankings-mobile-list" style="display:none;padding:0 0 80px"></div>
   <div class="footer-bar">
     <span class="footer-count" id="rankings-footer-count">■ Loading...</span>
-    <span class="footer-brand">■ XII — BUILDING CULTURE FORWARD ■</span>
+    <span class="footer-brand"></span>
   </div>
 </div>
 
@@ -8395,8 +8714,7 @@ document.addEventListener('keydown', function(e) {
     <div class="prod-filter-group">
       <div class="prod-filter-label">Office</div>
       <div class="prod-pills" id="prod-office-pills">
-        <span class="prod-pill active" data-office="Orange County" onclick="prodToggleOffice('Orange County',this)">Orange County</span>
-        <span class="prod-pill" data-office="Riverside" onclick="prodToggleOffice('Riverside',this)">Riverside</span>
+        <!-- populated by applyBranding() -->
       </div>
     </div>
 
@@ -8435,11 +8753,8 @@ document.addEventListener('keydown', function(e) {
 <script>
 // ── PRODUCTIVITY TAB ───────────────────────────────────────────────────────────
 
-const PROD_OFFICE_COLORS = {
-  'Orange County': '#5A9EA0',
-  'Newport Beach': '#AADDDD',
-  'Riverside':     '#F2CF9C',
-};
+// PROD_OFFICE_COLORS uses the same palette as OFFICE_COLORS from CONSUL_CONFIG
+const PROD_OFFICE_COLORS = CONSUL_CONFIG.office_colors;
 
 const PROD_STATUSES = ['Productive','Active','Inactive','Combine','New Hire'];
 const PROD_HDR_CLASS = {
@@ -8451,7 +8766,7 @@ const PROD_HDR_CLASS = {
 };
 
 // Filter state — default: OC + NB selected, Productive + Active + Inactive selected
-let prodOffices  = new Set(['Orange County']);
+let prodOffices  = new Set([CONSUL_CONFIG.offices[0]]);
 let prodStatuses = new Set(['Productive','Active','Inactive']);
 
 function prodToggleOffice(office, el) {
@@ -8604,9 +8919,7 @@ function renderProductivity() {
 
     <div class="filter-bar">
       <span class="filter-label">Office</span>
-      <button class="filter-btn" id="cbtn-all" onclick="combineToggleOffice('all',this)">All</button>
-      <button class="filter-btn active" id="cbtn-oc" onclick="combineToggleOffice('Orange County',this)">Orange County</button>
-      <button class="filter-btn" id="cbtn-rv" onclick="combineToggleOffice('Riverside',this)">Riverside</button>
+      <span id="combine-office-filter-bar"><!-- populated by applyBranding() --></span>
       <div class="filter-sep"></div>
       <button class="filter-btn active" id="cbtn-activity" onclick="combineToggleActivity(this)">Has Activity</button>
       <div class="filter-sep"></div>
@@ -8618,21 +8931,9 @@ function renderProductivity() {
       <button class="view-btn" id="cbtn-missed" onclick="combineTogleMissed(this)">Show Missed Draft</button>
     </div>
 
-    <div class="combine-goals-row">
+    <div class="combine-goals-row" id="combine-goals-row">
       <span class="combine-goals-label">WTD SRA Goal</span>
-      <div class="combine-goal-group">
-        <span class="combine-goal-dot" style="background:#F2CF9C"></span>
-        <span class="combine-goal-label">Orange County</span>
-        <input class="combine-goal-input" type="number" id="cgoal-oc" value="12" min="1" oninput="renderCombineTab()">
-        <span class="combine-goal-actual" id="cactual-oc"></span>
-      </div>
-      <div class="filter-sep"></div>
-      <div class="combine-goal-group">
-        <span class="combine-goal-dot" style="background:#5A9EA0"></span>
-        <span class="combine-goal-label">Riverside</span>
-        <input class="combine-goal-input" type="number" id="cgoal-rv" value="10" min="1" oninput="renderCombineTab()">
-        <span class="combine-goal-actual" id="cactual-rv"></span>
-      </div>
+      <!-- Populated dynamically by applyBranding() from CONSUL_CONFIG.offices -->
     </div>
 
   </div><!-- end combine-controls -->
@@ -8706,7 +9007,7 @@ function renderProductivity() {
 
   <div class="footer-bar">
     <span class="footer-count" id="combine-footer">■ Loading from Google Sheets…</span>
-    <span class="footer-brand">■ XII — BUILDING CULTURE FORWARD ■</span>
+    <span class="footer-brand"></span>
   </div>
 
 </div><!-- end panel-combine -->
@@ -8991,9 +9292,8 @@ async function sheetsDeleteRosterRow(sheetRow) {
   }
 }
 
-const OAUTH_CLIENT_ID = '824495442632-o4v639jl9rcsj7dq2fgvfcr6joj98s2c.apps.googleusercontent.com';
+// OAUTH_CLIENT_ID and NOTIFY_EMAIL are defined at top via CONSUL_CONFIG aliases — do not redeclare here
 const OAUTH_SCOPE     = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/gmail.send email profile';
-const NOTIFY_EMAIL    = 'adam.howle@sunrun.com';
 
 let gisTokenClient  = null;
 let sheetsAuthToken = null; // set after user grants access
@@ -9252,6 +9552,7 @@ var xiiAccessLevel  = null; // null | 'view' | 'edit'
 
 // On page load — check localStorage for a saved session
 window.addEventListener('DOMContentLoaded', function() {
+  applyBranding(); // Stamp brand text and build all office UI from CONSUL_CONFIG
   var saved = null;
   try { saved = JSON.parse(localStorage.getItem('xii_auth') || 'null'); } catch(e) {}
   if (saved && saved.email && saved.token && saved.expires > Date.now()) {
@@ -9405,7 +9706,7 @@ function xiiReportBug() {
   document.getElementById('xii-hamburger-btn').classList.remove('open');
   const subject = 'XII Dashboard — Bug Report';
   const body    = 'Please describe the issue below:\n\n';
-  const gmailUrl = 'https://mail.google.com/mail/?view=cm&to=adam.howle%40sunrun.com&su='
+  const gmailUrl = 'https://mail.google.com/mail/?view=cm&to=' + encodeURIComponent(CONSUL_CONFIG.admin_email) + '&su='
     + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
   window.open(gmailUrl, '_blank');
 }
@@ -9579,13 +9880,7 @@ function ob_sendJobOfferSMS(emp) {
 }
 
 // ── BG CLEAR — 4 SMS MESSAGES ────────────────────────────────────────────────
-const OFFICE_MEETING_INFO = {
-  'Riverside':     { days: 'Tuesday and Thursday', time: '11am–1pm',       address: '1550 Magnolia Ave Ste 200, Corona, CA 92879' },
-  'Newport Beach': { days: 'Monday and Thursday',  time: '10:30am–12:30pm', address: '8 Whatney, Irvine CA 92618' },
-  'Orange County': { days: 'Monday and Thursday',  time: '10:30am–12:30pm', address: '8 Whatney, Irvine CA 92618' },
-};
-const ADAM_PHONE  = '5625371559';
-const ADAM_EMAIL  = 'adam.howle@sunrun.com';
+// OFFICE_MEETING_INFO, ADAM_PHONE, ADAM_EMAIL are defined at top via CONSUL_CONFIG aliases
 
 function ob_sendBGClearSMS(emp) {
   const name    = ob_cap(emp.name) || 'New Hire';
