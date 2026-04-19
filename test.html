@@ -4956,7 +4956,7 @@ function rpParseRoster(rows) {
   RP.roster       = {};
   RP.rosterByEmail = {};
   rows.forEach(r => {
-    const id = r['Employee Id'];
+    const id = r['Employee ID'];
     if (!id) return;
     const rec = {
       id:        id,
@@ -5427,6 +5427,22 @@ function rpBoot() {
   /* Auto-request token if user was previously signed in */
   _tokenClient && _tokenClient.requestAccessToken({ prompt: '' });
 }
+
+/* ── AUTO-BOOT: poll until GIS library is ready, then call rpBoot ── */
+(function() {
+  function tryBoot() {
+    if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+      rpBoot();
+    } else {
+      setTimeout(tryBoot, 100);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', tryBoot);
+  } else {
+    tryBoot();
+  }
+})();
 
 /* Wire sign-out button in drawer */
 (function() {
