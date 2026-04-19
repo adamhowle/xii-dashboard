@@ -4956,7 +4956,7 @@ function rpParseRoster(rows) {
   RP.roster       = {};
   RP.rosterByEmail = {};
   rows.forEach(r => {
-    const id = r['Employee ID'];
+    const id = r['Employee Id'];
     if (!id) return;
     const rec = {
       id:        id,
@@ -4995,7 +4995,7 @@ function rpParseReport(rows) {
 function rpParseQTD(rows) {
   RP.qtdPoints = {};
   rows.forEach(r => {
-    const id = r['Employee ID'];
+    const id = r['Employee Id'];
     if (!id) return;
     RP.qtdPoints[id] = {
       csWeek:       parseFloat(r['CS Week'])              || 0,
@@ -5004,9 +5004,9 @@ function rpParseQTD(rows) {
       icWeek:       parseFloat(r['IC Week'])              || 0,
       sraQtr:       parseFloat(r['SRA QTR'])              || 0,
       capQtr:       parseFloat(r['CAP QTR'])              || 0,
-      icQtrPoints:  parseFloat(r['IC QTR Points'])        || 0,  /* status IC, no add-ons */
-      icQtrAll:     parseFloat(r['IC QTR'])               || 0,  /* all IC incl add-ons, for earnings */
-      pace:         r['Pace']                             || '',
+      icQtrPoints:  parseFloat(r['IC QTR Points*'])       || 0,  /* status IC — use for progress bars */
+      icQtrTotal:   parseFloat(r['IC QTR'])               || 0,  /* raw IC count this quarter */
+      pace:         r['IC QTR Points Pace']               || '',
       countsToward: (r['Counts Towards Club+%'] || '').toUpperCase() === 'YES',
       qtrStatus:    r['QTR Status']                       || '',
       sraRolling:   parseFloat(r['SRA Rolling 90 Days'])  || 0,
@@ -5049,8 +5049,8 @@ function rpParseExport(rows) {
       title:          r['Title']                     || '',
       currentRank:    r['Current Rank']              || '',
       rankPace:       r['Rank Pace']                 || '',
-      llPoints:       parseFloat(r['LL'])            || 0,
-      installPoints:  parseFloat(r['Install Points'])|| 0,
+      llPoints:       parseFloat(r['LL Install Points']) || 0,
+      /* Install Points merged into LL Install Points above */
       qInstalls:      parseFloat(r['Q Installs (w/ Add-ons)']) || 0,
       capPoints:      parseFloat(r['CAP Points'])    || 0,
       sraPoints:      parseFloat(r['SRA Points'])    || 0,
