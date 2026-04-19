@@ -4268,8 +4268,548 @@ function resetForm() {
 }
 </script>
 
+
+<!-- RALLY POINT DATA LAYER -->
+</body>
+</html>
+" style="flex:1;border:none;width:100%;height:100%;" title="Recruit Intake Form"></iframe>
+  </div>
+</div>
+
+<!-- CONTACTS -->
+<div class="sub-screen" id="sub-contacts">
+  <div class="sub-hdr">
+    <button class="sub-hdr-back" onclick="drwCloseSub('contacts')">‹</button>
+    <div class="sub-hdr-title">Contacts</div>
+  </div>
+  <div class="sub-body" id="contacts-body">
+    <div class="contact-section-lbl">Sunrun Support</div>
+
+    <!-- Sales Support Desk -->
+    <div class="contact-row" id="cr-0" oncontextmenu="return false;">
+      <div class="contact-name">Sales Support Desk</div>
+      <div class="contact-sub">Help on most anything &amp; accounts pre-SRA</div>
+      <div class="contact-num">📞 (888) 840-7180 · 💬 (385) 317-0193</div>
+      <div class="contact-actions" id="ca-0">
+        <a class="contact-action-btn call" href="tel:8888407180">📞 Call</a>
+        <a class="contact-action-btn text" href="sms:3853170193">💬 Text</a>
+      </div>
+    </div>
+
+    <!-- IT Help Desk -->
+    <div class="contact-row" id="cr-1" oncontextmenu="return false;">
+      <div class="contact-name">IT Help Desk</div>
+      <div class="contact-num">📞 (434) 204-2424</div>
+      <div class="contact-actions" id="ca-1">
+        <a class="contact-action-btn call" href="tel:4342042424">📞 Call</a>
+      </div>
+    </div>
+
+    <!-- Sales Licensing -->
+    <div class="contact-row" id="cr-2" oncontextmenu="return false;">
+      <div class="contact-name">Sales Licensing</div>
+      <div class="contact-num">📞 (385) 352-3662</div>
+      <div class="contact-actions" id="ca-2">
+        <a class="contact-action-btn call" href="tel:3853523662">📞 Call</a>
+      </div>
+    </div>
+
+    <!-- Payroll -->
+    <div class="contact-row" id="cr-3" oncontextmenu="return false;">
+      <div class="contact-name">Payroll</div>
+      <div class="contact-num">📞 (805) 547-2600</div>
+      <div class="contact-actions" id="ca-3">
+        <a class="contact-action-btn call" href="tel:8055472600">📞 Call</a>
+      </div>
+    </div>
+
+    <!-- Post SRA Sales Support -->
+    <div class="contact-row" id="cr-4" oncontextmenu="return false;">
+      <div class="contact-name">Post SRA Sales Support</div>
+      <div class="contact-sub">Account support after closing the deal</div>
+      <div class="contact-num">📞 (844) 257-7555</div>
+      <div class="contact-actions" id="ca-4">
+        <a class="contact-action-btn call" href="tel:8442577555">📞 Call</a>
+      </div>
+    </div>
+
+    <!-- Credit Text Line -->
+    <div class="contact-row" id="cr-5" oncontextmenu="return false;">
+      <div class="contact-name">Credit Text Line</div>
+      <div class="contact-num">💬 (888) 840-7180</div>
+      <div class="contact-actions" id="ca-5">
+        <a class="contact-action-btn text" href="sms:8888407180">💬 Text</a>
+      </div>
+    </div>
+
+    <!-- CAP Text Line -->
+    <div class="contact-row" id="cr-6" oncontextmenu="return false;">
+      <div class="contact-name">CAP Text Line</div>
+      <div class="contact-num">💬 (385) 275-8714</div>
+      <div class="contact-actions" id="ca-6">
+        <a class="contact-action-btn text" href="sms:3852758714">💬 Text</a>
+      </div>
+    </div>
+
+    <div class="contact-section-lbl" style="margin-top:8px;">My Contacts</div>
+    <div id="user-contacts-list"></div>
+
+    <!-- User-editable slots -->
+    <div class="contact-row-editable" id="uce-0" onclick="drwEditContact(0)">
+      <div class="contact-add-lbl" id="uce-lbl-0">+ Add a contact</div>
+      <div class="contact-edit-form" id="uce-form-0">
+        <input class="contact-edit-input" id="uce-name-0" placeholder="Name / Role" type="text">
+        <input class="contact-edit-input" id="uce-phone-0" placeholder="Phone number" type="tel">
+        <button class="contact-edit-save" onclick="drwSaveContact(event,0)">Save</button>
+      </div>
+    </div>
+    <div class="contact-row-editable" id="uce-1" onclick="drwEditContact(1)">
+      <div class="contact-add-lbl" id="uce-lbl-1">+ Add a contact</div>
+      <div class="contact-edit-form" id="uce-form-1">
+        <input class="contact-edit-input" id="uce-name-1" placeholder="Name / Role" type="text">
+        <input class="contact-edit-input" id="uce-phone-1" placeholder="Phone number" type="tel">
+        <button class="contact-edit-save" onclick="drwSaveContact(event,1)">Save</button>
+      </div>
+    </div>
+    <div class="contact-row-editable" id="uce-2" onclick="drwEditContact(2)">
+      <div class="contact-add-lbl" id="uce-lbl-2">+ Add a contact</div>
+      <div class="contact-edit-form" id="uce-form-2">
+        <input class="contact-edit-input" id="uce-name-2" placeholder="Name / Role" type="text">
+        <input class="contact-edit-input" id="uce-phone-2" placeholder="Phone number" type="tel">
+        <button class="contact-edit-save" onclick="drwSaveContact(event,2)">Save</button>
+      </div>
+    </div>
+
+  </div><!-- /sub-body -->
+</div><!-- /sub-contacts -->
+
+<!-- TRAINING -->
+<div class="sub-screen" id="sub-training">
+  <div class="sub-hdr">
+    <button class="sub-hdr-back" onclick="drwCloseSub('training')">‹</button>
+    <div class="sub-hdr-title">Training</div>
+  </div>
+  <div class="sub-body">
+    <div class="contact-section-lbl">Learning Platform</div>
+    <a class="training-link-card" href="https://runx.com" target="_blank">
+      <div class="training-link-icon">🚀</div>
+      <div class="training-link-text">
+        <div class="training-link-name">RunX Learning</div>
+        <div class="training-link-sub">runx.com · opens in browser</div>
+      </div>
+      <div class="training-link-arr">↗</div>
+    </a>
+
+    <div class="contact-section-lbl" style="margin-top:4px;">Required Trainings</div>
+    <div class="training-item">
+      <div class="training-check" id="tc-0" onclick="drwToggleTraining(0)"></div>
+      <div class="training-name">Rep Basic</div>
+      <div class="training-status" id="ts-0">Not started</div>
+    </div>
+    <div class="training-item">
+      <div class="training-check" id="tc-1" onclick="drwToggleTraining(1)"></div>
+      <div class="training-name">Legal Compliance</div>
+      <div class="training-status" id="ts-1">Not started</div>
+    </div>
+    <div class="training-item">
+      <div class="training-check" id="tc-2" onclick="drwToggleTraining(2)"></div>
+      <div class="training-name">RunX Learning</div>
+      <div class="training-status" id="ts-2">Not started</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLS -->
+<div class="sub-screen" id="sub-tools">
+  <div class="sub-hdr">
+    <button class="sub-hdr-back" onclick="drwCloseSub('tools')">‹</button>
+    <div class="sub-hdr-title">Tools</div>
+  </div>
+  <div class="sub-body">
+    <div class="contact-section-lbl">Required Apps</div>
+
+    <div class="tool-card">
+      <div class="tool-icon">🟠</div>
+      <div class="tool-text">
+        <div class="tool-name">Terros</div>
+        <div class="tool-sub">Field sales &amp; door-knocking tool</div>
+      </div>
+      <a class="tool-dl-btn" href="https://apps.apple.com/us/app/terros/id6467147661" target="_blank">Get</a>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-icon">💬</div>
+      <div class="tool-text">
+        <div class="tool-name">Google Chat</div>
+        <div class="tool-sub">Team messaging</div>
+      </div>
+      <a class="tool-dl-btn" href="https://apps.apple.com/us/app/google-chat/id1163852619" target="_blank">Get</a>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-icon">⚡</div>
+      <div class="tool-text">
+        <div class="tool-name">Pronto</div>
+        <div class="tool-sub">Team communication</div>
+      </div>
+      <a class="tool-dl-btn" href="https://apps.apple.com/us/app/pronto-team-communication/id1258991852" target="_blank">Get</a>
+    </div>
+  </div>
+</div>
+
+<!-- PREFERENCES -->
+<div class="sub-screen" id="sub-prefs">
+  <div class="sub-hdr">
+    <button class="sub-hdr-back" onclick="drwCloseSub('prefs')">‹</button>
+    <div class="sub-hdr-title">Preferences</div>
+  </div>
+  <div class="sub-body">
+    <div class="pref-section-lbl">Earnings Estimate</div>
+    <div class="pref-card">
+      <div class="pref-card-label">$/Install Target</div>
+      <div class="pay-picker">
+        <button class="pay-opt" data-val="3000" onclick="drwPickPay(this)">$3k</button>
+        <button class="pay-opt" data-val="4000" onclick="drwPickPay(this)">$4k</button>
+        <button class="pay-opt active" data-val="5000" onclick="drwPickPay(this)">$5k</button>
+        <button class="pay-opt" data-val="6000" onclick="drwPickPay(this)">$6k</button>
+        <button class="pay-opt" data-val="custom" onclick="drwPickPay(this)">Custom</button>
+      </div>
+      <div class="pay-custom-wrap" id="pay-custom-wrap">
+        <input class="pay-custom-input" id="pay-custom-input" type="number" placeholder="e.g. 4500" min="1000" max="20000">
+      </div>
+    </div>
+    <button class="pref-save-btn" onclick="drwSavePrefs()">Save Preferences</button>
+    <div class="pref-saved-note" id="pref-saved-note"></div>
+  </div>
+</div>
+
+<!-- HELP & FEEDBACK -->
+<div class="sub-screen" id="sub-help">
+  <div class="sub-hdr">
+    <button class="sub-hdr-back" onclick="drwCloseSub('help')">‹</button>
+    <div class="sub-hdr-title">Help &amp; Feedback</div>
+  </div>
+  <div class="sub-body">
+    <div class="contact-section-lbl">Support</div>
+    <div class="pref-card" style="margin-bottom:10px;">
+      <div class="pref-card-label">Send Feedback</div>
+      <textarea class="contact-edit-input" placeholder="Describe an issue or share an idea..." style="height:90px;resize:none;width:100%;margin-bottom:0;display:block;"></textarea>
+      <button class="contact-edit-save" style="margin-top:8px;width:100%;">Submit</button>
+    </div>
+    <div class="pref-card">
+      <div class="pref-card-label">App Version</div>
+      <div style="font-size:12px;color:#888780;">Rally Point v2.0 · April 2026</div>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER + SUB-SCREEN STYLES (fixed overlay) -->
+<style>
+.drw-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: stretch;
+}
+.drw-overlay.open { display: flex; }
+
+.drw-panel {
+  width: 78%;
+  max-width: 280px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 0.26s cubic-bezier(0.4,0,0.2,1);
+  overflow: hidden;
+}
+.drw-overlay.open .drw-panel { transform: translateX(0); }
+
+.drw-hdr {
+  background: #2C2C2A;
+  padding: 44px 18px 16px;
+  flex-shrink: 0;
+}
+.drw-hdr-wordmark {
+  font-size: 7px; font-weight: 800; letter-spacing: 4px;
+  text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 5px;
+}
+.drw-hdr-name {
+  font-size: 19px; font-weight: 700; color: #fff; letter-spacing: -0.3px;
+}
+.drw-hdr-squad {
+  font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 3px;
+}
+
+.drw-list { flex: 1; overflow-y: auto; padding: 6px 0; }
+
+.drw-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px;
+  cursor: pointer; border-bottom: 1px solid #F0EEE8;
+  transition: background 0.1s;
+}
+.drw-item:active { background: #F7F6F3; }
+.drw-item-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
+.drw-item-text { flex: 1; }
+.drw-item-label { font-size: 14px; font-weight: 600; color: #111110; }
+.drw-item-sub { font-size: 10px; color: #888780; margin-top: 1px; }
+.drw-item-arrow { font-size: 14px; color: #C8C5BF; }
+
+.drw-footer { border-top: 1px solid #E0DDD6; padding: 6px 0 10px; flex-shrink: 0; }
+.drw-footer-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 18px; cursor: pointer; transition: background 0.1s;
+}
+.drw-footer-item:active { background: #F7F6F3; }
+.drw-footer-label { font-size: 13px; font-weight: 500; color: #444441; }
+.drw-signout .drw-footer-label { color: #C0392B; }
+
+/* Sub-screens — fixed, full viewport */
+.sub-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #F7F6F3;
+  z-index: 1100;
+  flex-direction: column;
+  /* max-width mirrors a phone shell in the prototype */
+  max-width: 390px;
+  left: 50%;
+  transform: translateX(calc(-50% + 100vw));
+  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+}
+.sub-screen.open {
+  display: flex;
+  transform: translateX(-50%);
+}
+
+.sub-hdr {
+  background: #2C2C2A; padding: 50px 16px 14px;
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.sub-hdr-back {
+  background: none; border: none; cursor: pointer;
+  color: rgba(255,255,255,0.8); font-size: 22px; line-height: 1;
+  padding: 0 6px 0 0; flex-shrink: 0;
+}
+.sub-hdr-title { font-size: 16px; font-weight: 700; color: #fff; }
+.sub-body { flex: 1; overflow-y: auto; padding: 14px 16px 32px; }
+
+/* Long-press hint */
+.contact-longpress-hint {
+  font-size: 9px; color: #B4B2A9; letter-spacing: 0.5px;
+  text-align: right; margin-bottom: 6px; font-style: italic;
+}
+.form-iframe-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.form-iframe-wrap iframe { flex: 1; border: none; width: 100%; }
+.form-placeholder {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px; text-align: center; gap: 10px;
+}
+.form-placeholder-icon { font-size: 40px; opacity: 0.3; }
+.form-placeholder-lbl { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #888780; }
+.form-placeholder-sub { font-size: 12px; color: #B4B2A9; }
+</style>
+
+<!-- DRAWER + SUB-SCREEN JAVASCRIPT -->
 <script>
-/* ── RALLY POINT LIVE DATA LAYER ── */
+/* ── DRAWER ── */
+function openDrawer(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('drw-overlay').classList.add('open');
+}
+function drwCloseDrawer(e) {
+  /* Close only if clicking the overlay backdrop, not the panel */
+  if (e && e.target !== document.getElementById('drw-overlay')) return;
+  document.getElementById('drw-overlay').classList.remove('open');
+}
+
+/* ── SUB-SCREENS ── */
+function drwOpen(name) {
+  document.getElementById('drw-overlay').classList.remove('open');
+  /* Small delay so drawer slides out before sub-screen slides in */
+  setTimeout(() => {
+    document.getElementById('sub-' + name).classList.add('open');
+  }, 120);
+}
+function drwCloseSub(name) {
+  document.getElementById('sub-' + name).classList.remove('open');
+}
+
+/* ── CONTACTS — long-press ── */
+let _lpTimer = null;
+let _lpActive = null;
+
+function drwContactLongPress(idx) {
+  drwContactClearAll();
+  const ca = document.getElementById('ca-' + idx);
+  if (ca) ca.classList.add('visible');
+  _lpActive = idx;
+}
+function drwContactClearAll() {
+  document.querySelectorAll('.contact-actions').forEach(el => el.classList.remove('visible'));
+  _lpActive = null;
+}
+
+/* Attach long-press to all fixed contact rows */
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.contact-row').forEach((row, idx) => {
+    let timer;
+    row.addEventListener('pointerdown', () => {
+      timer = setTimeout(() => drwContactLongPress(idx), 500);
+    });
+    row.addEventListener('pointerup',   () => clearTimeout(timer));
+    row.addEventListener('pointerleave',() => clearTimeout(timer));
+  });
+  /* Tap elsewhere = dismiss actions */
+  document.addEventListener('pointerdown', (e) => {
+    if (_lpActive !== null && !e.target.closest('.contact-row')) {
+      drwContactClearAll();
+    }
+  });
+  drwLoadUserContacts();
+  drwLoadTraining();
+  drwLoadPrefs();
+});
+
+/* ── USER CONTACTS ── */
+function drwEditContact(idx) {
+  const form = document.getElementById('uce-form-' + idx);
+  const lbl  = document.getElementById('uce-lbl-' + idx);
+  if (!form) return;
+  const isOpen = form.classList.contains('open');
+  /* Close all others */
+  document.querySelectorAll('.contact-edit-form').forEach(f => f.classList.remove('open'));
+  document.querySelectorAll('[id^="uce-lbl-"]').forEach(l => {
+    const i = l.id.split('-').pop();
+    const saved = drwGetUserContact(parseInt(i));
+    l.textContent = saved ? saved.name + ' · ' + saved.phone : '+ Add a contact';
+  });
+  if (!isOpen) {
+    form.classList.add('open');
+    lbl.textContent = '';
+    const saved = drwGetUserContact(idx);
+    if (saved) {
+      document.getElementById('uce-name-' + idx).value  = saved.name;
+      document.getElementById('uce-phone-' + idx).value = saved.phone;
+    }
+  }
+}
+
+function drwSaveContact(e, idx) {
+  e.stopPropagation();
+  const name  = document.getElementById('uce-name-' + idx).value.trim();
+  const phone = document.getElementById('uce-phone-' + idx).value.trim();
+  if (!name && !phone) return;
+  const contacts = drwGetAllUserContacts();
+  contacts[idx] = { name, phone };
+  try { localStorage.setItem('rp_user_contacts', JSON.stringify(contacts)); } catch(_) {}
+  drwLoadUserContacts();
+}
+
+function drwGetAllUserContacts() {
+  try { return JSON.parse(localStorage.getItem('rp_user_contacts') || '{}'); } catch(_) { return {}; }
+}
+function drwGetUserContact(idx) {
+  return drwGetAllUserContacts()[idx] || null;
+}
+
+function drwLoadUserContacts() {
+  const all = drwGetAllUserContacts();
+  for (let i = 0; i < 3; i++) {
+    const saved = all[i];
+    const lbl   = document.getElementById('uce-lbl-' + i);
+    const form  = document.getElementById('uce-form-' + i);
+    if (!lbl) continue;
+    if (saved) {
+      lbl.textContent = saved.name + (saved.phone ? ' · ' + saved.phone : '');
+      if (form) form.classList.remove('open');
+    } else {
+      lbl.textContent = '+ Add a contact';
+    }
+  }
+}
+
+/* ── TRAINING CHECKBOXES ── */
+function drwToggleTraining(idx) {
+  const saved = drwGetTrainingState();
+  saved[idx] = !saved[idx];
+  try { localStorage.setItem('rp_training', JSON.stringify(saved)); } catch(_) {}
+  drwRenderTraining(saved);
+}
+function drwGetTrainingState() {
+  try { return JSON.parse(localStorage.getItem('rp_training') || '{}'); } catch(_) { return {}; }
+}
+function drwLoadTraining() { drwRenderTraining(drwGetTrainingState()); }
+function drwRenderTraining(state) {
+  [0,1,2].forEach(i => {
+    const chk = document.getElementById('tc-' + i);
+    const lbl = document.getElementById('ts-' + i);
+    if (!chk || !lbl) return;
+    const done = !!state[i];
+    chk.classList.toggle('done', done);
+    lbl.textContent = done ? 'Complete ✓' : 'Not started';
+    lbl.style.color = done ? '#1B7A52' : '#888780';
+  });
+}
+
+/* ── PREFERENCES — $/install ── */
+function drwPickPay(btn) {
+  document.querySelectorAll('.pay-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const wrap = document.getElementById('pay-custom-wrap');
+  wrap.classList.toggle('visible', btn.dataset.val === 'custom');
+}
+function drwSavePrefs() {
+  const active = document.querySelector('.pay-opt.active');
+  if (!active) return;
+  let val = active.dataset.val;
+  if (val === 'custom') {
+    val = document.getElementById('pay-custom-input').value || '5000';
+  }
+  try { localStorage.setItem('rp_pay_per_install', val); } catch(_) {}
+  const note = document.getElementById('pref-saved-note');
+  note.textContent = 'Saved — $' + parseInt(val).toLocaleString() + '/install';
+  setTimeout(() => { note.textContent = ''; }, 2500);
+}
+function drwLoadPrefs() {
+  try {
+    const val = localStorage.getItem('rp_pay_per_install');
+    if (!val) return;
+    const presets = ['3000','4000','5000','6000'];
+    document.querySelectorAll('.pay-opt').forEach(b => b.classList.remove('active'));
+    if (presets.includes(val)) {
+      const match = document.querySelector('.pay-opt[data-val="' + val + '"]');
+      if (match) match.classList.add('active');
+    } else {
+      const custom = document.querySelector('.pay-opt[data-val="custom"]');
+      if (custom) { custom.classList.add('active'); }
+      const inp = document.getElementById('pay-custom-input');
+      if (inp) { inp.value = val; }
+      const wrap = document.getElementById('pay-custom-wrap');
+      if (wrap) wrap.classList.add('visible');
+    }
+  } catch(_) {}
+}
+
+function drwSignOut() {
+  if (confirm('Sign out of Rally Point?')) {
+    /* In production: revoke Google OAuth token and redirect to login */
+    alert('Signed out.');
+    document.getElementById('drw-overlay').classList.remove('open');
+  }
+}
+</script>
+
+
+
+
+<!-- RALLY POINT DATA LAYER -->
+<script>
 /* ═══════════════════════════════════════════════════════════════════
    RALLY POINT — LIVE DATA LAYER
    Google Sheets API + OAuth 2.0 (GIS)
@@ -4856,18 +5396,15 @@ function rpShowErrorScreen(msg) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   BOOT — waits for both DOM ready AND GIS library ready
+   BOOT — called once GIS library is ready
    ═══════════════════════════════════════════════════════════════════ */
 function rpBoot() {
-  if (typeof google === 'undefined' || !google.accounts) {
-    /* GIS not ready yet — retry in 100ms */
-    setTimeout(rpBoot, 100);
-    return;
-  }
   rpInitAuth();
+  /* GIS also gives us the signed-in user's email via the credential response */
   google.accounts.id.initialize({
     client_id: RP_CONFIG.CLIENT_ID,
     callback: (credResp) => {
+      /* Decode JWT to get email */
       try {
         const payload = JSON.parse(atob(credResp.credential.split('.')[1]));
         RP._loginEmail = payload.email;
@@ -4876,15 +5413,8 @@ function rpBoot() {
       }
     },
   });
-  /* Request token silently if previously signed in, otherwise prompt */
-  _tokenClient.requestAccessToken({ prompt: '' });
-}
-
-/* Fire rpBoot once the page DOM is fully loaded */
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', rpBoot);
-} else {
-  rpBoot();
+  /* Auto-request token if user was previously signed in */
+  _tokenClient && _tokenClient.requestAccessToken({ prompt: '' });
 }
 
 /* Wire sign-out button in drawer */
@@ -4899,541 +5429,6 @@ if (document.readyState === 'loading') {
 })();
 
 </script>
-</body>
-</html>
-" style="flex:1;border:none;width:100%;height:100%;" title="Recruit Intake Form"></iframe>
-  </div>
-</div>
-
-<!-- CONTACTS -->
-<div class="sub-screen" id="sub-contacts">
-  <div class="sub-hdr">
-    <button class="sub-hdr-back" onclick="drwCloseSub('contacts')">‹</button>
-    <div class="sub-hdr-title">Contacts</div>
-  </div>
-  <div class="sub-body" id="contacts-body">
-    <div class="contact-section-lbl">Sunrun Support</div>
-
-    <!-- Sales Support Desk -->
-    <div class="contact-row" id="cr-0" oncontextmenu="return false;">
-      <div class="contact-name">Sales Support Desk</div>
-      <div class="contact-sub">Help on most anything &amp; accounts pre-SRA</div>
-      <div class="contact-num">📞 (888) 840-7180 · 💬 (385) 317-0193</div>
-      <div class="contact-actions" id="ca-0">
-        <a class="contact-action-btn call" href="tel:8888407180">📞 Call</a>
-        <a class="contact-action-btn text" href="sms:3853170193">💬 Text</a>
-      </div>
-    </div>
-
-    <!-- IT Help Desk -->
-    <div class="contact-row" id="cr-1" oncontextmenu="return false;">
-      <div class="contact-name">IT Help Desk</div>
-      <div class="contact-num">📞 (434) 204-2424</div>
-      <div class="contact-actions" id="ca-1">
-        <a class="contact-action-btn call" href="tel:4342042424">📞 Call</a>
-      </div>
-    </div>
-
-    <!-- Sales Licensing -->
-    <div class="contact-row" id="cr-2" oncontextmenu="return false;">
-      <div class="contact-name">Sales Licensing</div>
-      <div class="contact-num">📞 (385) 352-3662</div>
-      <div class="contact-actions" id="ca-2">
-        <a class="contact-action-btn call" href="tel:3853523662">📞 Call</a>
-      </div>
-    </div>
-
-    <!-- Payroll -->
-    <div class="contact-row" id="cr-3" oncontextmenu="return false;">
-      <div class="contact-name">Payroll</div>
-      <div class="contact-num">📞 (805) 547-2600</div>
-      <div class="contact-actions" id="ca-3">
-        <a class="contact-action-btn call" href="tel:8055472600">📞 Call</a>
-      </div>
-    </div>
-
-    <!-- Post SRA Sales Support -->
-    <div class="contact-row" id="cr-4" oncontextmenu="return false;">
-      <div class="contact-name">Post SRA Sales Support</div>
-      <div class="contact-sub">Account support after closing the deal</div>
-      <div class="contact-num">📞 (844) 257-7555</div>
-      <div class="contact-actions" id="ca-4">
-        <a class="contact-action-btn call" href="tel:8442577555">📞 Call</a>
-      </div>
-    </div>
-
-    <!-- Credit Text Line -->
-    <div class="contact-row" id="cr-5" oncontextmenu="return false;">
-      <div class="contact-name">Credit Text Line</div>
-      <div class="contact-num">💬 (888) 840-7180</div>
-      <div class="contact-actions" id="ca-5">
-        <a class="contact-action-btn text" href="sms:8888407180">💬 Text</a>
-      </div>
-    </div>
-
-    <!-- CAP Text Line -->
-    <div class="contact-row" id="cr-6" oncontextmenu="return false;">
-      <div class="contact-name">CAP Text Line</div>
-      <div class="contact-num">💬 (385) 275-8714</div>
-      <div class="contact-actions" id="ca-6">
-        <a class="contact-action-btn text" href="sms:3852758714">💬 Text</a>
-      </div>
-    </div>
-
-    <div class="contact-section-lbl" style="margin-top:8px;">My Contacts</div>
-    <div id="user-contacts-list"></div>
-
-    <!-- User-editable slots -->
-    <div class="contact-row-editable" id="uce-0" onclick="drwEditContact(0)">
-      <div class="contact-add-lbl" id="uce-lbl-0">+ Add a contact</div>
-      <div class="contact-edit-form" id="uce-form-0">
-        <input class="contact-edit-input" id="uce-name-0" placeholder="Name / Role" type="text">
-        <input class="contact-edit-input" id="uce-phone-0" placeholder="Phone number" type="tel">
-        <button class="contact-edit-save" onclick="drwSaveContact(event,0)">Save</button>
-      </div>
-    </div>
-    <div class="contact-row-editable" id="uce-1" onclick="drwEditContact(1)">
-      <div class="contact-add-lbl" id="uce-lbl-1">+ Add a contact</div>
-      <div class="contact-edit-form" id="uce-form-1">
-        <input class="contact-edit-input" id="uce-name-1" placeholder="Name / Role" type="text">
-        <input class="contact-edit-input" id="uce-phone-1" placeholder="Phone number" type="tel">
-        <button class="contact-edit-save" onclick="drwSaveContact(event,1)">Save</button>
-      </div>
-    </div>
-    <div class="contact-row-editable" id="uce-2" onclick="drwEditContact(2)">
-      <div class="contact-add-lbl" id="uce-lbl-2">+ Add a contact</div>
-      <div class="contact-edit-form" id="uce-form-2">
-        <input class="contact-edit-input" id="uce-name-2" placeholder="Name / Role" type="text">
-        <input class="contact-edit-input" id="uce-phone-2" placeholder="Phone number" type="tel">
-        <button class="contact-edit-save" onclick="drwSaveContact(event,2)">Save</button>
-      </div>
-    </div>
-
-  </div><!-- /sub-body -->
-</div><!-- /sub-contacts -->
-
-<!-- TRAINING -->
-<div class="sub-screen" id="sub-training">
-  <div class="sub-hdr">
-    <button class="sub-hdr-back" onclick="drwCloseSub('training')">‹</button>
-    <div class="sub-hdr-title">Training</div>
-  </div>
-  <div class="sub-body">
-    <div class="contact-section-lbl">Learning Platform</div>
-    <a class="training-link-card" href="https://runx.com" target="_blank">
-      <div class="training-link-icon">🚀</div>
-      <div class="training-link-text">
-        <div class="training-link-name">RunX Learning</div>
-        <div class="training-link-sub">runx.com · opens in browser</div>
-      </div>
-      <div class="training-link-arr">↗</div>
-    </a>
-
-    <div class="contact-section-lbl" style="margin-top:4px;">Required Trainings</div>
-    <div class="training-item">
-      <div class="training-check" id="tc-0" onclick="drwToggleTraining(0)"></div>
-      <div class="training-name">Rep Basic</div>
-      <div class="training-status" id="ts-0">Not started</div>
-    </div>
-    <div class="training-item">
-      <div class="training-check" id="tc-1" onclick="drwToggleTraining(1)"></div>
-      <div class="training-name">Legal Compliance</div>
-      <div class="training-status" id="ts-1">Not started</div>
-    </div>
-    <div class="training-item">
-      <div class="training-check" id="tc-2" onclick="drwToggleTraining(2)"></div>
-      <div class="training-name">RunX Learning</div>
-      <div class="training-status" id="ts-2">Not started</div>
-    </div>
-  </div>
-</div>
-
-<!-- TOOLS -->
-<div class="sub-screen" id="sub-tools">
-  <div class="sub-hdr">
-    <button class="sub-hdr-back" onclick="drwCloseSub('tools')">‹</button>
-    <div class="sub-hdr-title">Tools</div>
-  </div>
-  <div class="sub-body">
-    <div class="contact-section-lbl">Required Apps</div>
-
-    <div class="tool-card">
-      <div class="tool-icon">🟠</div>
-      <div class="tool-text">
-        <div class="tool-name">Terros</div>
-        <div class="tool-sub">Field sales &amp; door-knocking tool</div>
-      </div>
-      <a class="tool-dl-btn" href="https://apps.apple.com/us/app/terros/id6467147661" target="_blank">Get</a>
-    </div>
-
-    <div class="tool-card">
-      <div class="tool-icon">💬</div>
-      <div class="tool-text">
-        <div class="tool-name">Google Chat</div>
-        <div class="tool-sub">Team messaging</div>
-      </div>
-      <a class="tool-dl-btn" href="https://apps.apple.com/us/app/google-chat/id1163852619" target="_blank">Get</a>
-    </div>
-
-    <div class="tool-card">
-      <div class="tool-icon">⚡</div>
-      <div class="tool-text">
-        <div class="tool-name">Pronto</div>
-        <div class="tool-sub">Team communication</div>
-      </div>
-      <a class="tool-dl-btn" href="https://apps.apple.com/us/app/pronto-team-communication/id1258991852" target="_blank">Get</a>
-    </div>
-  </div>
-</div>
-
-<!-- PREFERENCES -->
-<div class="sub-screen" id="sub-prefs">
-  <div class="sub-hdr">
-    <button class="sub-hdr-back" onclick="drwCloseSub('prefs')">‹</button>
-    <div class="sub-hdr-title">Preferences</div>
-  </div>
-  <div class="sub-body">
-    <div class="pref-section-lbl">Earnings Estimate</div>
-    <div class="pref-card">
-      <div class="pref-card-label">$/Install Target</div>
-      <div class="pay-picker">
-        <button class="pay-opt" data-val="3000" onclick="drwPickPay(this)">$3k</button>
-        <button class="pay-opt" data-val="4000" onclick="drwPickPay(this)">$4k</button>
-        <button class="pay-opt active" data-val="5000" onclick="drwPickPay(this)">$5k</button>
-        <button class="pay-opt" data-val="6000" onclick="drwPickPay(this)">$6k</button>
-        <button class="pay-opt" data-val="custom" onclick="drwPickPay(this)">Custom</button>
-      </div>
-      <div class="pay-custom-wrap" id="pay-custom-wrap">
-        <input class="pay-custom-input" id="pay-custom-input" type="number" placeholder="e.g. 4500" min="1000" max="20000">
-      </div>
-    </div>
-    <button class="pref-save-btn" onclick="drwSavePrefs()">Save Preferences</button>
-    <div class="pref-saved-note" id="pref-saved-note"></div>
-  </div>
-</div>
-
-<!-- HELP & FEEDBACK -->
-<div class="sub-screen" id="sub-help">
-  <div class="sub-hdr">
-    <button class="sub-hdr-back" onclick="drwCloseSub('help')">‹</button>
-    <div class="sub-hdr-title">Help &amp; Feedback</div>
-  </div>
-  <div class="sub-body">
-    <div class="contact-section-lbl">Support</div>
-    <div class="pref-card" style="margin-bottom:10px;">
-      <div class="pref-card-label">Send Feedback</div>
-      <textarea class="contact-edit-input" placeholder="Describe an issue or share an idea..." style="height:90px;resize:none;width:100%;margin-bottom:0;display:block;"></textarea>
-      <button class="contact-edit-save" style="margin-top:8px;width:100%;">Submit</button>
-    </div>
-    <div class="pref-card">
-      <div class="pref-card-label">App Version</div>
-      <div style="font-size:12px;color:#888780;">Rally Point v2.0 · April 2026</div>
-    </div>
-  </div>
-</div>
-
-<!-- DRAWER + SUB-SCREEN STYLES (fixed overlay) -->
-<style>
-.drw-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 1000;
-  align-items: stretch;
-}
-.drw-overlay.open { display: flex; }
-
-.drw-panel {
-  width: 78%;
-  max-width: 280px;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  transform: translateX(-100%);
-  transition: transform 0.26s cubic-bezier(0.4,0,0.2,1);
-  overflow: hidden;
-}
-.drw-overlay.open .drw-panel { transform: translateX(0); }
-
-.drw-hdr {
-  background: #2C2C2A;
-  padding: 44px 18px 16px;
-  flex-shrink: 0;
-}
-.drw-hdr-wordmark {
-  font-size: 7px; font-weight: 800; letter-spacing: 4px;
-  text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 5px;
-}
-.drw-hdr-name {
-  font-size: 19px; font-weight: 700; color: #fff; letter-spacing: -0.3px;
-}
-.drw-hdr-squad {
-  font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 3px;
-}
-
-.drw-list { flex: 1; overflow-y: auto; padding: 6px 0; }
-
-.drw-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 18px;
-  cursor: pointer; border-bottom: 1px solid #F0EEE8;
-  transition: background 0.1s;
-}
-.drw-item:active { background: #F7F6F3; }
-.drw-item-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
-.drw-item-text { flex: 1; }
-.drw-item-label { font-size: 14px; font-weight: 600; color: #111110; }
-.drw-item-sub { font-size: 10px; color: #888780; margin-top: 1px; }
-.drw-item-arrow { font-size: 14px; color: #C8C5BF; }
-
-.drw-footer { border-top: 1px solid #E0DDD6; padding: 6px 0 10px; flex-shrink: 0; }
-.drw-footer-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 18px; cursor: pointer; transition: background 0.1s;
-}
-.drw-footer-item:active { background: #F7F6F3; }
-.drw-footer-label { font-size: 13px; font-weight: 500; color: #444441; }
-.drw-signout .drw-footer-label { color: #C0392B; }
-
-/* Sub-screens — fixed, full viewport */
-.sub-screen {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: #F7F6F3;
-  z-index: 1100;
-  flex-direction: column;
-  /* max-width mirrors a phone shell in the prototype */
-  max-width: 390px;
-  left: 50%;
-  transform: translateX(calc(-50% + 100vw));
-  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
-}
-.sub-screen.open {
-  display: flex;
-  transform: translateX(-50%);
-}
-
-.sub-hdr {
-  background: #2C2C2A; padding: 50px 16px 14px;
-  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
-}
-.sub-hdr-back {
-  background: none; border: none; cursor: pointer;
-  color: rgba(255,255,255,0.8); font-size: 22px; line-height: 1;
-  padding: 0 6px 0 0; flex-shrink: 0;
-}
-.sub-hdr-title { font-size: 16px; font-weight: 700; color: #fff; }
-.sub-body { flex: 1; overflow-y: auto; padding: 14px 16px 32px; }
-
-/* Long-press hint */
-.contact-longpress-hint {
-  font-size: 9px; color: #B4B2A9; letter-spacing: 0.5px;
-  text-align: right; margin-bottom: 6px; font-style: italic;
-}
-.form-iframe-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-.form-iframe-wrap iframe { flex: 1; border: none; width: 100%; }
-.form-placeholder {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 32px; text-align: center; gap: 10px;
-}
-.form-placeholder-icon { font-size: 40px; opacity: 0.3; }
-.form-placeholder-lbl { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #888780; }
-.form-placeholder-sub { font-size: 12px; color: #B4B2A9; }
-</style>
-
-<!-- DRAWER + SUB-SCREEN JAVASCRIPT -->
-<script>
-/* ── DRAWER ── */
-function openDrawer(e) {
-  if (e) e.stopPropagation();
-  document.getElementById('drw-overlay').classList.add('open');
-}
-function drwCloseDrawer(e) {
-  /* Close only if clicking the overlay backdrop, not the panel */
-  if (e && e.target !== document.getElementById('drw-overlay')) return;
-  document.getElementById('drw-overlay').classList.remove('open');
-}
-
-/* ── SUB-SCREENS ── */
-function drwOpen(name) {
-  document.getElementById('drw-overlay').classList.remove('open');
-  /* Small delay so drawer slides out before sub-screen slides in */
-  setTimeout(() => {
-    document.getElementById('sub-' + name).classList.add('open');
-  }, 120);
-}
-function drwCloseSub(name) {
-  document.getElementById('sub-' + name).classList.remove('open');
-}
-
-/* ── CONTACTS — long-press ── */
-let _lpTimer = null;
-let _lpActive = null;
-
-function drwContactLongPress(idx) {
-  drwContactClearAll();
-  const ca = document.getElementById('ca-' + idx);
-  if (ca) ca.classList.add('visible');
-  _lpActive = idx;
-}
-function drwContactClearAll() {
-  document.querySelectorAll('.contact-actions').forEach(el => el.classList.remove('visible'));
-  _lpActive = null;
-}
-
-/* Attach long-press to all fixed contact rows */
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.contact-row').forEach((row, idx) => {
-    let timer;
-    row.addEventListener('pointerdown', () => {
-      timer = setTimeout(() => drwContactLongPress(idx), 500);
-    });
-    row.addEventListener('pointerup',   () => clearTimeout(timer));
-    row.addEventListener('pointerleave',() => clearTimeout(timer));
-  });
-  /* Tap elsewhere = dismiss actions */
-  document.addEventListener('pointerdown', (e) => {
-    if (_lpActive !== null && !e.target.closest('.contact-row')) {
-      drwContactClearAll();
-    }
-  });
-  drwLoadUserContacts();
-  drwLoadTraining();
-  drwLoadPrefs();
-});
-
-/* ── USER CONTACTS ── */
-function drwEditContact(idx) {
-  const form = document.getElementById('uce-form-' + idx);
-  const lbl  = document.getElementById('uce-lbl-' + idx);
-  if (!form) return;
-  const isOpen = form.classList.contains('open');
-  /* Close all others */
-  document.querySelectorAll('.contact-edit-form').forEach(f => f.classList.remove('open'));
-  document.querySelectorAll('[id^="uce-lbl-"]').forEach(l => {
-    const i = l.id.split('-').pop();
-    const saved = drwGetUserContact(parseInt(i));
-    l.textContent = saved ? saved.name + ' · ' + saved.phone : '+ Add a contact';
-  });
-  if (!isOpen) {
-    form.classList.add('open');
-    lbl.textContent = '';
-    const saved = drwGetUserContact(idx);
-    if (saved) {
-      document.getElementById('uce-name-' + idx).value  = saved.name;
-      document.getElementById('uce-phone-' + idx).value = saved.phone;
-    }
-  }
-}
-
-function drwSaveContact(e, idx) {
-  e.stopPropagation();
-  const name  = document.getElementById('uce-name-' + idx).value.trim();
-  const phone = document.getElementById('uce-phone-' + idx).value.trim();
-  if (!name && !phone) return;
-  const contacts = drwGetAllUserContacts();
-  contacts[idx] = { name, phone };
-  try { localStorage.setItem('rp_user_contacts', JSON.stringify(contacts)); } catch(_) {}
-  drwLoadUserContacts();
-}
-
-function drwGetAllUserContacts() {
-  try { return JSON.parse(localStorage.getItem('rp_user_contacts') || '{}'); } catch(_) { return {}; }
-}
-function drwGetUserContact(idx) {
-  return drwGetAllUserContacts()[idx] || null;
-}
-
-function drwLoadUserContacts() {
-  const all = drwGetAllUserContacts();
-  for (let i = 0; i < 3; i++) {
-    const saved = all[i];
-    const lbl   = document.getElementById('uce-lbl-' + i);
-    const form  = document.getElementById('uce-form-' + i);
-    if (!lbl) continue;
-    if (saved) {
-      lbl.textContent = saved.name + (saved.phone ? ' · ' + saved.phone : '');
-      if (form) form.classList.remove('open');
-    } else {
-      lbl.textContent = '+ Add a contact';
-    }
-  }
-}
-
-/* ── TRAINING CHECKBOXES ── */
-function drwToggleTraining(idx) {
-  const saved = drwGetTrainingState();
-  saved[idx] = !saved[idx];
-  try { localStorage.setItem('rp_training', JSON.stringify(saved)); } catch(_) {}
-  drwRenderTraining(saved);
-}
-function drwGetTrainingState() {
-  try { return JSON.parse(localStorage.getItem('rp_training') || '{}'); } catch(_) { return {}; }
-}
-function drwLoadTraining() { drwRenderTraining(drwGetTrainingState()); }
-function drwRenderTraining(state) {
-  [0,1,2].forEach(i => {
-    const chk = document.getElementById('tc-' + i);
-    const lbl = document.getElementById('ts-' + i);
-    if (!chk || !lbl) return;
-    const done = !!state[i];
-    chk.classList.toggle('done', done);
-    lbl.textContent = done ? 'Complete ✓' : 'Not started';
-    lbl.style.color = done ? '#1B7A52' : '#888780';
-  });
-}
-
-/* ── PREFERENCES — $/install ── */
-function drwPickPay(btn) {
-  document.querySelectorAll('.pay-opt').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const wrap = document.getElementById('pay-custom-wrap');
-  wrap.classList.toggle('visible', btn.dataset.val === 'custom');
-}
-function drwSavePrefs() {
-  const active = document.querySelector('.pay-opt.active');
-  if (!active) return;
-  let val = active.dataset.val;
-  if (val === 'custom') {
-    val = document.getElementById('pay-custom-input').value || '5000';
-  }
-  try { localStorage.setItem('rp_pay_per_install', val); } catch(_) {}
-  const note = document.getElementById('pref-saved-note');
-  note.textContent = 'Saved — $' + parseInt(val).toLocaleString() + '/install';
-  setTimeout(() => { note.textContent = ''; }, 2500);
-}
-function drwLoadPrefs() {
-  try {
-    const val = localStorage.getItem('rp_pay_per_install');
-    if (!val) return;
-    const presets = ['3000','4000','5000','6000'];
-    document.querySelectorAll('.pay-opt').forEach(b => b.classList.remove('active'));
-    if (presets.includes(val)) {
-      const match = document.querySelector('.pay-opt[data-val="' + val + '"]');
-      if (match) match.classList.add('active');
-    } else {
-      const custom = document.querySelector('.pay-opt[data-val="custom"]');
-      if (custom) { custom.classList.add('active'); }
-      const inp = document.getElementById('pay-custom-input');
-      if (inp) { inp.value = val; }
-      const wrap = document.getElementById('pay-custom-wrap');
-      if (wrap) wrap.classList.add('visible');
-    }
-  } catch(_) {}
-}
-
-function drwSignOut() {
-  if (confirm('Sign out of Rally Point?')) {
-    /* In production: revoke Google OAuth token and redirect to login */
-    alert('Signed out.');
-    document.getElementById('drw-overlay').classList.remove('open');
-  }
-}
-</script>
-
 
 </body>
 </html>
