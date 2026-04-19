@@ -2045,8 +2045,8 @@ function confirmPay() {
       </button>
     </div>
     <div class="hdr" style="background:var(--rp-pod);">
-      <div class="hdr-name">Night Owls</div>
-      <div class="hdr-meta">
+      <div class="hdr-name" id="pod-hdr-name">Night Owls</div>
+      <div class="hdr-meta" id="pod-hdr-meta">
         <span class="hdr-chip">G-Squad</span>
         <span class="hdr-dot"></span>
         <span class="hdr-chip">Pod</span>
@@ -2064,11 +2064,11 @@ function confirmPay() {
     <!-- WTD PANEL -->
     <div id="pod-panel-wtd" class="panel visible">
 
-      <div class="ctx-label ctx-pod-wtd">Pod totals · week to date</div>
+      <div class="ctx-label ctx-pod-wtd" id="pod-ctx-wtd">Pod totals · week to date</div>
 
       <div class="pod-table-wrap">
         <table class="pod-table">
-          <thead>
+          <thead id="pod-wtd-thead">
             <tr>
               <th class="col-name">Name</th>
               <th>Pitch</th>
@@ -2079,7 +2079,7 @@ function confirmPay() {
               <th>IC</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="pod-wtd-tbody">
             <tr>
               <td class="col-name"><span class="lead-dot lead-dot-pod"></span>Marcus Rivera</td>
               <td>34</td><td>5</td><td>4</td><td>2</td><td>1</td><td>2</td>
@@ -2101,7 +2101,7 @@ function confirmPay() {
               <td>31</td><td>1</td><td class="val-zero">0</td><td class="val-zero">0</td><td class="val-zero">0</td><td class="val-zero">0</td>
             </tr>
           </tbody>
-          <tfoot>
+          <tfoot id="pod-wtd-tfoot">
             <tr class="total-row">
               <td class="col-name">Total</td>
               <td>133</td><td>15</td><td>9</td><td>4</td><td>2</td><td>3</td>
@@ -2115,11 +2115,11 @@ function confirmPay() {
     <!-- QTD STATUS PANEL -->
     <div id="pod-panel-qtd" class="panel">
 
-      <div class="ctx-label ctx-pod-qtd">RunX pts · pod totals · quarter to date</div>
+      <div class="ctx-label ctx-pod-qtd" id="pod-ctx-qtd">RunX pts · pod totals · quarter to date</div>
 
       <div class="pod-table-wrap">
         <table class="pod-table">
-          <thead>
+          <thead id="pod-qtd-thead">
             <tr>
               <th class="col-name">Name</th>
               <th>Tot SRA</th>
@@ -2129,7 +2129,7 @@ function confirmPay() {
               <th>Rank</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="pod-qtd-tbody">
             <tr>
               <td class="col-name"><span class="lead-dot lead-dot-pod"></span>Marcus Rivera</td>
               <td>18</td><td>9</td><td>11</td><td>8.5</td>
@@ -2156,7 +2156,7 @@ function confirmPay() {
               <td class="td-rank r-cb-txt">CB</td>
             </tr>
           </tbody>
-          <tfoot>
+          <tfoot id="pod-qtd-tfoot">
             <tr class="total-row">
               <td class="col-name">Total</td>
               <td>51</td><td>21</td><td>31</td><td>20.5</td><td>—</td>
@@ -2169,7 +2169,7 @@ function confirmPay() {
 
     <!-- PODIUM — pod standing in squad, ranked by WTD SRA -->
     <div class="podium-wrap">
-      <div class="podium-top-lbl">Pod standing · G-Squad</div>
+      <div class="podium-top-lbl" id="pod-podium-lbl">Pod standing · G-Squad</div>
       <div class="podium-stage" id="pod-podium-stage">
         <!-- order: 4th · 2nd · 1st · 3rd · 5th (1st always center for odd counts) -->
         <div class="podium-col p-4th">
@@ -5160,6 +5160,7 @@ function rpNameCell(rep, zoneColorVar) {
 function rpRenderAll() {
   rpUpdateHeaders();
   rpRenderMe();
+  rpRenderPod();
   rpRenderSquad();
   rpRenderStatus();
   rpRenderOffice();
@@ -5556,6 +5557,197 @@ function rpRenderMe() {
     const fill = document.getElementById('me-rank-fill');
     if (fill) fill.style.width = rank === 'Franchise' ? '100%' : '0%';
   }
+}
+
+/* ── POD SCREEN ── */
+function rpRenderPod() {
+  if (!RP.user) return;
+
+  const me       = RP.user;
+  const hasPod   = !!me.pod;
+  const mySquad  = me.squad;
+
+  /* Helper: set text safely */
+  const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  const setHTML = (id, v) => { const el = document.getElementById(id); if (el) el.innerHTML = v; };
+
+  /* ── Build pod-summary data: one entry per pod in the user's squad ── */
+  const squadReps = RP.squadRoster; /* already filtered to user's squad */
+  const podMap = {};
+  squadReps.forEach(rep => {
+    const podName = rep.pod || '';
+    if (!podName) return;
+    if (!podMap[podName]) podMap[podName] = { name: podName, reps: [] };
+    podMap[podName].reps.push(rep);
+  });
+  const pods = Object.values(podMap);
+
+  /* Aggregate WTD stats per pod */
+  pods.forEach(p => {
+    p.sra = 0; p.ic = 0; p.ac = 0; p.cs = 0; p.cap = 0; p.pitch = 0;
+    p.sraQtr = 0; p.icQtr = 0; p.sraPts = 0; p.icPts = 0;
+    p.reps.forEach(rep => {
+      const rpt = RP.report[rep.id]    || {};
+      const qtd = RP.qtdPoints[rep.id] || {};
+      const exp = RP.exportData[rep.id]|| {};
+      p.pitch += rpt.pitches  || 0;
+      p.ac    += rpt.ac       || 0;
+      p.cs    += qtd.csWeek   || 0;
+      p.sra   += qtd.sraWeek  || 0;
+      p.cap   += qtd.capWeek  || 0;
+      p.ic    += qtd.icWeek   || 0;
+      p.sraQtr+= qtd.sraQtr   || 0;
+      p.icQtr += qtd.icQtrPoints || 0;
+      p.sraPts+= exp.sraPoints|| 0;
+      p.icPts += qtd.icQtrPoints || 0;
+    });
+  });
+
+  /* Sort pods by WTD SRA desc, then AC desc */
+  pods.sort((a, b) => b.sra - a.sra || b.ac - a.ac);
+
+  /* ── HEADER ── */
+  if (hasPod) {
+    setEl('pod-hdr-name', me.pod);
+    document.getElementById('pod-hdr-meta').innerHTML =
+      `<span class="hdr-chip">${mySquad}</span>` +
+      `<span class="hdr-dot"></span>` +
+      `<span class="hdr-chip">Pod</span>` +
+      `<span class="hdr-dot"></span>` +
+      `<span class="hdr-chip">${me.office}</span>`;
+  } else {
+    /* No pod — show squad context */
+    setEl('pod-hdr-name', mySquad);
+    document.getElementById('pod-hdr-meta').innerHTML =
+      `<span class="hdr-chip">No pod assigned</span>` +
+      `<span class="hdr-dot"></span>` +
+      `<span class="hdr-chip">${me.office}</span>`;
+  }
+
+  /* ── WTD TABLE ── */
+  const RANK_CLS = { 'Franchise':'r-fr-txt','Premier':'r-pr-txt','Level III':'r-l3-txt','Level II':'r-l2-txt','Level I':'r-l1-txt','In Combine':'r-cb-txt','No Status':'r-ns-txt' };
+  const z = v => v === 0 ? '<td class="val-zero">0</td>' : `<td>${v}</td>`;
+
+  if (hasPod) {
+    /* Rep-level WTD rows — reps in the user's pod */
+    const podReps = [...RP.podRoster].sort((a, b) => {
+      const aSRA = RP.qtdPoints[a.id]?.sraWeek || 0;
+      const bSRA = RP.qtdPoints[b.id]?.sraWeek || 0;
+      return bSRA - aSRA || (RP.report[b.id]?.ac || 0) - (RP.report[a.id]?.ac || 0);
+    });
+
+    const totW = { pitch:0, ac:0, cs:0, sra:0, cap:0, ic:0 };
+    setEl('pod-ctx-wtd', `${me.pod} · week to date`);
+
+    setHTML('pod-wtd-tbody', podReps.map(rep => {
+      const rpt = RP.report[rep.id]    || {};
+      const qtd = RP.qtdPoints[rep.id] || {};
+      const pitch = rpt.pitches || 0, ac = rpt.ac || 0, cs = qtd.csWeek || 0;
+      const sra = qtd.sraWeek || 0, cap = qtd.capWeek || 0, ic = qtd.icWeek || 0;
+      totW.pitch += pitch; totW.ac += ac; totW.cs += cs;
+      totW.sra += sra; totW.cap += cap; totW.ic += ic;
+      const isMe = rep.id === me.id;
+      const nameStyle = isMe ? `font-weight:700;color:var(--rp-pod);` : '';
+      return `<tr><td class="col-name"><span style="${nameStyle}">${rep.name}</span></td>` +
+        `${z(pitch)}${z(ac)}${z(cs)}${z(sra)}${z(cap)}${z(ic)}</tr>`;
+    }).join(''));
+
+    setHTML('pod-wtd-tfoot',
+      `<tr class="total-row"><td class="col-name">Total</td>` +
+      [totW.pitch,totW.ac,totW.cs,totW.sra,totW.cap,totW.ic].map(v=>`<td>${v}</td>`).join('') +
+      `</tr>`);
+
+    /* Rep-level QTD rows */
+    const podRepsQTD = [...RP.podRoster].sort((a, b) =>
+      (RP.qtdPoints[b.id]?.sraQtr || 0) - (RP.qtdPoints[a.id]?.sraQtr || 0));
+
+    const totQ = { sra:0, ic:0, sraPts:0, icPts:0 };
+    setEl('pod-ctx-qtd', `RunX pts · ${me.pod} · quarter to date`);
+
+    setHTML('pod-qtd-tbody', podRepsQTD.map(rep => {
+      const qtd = RP.qtdPoints[rep.id] || {};
+      const exp = RP.exportData[rep.id]|| {};
+      const sra = qtd.sraQtr || 0, ic = qtd.icQtrPoints || 0;
+      const sraPts = exp.sraPoints || 0, icPts = qtd.icQtrPoints || 0;
+      const rank = exp.currentRank || 'No Status';
+      totQ.sra += sra; totQ.ic += ic; totQ.sraPts += sraPts; totQ.icPts += icPts;
+      const rc = RANK_CLS[rank] || 'r-ns-txt';
+      const isMe = rep.id === me.id;
+      const nameStyle = isMe ? `font-weight:700;color:var(--rp-pod);` : '';
+      return `<tr><td class="col-name"><span style="${nameStyle}">${rep.name}</span></td>` +
+        `${z(sra)}${z(ic)}${z(sraPts)}${z(icPts)}<td class="td-rank ${rc}">${rank}</td></tr>`;
+    }).join(''));
+
+    setHTML('pod-qtd-tfoot',
+      `<tr class="total-row"><td class="col-name">Total</td>` +
+      [totQ.sra, totQ.ic, totQ.sraPts.toFixed(1), totQ.icPts.toFixed(1)].map(v=>`<td>${v}</td>`).join('') +
+      `<td>—</td></tr>`);
+
+  } else {
+    /* No-pod fallback — show all-pods-as-rows summary table */
+    setEl('pod-ctx-wtd', `${mySquad} · pods · week to date`);
+
+    /* Swap thead to pod-summary columns */
+    const wtdThead = document.getElementById('pod-wtd-thead');
+    if (wtdThead) wtdThead.innerHTML =
+      `<tr><th class="col-name">Pod</th><th>Reps</th><th>AC</th><th>CS</th><th>SRA</th><th>CAP</th><th>IC</th></tr>`;
+
+    const totW = { ac:0, cs:0, sra:0, cap:0, ic:0 };
+    setHTML('pod-wtd-tbody', pods.map(p => {
+      totW.ac += p.ac; totW.cs += p.cs; totW.sra += p.sra; totW.cap += p.cap; totW.ic += p.ic;
+      return `<tr><td class="col-name">${p.name}</td><td>${p.reps.length}</td>` +
+        `${z(p.ac)}${z(p.cs)}${z(p.sra)}${z(p.cap)}${z(p.ic)}</tr>`;
+    }).join(''));
+    setHTML('pod-wtd-tfoot',
+      `<tr class="total-row"><td class="col-name">Total</td><td>—</td>` +
+      [totW.ac,totW.cs,totW.sra,totW.cap,totW.ic].map(v=>`<td>${v}</td>`).join('') +
+      `</tr>`);
+
+    /* QTD pod summary */
+    setEl('pod-ctx-qtd', `RunX pts · ${mySquad} · pods · quarter to date`);
+    const qtdThead = document.getElementById('pod-qtd-thead');
+    if (qtdThead) qtdThead.innerHTML =
+      `<tr><th class="col-name">Pod</th><th>Reps</th><th>SRA QTD</th><th>IC QTD</th><th>SRA pts</th><th>IC pts</th></tr>`;
+
+    const podsSortedQTD = [...pods].sort((a,b) => b.sraQtr - a.sraQtr);
+    const totQ = { sraQtr:0, icQtr:0, sraPts:0, icPts:0 };
+    setHTML('pod-qtd-tbody', podsSortedQTD.map(p => {
+      totQ.sraQtr += p.sraQtr; totQ.icQtr += p.icQtr;
+      totQ.sraPts += p.sraPts; totQ.icPts += p.icPts;
+      return `<tr><td class="col-name">${p.name}</td><td>${p.reps.length}</td>` +
+        `${z(p.sraQtr)}${z(p.icQtr)}${z(p.sraPts)}${z(p.icPts)}</tr>`;
+    }).join(''));
+    setHTML('pod-qtd-tfoot',
+      `<tr class="total-row"><td class="col-name">Total</td><td>—</td>` +
+      [totQ.sraQtr, totQ.icQtr, totQ.sraPts.toFixed(1), totQ.icPts.toFixed(1)].map(v=>`<td>${v}</td>`).join('') +
+      `</tr>`);
+  }
+
+  /* ── PODIUM — pods in squad ranked by WTD SRA ── */
+  setEl('pod-podium-lbl', `Pod standing · ${mySquad}`);
+  const myPodName = me.pod || '';
+
+  /* Podium position layout: 4·2·1·3·5 (1st always center) */
+  const ORDER = [3, 1, 0, 2, 4]; /* indices into sorted pods array for positions 4,2,1,3,5 */
+  const POS_CLASS = ['p-4th','p-2nd','p-1st','p-3rd','p-5th'];
+  const cols = pods.length > 0 ? ORDER.map((podIdx, colIdx) => {
+    const p = pods[podIdx];
+    if (!p) return ''; /* fewer than 5 pods */
+    const rank = podIdx + 1;
+    const isYou = p.name === myPodName;
+    const dim = p.sra === 0 ? ' dim' : '';
+    const youTag = isYou ? `<div class="podium-you-tag" style="background:var(--rp-pod)">you</div>` : '';
+    return `<div class="podium-col ${POS_CLASS[colIdx]}">
+      <div class="podium-plate">
+        ${youTag}
+        <div class="podium-name${dim}">${p.name}</div>
+        <div class="podium-sra${dim}">${p.sra} <span class="podium-sra-lbl">SRA</span></div>
+      </div>
+      <div class="podium-block"><span class="podium-num">${rank}</span></div>
+    </div>`;
+  }).join('') : '<div style="padding:16px;color:#888;font-size:12px">No pods in squad</div>';
+
+  setHTML('pod-podium-stage', cols);
 }
 
 function rpRenderOffice() {
