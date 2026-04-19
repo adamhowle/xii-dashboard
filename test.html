@@ -82,7 +82,7 @@
     Region never appears in nav — accessible via Office screen for director role only
 -->
 
-<script src="https://accounts.google.com/gsi/client" async defer onload="rpBoot()"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -4856,15 +4856,18 @@ function rpShowErrorScreen(msg) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   BOOT — called once GIS library is ready
+   BOOT — waits for both DOM ready AND GIS library ready
    ═══════════════════════════════════════════════════════════════════ */
 function rpBoot() {
+  if (typeof google === 'undefined' || !google.accounts) {
+    /* GIS not ready yet — retry in 100ms */
+    setTimeout(rpBoot, 100);
+    return;
+  }
   rpInitAuth();
-  /* GIS also gives us the signed-in user's email via the credential response */
   google.accounts.id.initialize({
     client_id: RP_CONFIG.CLIENT_ID,
     callback: (credResp) => {
-      /* Decode JWT to get email */
       try {
         const payload = JSON.parse(atob(credResp.credential.split('.')[1]));
         RP._loginEmail = payload.email;
@@ -4873,8 +4876,15 @@ function rpBoot() {
       }
     },
   });
-  /* Auto-request token if user was previously signed in */
-  _tokenClient && _tokenClient.requestAccessToken({ prompt: '' });
+  /* Request token silently if previously signed in, otherwise prompt */
+  _tokenClient.requestAccessToken({ prompt: '' });
+}
+
+/* Fire rpBoot once the page DOM is fully loaded */
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', rpBoot);
+} else {
+  rpBoot();
 }
 
 /* Wire sign-out button in drawer */
