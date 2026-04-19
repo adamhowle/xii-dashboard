@@ -4866,10 +4866,21 @@ let _tokenClient;
 function rpInitAuth() {
   _tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: RP_CONFIG.CLIENT_ID,
-    scope:     RP_CONFIG.SCOPES,
+    scope:     'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/userinfo.email',
     callback:  async (resp) => {
       if (resp.error) { rpShowAuthError(resp.error); return; }
       RP.token = resp.access_token;
+      /* Resolve email from userinfo endpoint using the access token */
+      try {
+        const uiRes  = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: 'Bearer ' + RP.token }
+        });
+        const uiData = await uiRes.json();
+        RP._loginEmail = uiData.email;
+        console.log('Login email resolved:', RP._loginEmail);
+      } catch(e) {
+        console.warn('Could not fetch userinfo:', e);
+      }
       await rpLoadAll();
     },
   });
