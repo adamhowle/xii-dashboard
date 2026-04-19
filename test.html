@@ -1716,72 +1716,73 @@ body {
 
       <div class="stat-grid">
         <!-- Row 1: Pitches · AC · CS -->
-        <div class="sc exc">
-          <div class="sc-pip pip-g"></div>
-          <div class="sc-label exc">Pitches</div>
-          <div class="sc-val exc" style="font-size:26px">34</div>
+        <div class="sc" id="me-sc-pitches">
+          <div class="sc-pip" id="me-pip-pitches"></div>
+          <div class="sc-label" id="me-lbl-pitches">Pitches</div>
+          <div class="sc-val" id="me-val-pitches" style="font-size:26px">—</div>
           <div class="sc-goal">floor 30</div>
         </div>
-        <div class="sc exc">
-          <div class="sc-pip pip-g"></div>
-          <div class="sc-label exc">AC</div>
-          <div class="sc-val exc">5</div>
+        <div class="sc" id="me-sc-ac">
+          <div class="sc-pip" id="me-pip-ac"></div>
+          <div class="sc-label" id="me-lbl-ac">AC</div>
+          <div class="sc-val" id="me-val-ac">—</div>
           <div class="sc-goal">goal <b>4</b></div>
         </div>
-        <div class="sc exc">
-          <div class="sc-pip pip-g"></div>
-          <div class="sc-label exc">CS</div>
-          <div class="sc-val exc">4</div>
+        <div class="sc" id="me-sc-cs">
+          <div class="sc-pip" id="me-pip-cs"></div>
+          <div class="sc-label" id="me-lbl-cs">CS</div>
+          <div class="sc-val" id="me-val-cs">—</div>
           <div class="sc-goal">goal <b>3</b></div>
         </div>
         <!-- Row 2: SRA · CAP · IC -->
-        <div class="sc warn">
-          <div class="sc-pip pip-a"></div>
-          <div class="sc-label warn">SRA</div>
-          <div class="sc-val warn">1</div>
-          <div class="sc-goal wb">goal 2 · <b>behind</b></div>
+        <div class="sc" id="me-sc-sra">
+          <div class="sc-pip" id="me-pip-sra"></div>
+          <div class="sc-label" id="me-lbl-sra">SRA</div>
+          <div class="sc-val" id="me-val-sra">—</div>
+          <div class="sc-goal" id="me-goal-sra">goal 2</div>
         </div>
-        <div class="sc">
-          <div class="sc-label">CAP</div>
-          <div class="sc-val">1</div>
+        <div class="sc" id="me-sc-cap">
+          <div class="sc-pip" id="me-pip-cap"></div>
+          <div class="sc-label" id="me-lbl-cap">CAP</div>
+          <div class="sc-val" id="me-val-cap">—</div>
           <div class="sc-goal">goal 1</div>
         </div>
         <!-- IC cell — pulsing dot when new IC detected, tap to celebrate -->
-        <div class="sc" id="ic-cell" onclick="showPopup()" style="cursor:pointer; background:#F5FFF8;">
+        <div class="sc" id="ic-cell" onclick="showPopup()" style="cursor:pointer;">
           <div class="live-dot-wrap">
             <div class="live-dot-ring"></div>
             <div class="live-dot"></div>
           </div>
-          <div class="sc-label exc">IC</div>
-          <div class="sc-val exc">2</div>
-          <div class="sc-goal" style="color:var(--rp-me);font-weight:600;font-size:7px">new · tap</div>
+          <div class="sc-label" id="me-lbl-ic">IC</div>
+          <div class="sc-val" id="me-val-ic">—</div>
+          <div class="sc-goal" id="me-goal-ic">goal 1</div>
         </div>
       </div>
 
       <!-- Funnel projection row -->
       <div class="funnel-row">
         <div class="f-step">
-          <div class="f-val">5 AC</div>
+          <div class="f-val" id="me-f-ac">— AC</div>
           <div class="f-lbl">actual</div>
         </div>
         <div class="f-arr">›</div>
         <div class="f-step">
-          <div class="f-val">2.5 <span class="f-est">est.</span></div>
+          <div class="f-val" id="me-f-cs">— <span class="f-est">est.</span></div>
           <div class="f-lbl">CS</div>
         </div>
         <div class="f-arr">›</div>
         <div class="f-step">
-          <div class="f-val">1.2 <span class="f-est">est.</span></div>
+          <div class="f-val" id="me-f-sra">— <span class="f-est">est.</span></div>
           <div class="f-lbl">SRA</div>
         </div>
         <div class="f-arr">›</div>
         <div class="f-step">
-          <div class="f-val">0.6 <span class="f-est">est.</span></div>
+          <div class="f-val" id="me-f-ic">— <span class="f-est">est.</span></div>
           <div class="f-lbl">IC</div>
         </div>
         <div class="f-arr">›</div>
         <div class="f-step">
-          <div class="f-val" style="color:var(--rp-muted)">$3k <span class="f-est">est.</span></div>
+          <div class="f-val" id="me-f-earn" style="color:var(--rp-muted)">— <span class="f-est">est.</span></div>
           <div class="f-lbl">pipeline</div>
         </div>
       </div>
@@ -1829,31 +1830,31 @@ body {
       <div class="ctx-label ctx-qtd">RunX pts · assisted = 0.5 · Sunrun add-ons excluded</div>
 
       <div class="qtd-grid">
-        <div class="sc exc">
-          <div class="sc-pip pip-g"></div>
-          <div class="sc-label exc">IC pts</div>
-          <div class="sc-val exc" style="font-size:28px">8.5</div>
+        <div class="sc" id="me-qtd-sc-ic">
+          <div class="sc-pip" id="me-qtd-pip-ic"></div>
+          <div class="sc-label" id="me-qtd-lbl-ic">IC pts</div>
+          <div class="sc-val" id="me-qtd-val-ic" style="font-size:28px">—</div>
           <div class="sc-goal">status pts</div>
         </div>
-        <div class="sc">
+        <div class="sc" id="me-qtd-sc-sra">
           <div class="sc-label">SRA pts</div>
-          <div class="sc-val" style="font-size:28px">11</div>
+          <div class="sc-val" id="me-qtd-val-sra" style="font-size:28px">—</div>
           <div class="sc-goal">status pts</div>
         </div>
         <div class="sc">
           <div class="sc-label">CS total</div>
-          <div class="sc-val" style="font-size:28px">14</div>
+          <div class="sc-val" id="me-qtd-val-cs" style="font-size:28px">—</div>
           <div class="sc-goal">quarter</div>
         </div>
         <div class="sc">
           <div class="sc-label">AC total</div>
-          <div class="sc-val" style="font-size:28px">18</div>
+          <div class="sc-val" id="me-qtd-val-ac" style="font-size:28px">—</div>
           <div class="sc-goal">quarter</div>
         </div>
         <div class="pace-cell qtd-wide">
           <div class="pace-lbl">QTD pace</div>
-          <div class="pace-val">On track · proj. Level III</div>
-          <div class="pace-sub">Week 8 of 13 · need 5 SRA + 2 IC</div>
+          <div class="pace-val" id="me-qtd-pace-val">—</div>
+          <div class="pace-sub" id="me-qtd-pace-sub">—</div>
         </div>
       </div>
       <div class="qtd-note">0.5 pts for assisted installs · add-on installs = 0 pts</div>
@@ -1862,16 +1863,16 @@ body {
 
     <!-- ── RANK BAR — always visible ── -->
     <div class="rank-bar">
-      <div class="rank-pill r-l2">Level II</div>
+      <div class="rank-pill" id="me-rank-pill">—</div>
       <div class="prog-col">
         <div class="prog-top">
-          <span class="prog-next">Next: Level III</span>
-          <span class="prog-pct">68%</span>
+          <span class="prog-next" id="me-rank-next">—</span>
+          <span class="prog-pct" id="me-rank-pct">—</span>
         </div>
         <div class="prog-track">
-          <div class="prog-fill" style="width:68%"></div>
+          <div class="prog-fill" id="me-rank-fill" style="width:0%"></div>
         </div>
-        <div class="prog-req">Need 5 more SRA · 2 more IC</div>
+        <div class="prog-req" id="me-rank-req">—</div>
       </div>
     </div>
 
@@ -5158,10 +5159,10 @@ function rpNameCell(rep, zoneColorVar) {
    ═══════════════════════════════════════════════════════════════════ */
 function rpRenderAll() {
   rpUpdateHeaders();
+  rpRenderMe();
   rpRenderSquad();
   rpRenderStatus();
   rpRenderOffice();
-  /* Me + Pod screens — same pattern, add after squad is confirmed working */
   rpHideLoadingScreen();
 }
 
@@ -5383,8 +5384,181 @@ function rpRankDrawer(exp) {
   return `<td colspan="6"><div class="rnk-drawer-inner">${inner}</div></td>`;
 }
 
-/* ── OFFICE SCREEN ── placeholder — full render next iteration ── */
-function rpRenderOffice() {
+/* ── RANK NORMALIZER — Export uses ALL CAPS, config uses Title Case ── */
+function rpNormalizeRank(raw) {
+  const map = {
+    'NO LEVEL':   'No Status',
+    'IN COMBINE': 'In Combine',
+    'LEVEL 1':    'Level I',
+    'LEVEL 2':    'Level II',
+    'LEVEL 3':    'Level III',
+    'PREMIER':    'Premier',
+    'FRANCHISE':  'Franchise',
+  };
+  return map[(raw || '').toUpperCase().trim()] || 'No Status';
+}
+
+/* ── ME SCREEN RENDERER ── */
+function rpRenderMe() {
+  if (!RP.user) return;
+  const id  = RP.user.id;
+  const rpt = RP.report[id]     || {};
+  const qtd = RP.qtdPoints[id]  || {};
+  const exp = RP.exportData[id] || {};
+
+  /* ── WTD goals ── */
+  const GOALS = { pitches: 30, ac: 4, cs: 3, sra: 2, cap: 1, ic: 1 };
+
+  /* Helper: apply exc/warn/neutral state to a cell */
+  function applyState(scId, valId, lblId, pipId, value, goal, isFloor) {
+    const sc  = document.getElementById(scId);
+    const val = document.getElementById(valId);
+    const lbl = document.getElementById(lblId);
+    const pip = document.getElementById(pipId);
+    if (!sc || !val) return;
+
+    val.textContent = value;
+
+    /* Remove all state classes */
+    [sc, val, lbl].forEach(el => { if (el) el.classList.remove('exc','warn'); });
+    if (pip) pip.className = 'sc-pip';
+
+    if (value >= goal) {
+      [sc, val, lbl].forEach(el => { if (el) el.classList.add('exc'); });
+      if (pip) pip.classList.add('pip-g');
+    } else if (!isFloor && value > 0) {
+      /* Has activity but below goal — neutral, no pip */
+    } else if (!isFloor && value === 0) {
+      /* Zero — warn state */
+      [sc, val, lbl].forEach(el => { if (el) el.classList.add('warn'); });
+      if (pip) pip.classList.add('pip-a');
+    }
+    /* Floor metrics (pitches): just exc or neutral, never warn */
+  }
+
+  /* WTD stat cells */
+  applyState('me-sc-pitches','me-val-pitches','me-lbl-pitches','me-pip-pitches', rpt.pitches||0, GOALS.pitches, true);
+  applyState('me-sc-ac',     'me-val-ac',     'me-lbl-ac',     'me-pip-ac',      rpt.ac||0,      GOALS.ac,      false);
+  applyState('me-sc-cs',     'me-val-cs',     'me-lbl-cs',     'me-pip-cs',      qtd.csWeek||0,  GOALS.cs,      false);
+  applyState('me-sc-sra',    'me-val-sra',    'me-lbl-sra',    'me-pip-sra',     qtd.sraWeek||0, GOALS.sra,     false);
+  applyState('me-sc-cap',    'me-val-cap',    'me-lbl-cap',    'me-pip-cap',     qtd.capWeek||0, GOALS.cap,     false);
+
+  /* SRA goal text — show "behind" when zero */
+  const sraGoal = document.getElementById('me-goal-sra');
+  if (sraGoal) {
+    sraGoal.innerHTML = (qtd.sraWeek||0) < GOALS.sra && (qtd.sraWeek||0) === 0
+      ? 'goal 2 · <b>behind</b>'
+      : 'goal 2';
+    sraGoal.classList.toggle('wb', (qtd.sraWeek||0) === 0);
+  }
+
+  /* IC cell — special handling */
+  const icCell = document.getElementById('ic-cell');
+  const icVal  = document.getElementById('me-val-ic');
+  const icLbl  = document.getElementById('me-lbl-ic');
+  const icGoal = document.getElementById('me-goal-ic');
+  const icWk   = qtd.icWeek || 0;
+  if (icVal) icVal.textContent = icWk;
+  if (icWk >= GOALS.ic) {
+    if (icCell) icCell.style.background = 'var(--rp-exceeds-bg)';
+    if (icVal)  icVal.classList.add('exc');
+    if (icLbl)  icLbl.classList.add('exc');
+    if (icGoal) { icGoal.textContent = 'new · tap'; icGoal.style.cssText = 'color:var(--rp-me);font-weight:600;font-size:7px'; }
+  } else {
+    if (icCell) icCell.style.background = '';
+    if (icVal)  icVal.classList.remove('exc');
+    if (icLbl)  icLbl.classList.remove('exc');
+    if (icGoal) { icGoal.textContent = 'goal 1'; icGoal.style.cssText = ''; }
+  }
+
+  /* ── Funnel projection (team avg ratios: AC→CS 2:1, CS→SRA 2:1, SRA→IC 1.5:1) ── */
+  const payPref = parseInt(localStorage.getItem('rp_pay_per_install') || '5000');
+  const acVal   = rpt.ac || 0;
+  const csEst   = +(acVal / 2).toFixed(1);
+  const sraEst  = +(csEst / 2).toFixed(1);
+  const icEst   = +(sraEst / 1.5).toFixed(1);
+  const earnEst = Math.round(icEst * payPref);
+  const fmtK    = v => v >= 1000 ? '$' + Math.round(v/1000) + 'k' : '$' + v;
+
+  const fac = document.getElementById('me-f-ac');
+  const fcs = document.getElementById('me-f-cs');
+  const fsr = document.getElementById('me-f-sra');
+  const fic = document.getElementById('me-f-ic');
+  const fea = document.getElementById('me-f-earn');
+  if (fac) fac.textContent = acVal + ' AC';
+  if (fcs) fcs.innerHTML   = csEst  + ' <span class="f-est">est.</span>';
+  if (fsr) fsr.innerHTML   = sraEst + ' <span class="f-est">est.</span>';
+  if (fic) fic.innerHTML   = icEst  + ' <span class="f-est">est.</span>';
+  if (fea) fea.innerHTML   = fmtK(earnEst) + ' <span class="f-est">est.</span>';
+
+  /* ── Earnings strip — confirmed IC × pay pref ── */
+  const confirmedIC  = qtd.icWeek || 0;
+  const confirmedEst = confirmedIC * payPref;
+  const pipelineEst  = Math.max(0, earnEst - confirmedEst);
+  const totalEst     = confirmedEst + pipelineEst;
+  const setEl = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  setEl('earn-main',      fmtK(totalEst));
+  setEl('earn-confirmed', fmtK(confirmedEst));
+  setEl('earn-pipeline',  fmtK(pipelineEst));
+  setEl('earn-per',       fmtK(payPref));
+
+  /* ── QTD grid ── */
+  setEl('me-qtd-val-ic',  qtd.icQtrPoints || 0);
+  setEl('me-qtd-val-sra', qtd.sraQtr      || 0);
+  setEl('me-qtd-val-cs',  qtd.csWeek      || 0);  /* QTD CS not in sheet — using week as proxy */
+  setEl('me-qtd-val-ac',  rpt.ac          || 0);
+
+  /* Pace cell */
+  const paceVal = document.getElementById('me-qtd-pace-val');
+  const paceSub = document.getElementById('me-qtd-pace-sub');
+  if (paceVal) paceVal.textContent = qtd.pace ? 'IC pace: ' + qtd.pace + ' pts' : '—';
+  if (paceSub) paceSub.textContent = qtd.qtrStatus || '—';
+
+  /* ── Rank bar ── */
+  const rawRank    = exp.currentRank || 'NO LEVEL';
+  const rank       = rpNormalizeRank(rawRank);
+  const thresh     = RP_CONFIG.RANK_THRESHOLDS[rank];
+  const RANK_PILL  = {
+    'No Status':  'r-ns',  'In Combine': 'r-cb',
+    'Level I':    'r-l1',  'Level II':   'r-l2',
+    'Level III':  'r-l3',  'Premier':    'r-pr',
+    'Franchise':  'r-fr',
+  };
+
+  const pill = document.getElementById('me-rank-pill');
+  if (pill) {
+    pill.textContent = rank;
+    pill.className   = 'rank-pill ' + (RANK_PILL[rank] || 'r-ns');
+  }
+
+  if (thresh && thresh.next) {
+    /* Progress = worst of SRA% and IC% */
+    const sraPct = thresh.sraNeed ? Math.min(100, Math.round(((exp.sraPoints||0) / thresh.sraNeed) * 100)) : 100;
+    const icPct  = thresh.icNeed  ? Math.min(100, Math.round(((qtd.icQtrPoints||0) / thresh.icNeed)  * 100)) : 100;
+    const pct    = Math.min(sraPct, icPct);
+
+    const sraNeed = Math.max(0, (thresh.sraNeed || 0) - (exp.sraPoints    || 0));
+    const icNeed  = Math.max(0, (thresh.icNeed  || 0) - (qtd.icQtrPoints  || 0));
+
+    setEl('me-rank-next', 'Next: ' + thresh.next);
+    setEl('me-rank-pct',  pct + '%');
+    const fill = document.getElementById('me-rank-fill');
+    if (fill) fill.style.width = pct + '%';
+
+    const parts = [];
+    if (sraNeed > 0) parts.push('Need ' + sraNeed + ' more SRA');
+    if (icNeed  > 0) parts.push(icNeed + ' more IC');
+    setEl('me-rank-req', parts.length ? parts.join(' · ') : 'Goal met — level up pending');
+  } else {
+    setEl('me-rank-next', rank === 'Franchise' ? 'Top rank achieved' : '—');
+    setEl('me-rank-pct',  '');
+    setEl('me-rank-req',  '');
+    const fill = document.getElementById('me-rank-fill');
+    if (fill) fill.style.width = rank === 'Franchise' ? '100%' : '0%';
+  }
+}
+
+
   /* Same pattern as squad — aggregates by squad using Squad Structure */
   /* TODO: wire up in next pass */
 }
