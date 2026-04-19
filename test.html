@@ -2638,8 +2638,8 @@ sqRenderQtd();
       </button>
     </div>
     <div class="hdr" style="background:var(--rp-office);">
-      <div class="hdr-name">Newport Beach</div>
-      <div class="hdr-meta">
+      <div class="hdr-name" id="off-hdr-name">Newport Beach</div>
+      <div class="hdr-meta" id="off-hdr-meta">
         <span class="hdr-chip">Office</span>
         <span class="hdr-dot"></span>
         <span class="hdr-chip">5 squads</span>
@@ -2686,8 +2686,8 @@ sqRenderQtd();
 
     <!-- OFFICE PODIUM — offices in region, ranked by WTD SRA -->
     <div class="podium-wrap">
-      <div class="podium-top-lbl">Office standing · Region</div>
-      <div class="podium-stage">
+      <div class="podium-top-lbl" id="off-podium-lbl">Office standing · Region</div>
+      <div class="podium-stage" id="off-podium-stage">
         <div class="podium-col p-4th">
           <div class="podium-plate">
             <div class="podium-name dim">Riverside</div>
@@ -5751,8 +5751,150 @@ function rpRenderPod() {
 }
 
 function rpRenderOffice() {
-  /* Same pattern as squad — aggregates by squad using Squad Structure */
-  /* TODO: wire up in next pass */
+  if (!RP.user) return;
+  const me = RP.user;
+
+  /* ── HEADER ── */
+  const offHdrName = document.getElementById('off-hdr-name');
+  if (offHdrName) offHdrName.textContent = me.office;
+
+  /* ── BUILD squad data from live roster + stats ── */
+  const squads = Object.values(RP.squadById).filter(s => s.office === me.office);
+  const squadCount = squads.length;
+
+  const offHdrMeta = document.getElementById('off-hdr-meta');
+  if (offHdrMeta) offHdrMeta.innerHTML =
+    `<span class="hdr-chip">Office</span>` +
+    `<span class="hdr-dot"></span>` +
+    `<span class="hdr-chip">${squadCount} squad${squadCount !== 1 ? 's' : ''}</span>`;
+
+  /* Aggregate each squad's WTD + QTD stats */
+  const squadData = squads.map(sq => {
+    const members = RP.officeRoster.filter(r => r.squad === sq.squad);
+    const leader  = members.find(r => r.name === sq.leader);
+
+    const tot = { pitch:0, ac:0, cs:0, sra:0, cap:0, ic:0 };
+    const totQ = { sraQtr:0, icQtr:0, sraPts:0, icPts:0 };
+    members.forEach(rep => {
+      const rpt = RP.report[rep.id]     || {};
+      const qtd = RP.qtdPoints[rep.id]  || {};
+      const exp = RP.exportData[rep.id] || {};
+      tot.pitch += rpt.pitches  || 0;
+      tot.ac    += rpt.ac       || 0;
+      tot.cs    += qtd.csWeek   || 0;
+      tot.sra   += qtd.sraWeek  || 0;
+      tot.cap   += qtd.capWeek  || 0;
+      tot.ic    += qtd.icWeek   || 0;
+      totQ.sraQtr += qtd.sraQtr      || 0;
+      totQ.icQtr  += qtd.icQtrPoints || 0;
+      totQ.sraPts += exp.sraPoints   || 0;
+      totQ.icPts  += qtd.icQtrPoints || 0;
+    });
+
+    const ldrRpt = leader ? (RP.report[leader.id]     || {}) : {};
+    const ldrQtd = leader ? (RP.qtdPoints[leader.id]  || {}) : {};
+    const ldrExp = leader ? (RP.exportData[leader.id] || {}) : {};
+    const RANK_CLS = { 'Franchise':'r-fr-txt','Premier':'r-pr-txt','Level III':'r-l3-txt','Level II':'r-l2-txt','Level I':'r-l1-txt','In Combine':'r-cb-txt','No Status':'r-ns-txt' };
+    const ldrRank = ldrExp.currentRank || 'No Status';
+
+    return {
+      name:    sq.squad,
+      leader:  sq.leader || '—',
+      isYou:   sq.squad === me.squad,
+      sraGoal: sq.wkSRAGoal,
+      icGoal:  sq.wkICGoal,
+      wtd: { ...tot,
+        ldrPitch: ldrRpt.pitches || 0, ldrAc: ldrRpt.ac || 0,
+        ldrCs: ldrQtd.csWeek || 0, ldrSra: ldrQtd.sraWeek || 0,
+        ldrCap: ldrQtd.capWeek || 0, ldrIc: ldrQtd.icWeek || 0,
+      },
+      qtd: { ...totQ,
+        ldrSraQtr: ldrQtd.sraQtr || 0, ldrIcQtr: ldrQtd.icQtrPoints || 0,
+        ldrSraPts: ldrExp.sraPoints || 0, ldrIcPts: ldrQtd.icQtrPoints || 0,
+        ldrRank, ldrRankCls: RANK_CLS[ldrRank] || 'r-ns-txt',
+        sraGoalQtd: sq.qtrSRAGoal, icGoalQtd: sq.qtrICGoal,
+      },
+    };
+  });
+
+  /* ── WTD TABLE ── */
+  const sortedWTD = [...squadData].sort((a, b) => b.wtd.sra - a.wtd.sra || b.wtd.ac - a.wtd.ac);
+  const goalValCls = (v, goal) => goal && v > goal ? 'goal-exceeded' : goal && v === goal ? 'goal-met' : '';
+  const tc = (v, goal) => {
+    const cls = goal ? goalValCls(v, goal) : '';
+    return `<div class="off-col-stat"><span class="off-sq-tot-val ${cls}">${v}</span></div>`;
+  };
+  const lc = v => v === 0
+    ? `<div class="off-col-stat off-stat-zero">0</div>`
+    : `<div class="off-col-stat off-stat-val">${v}</div>`;
+
+  const wtdEl = document.getElementById('off-wtd-squads');
+  if (wtdEl) wtdEl.innerHTML = sortedWTD.map((sq, i) => {
+    const isTint = i % 2 === 0;
+    const rowBg  = isTint ? 'off-row-tint'     : 'off-row-white';
+    const ldrBg  = isTint ? 'off-row-tint-ldr' : 'off-row-white-ldr';
+    const youCls = sq.isYou ? ' off-squad-hdr-you' : '';
+    const w = sq.wtd;
+    return `<div class="off-squad-block">
+      <div class="off-squad-hdr ${rowBg}${youCls}">
+        <div class="off-col-name"><span class="off-sq-name">${sq.name.toUpperCase()}</span></div>
+        ${tc(w.pitch)}${tc(w.ac)}${tc(w.cs)}${tc(w.sra, sq.sraGoal)}${tc(w.cap)}${tc(w.ic, sq.icGoal)}
+      </div>
+      <div class="off-leader-row ${ldrBg}">
+        <div class="off-col-name off-ldr-name${sq.isYou ? ' off-ldr-you' : ''}">${sq.leader}</div>
+        ${lc(w.ldrPitch)}${lc(w.ldrAc)}${lc(w.ldrCs)}${lc(w.ldrSra)}${lc(w.ldrCap)}${lc(w.ldrIc)}
+      </div>
+    </div>`;
+  }).join('');
+
+  /* ── QTD TABLE ── */
+  const sortedQTD = [...squadData].sort((a, b) => b.qtd.sraPts - a.qtd.sraPts || b.qtd.icPts - a.qtd.icPts);
+  const qtdEl = document.getElementById('off-qtd-squads');
+  if (qtdEl) qtdEl.innerHTML = sortedQTD.map((sq, i) => {
+    const isTint = i % 2 === 0;
+    const rowBg  = isTint ? 'off-row-tint'     : 'off-row-white';
+    const ldrBg  = isTint ? 'off-row-tint-ldr' : 'off-row-white-ldr';
+    const youCls = sq.isYou ? ' off-squad-hdr-you' : '';
+    const q = sq.qtd;
+    return `<div class="off-squad-block">
+      <div class="off-squad-hdr ${rowBg}${youCls}">
+        <div class="off-col-name"><span class="off-sq-name">${sq.name.toUpperCase()}</span></div>
+        ${tc(q.sraQtr, q.sraGoalQtd)}${tc(q.icQtr, q.icGoalQtd)}${tc(q.sraPts, q.sraGoalQtd)}${tc(q.icPts, q.icGoalQtd)}
+        <div class="off-col-stat"></div>
+      </div>
+      <div class="off-leader-row ${ldrBg}">
+        <div class="off-col-name off-ldr-name${sq.isYou ? ' off-ldr-you' : ''}">${sq.leader}</div>
+        ${lc(q.ldrSraQtr)}${lc(q.ldrIcQtr)}${lc(q.ldrSraPts)}${lc(q.ldrIcPts)}
+        <div class="off-col-stat td-rank ${q.ldrRankCls}">${q.ldrRank}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  /* ── PODIUM — squads in office ranked by WTD SRA ── */
+  const podiumLbl = document.getElementById('off-podium-lbl');
+  if (podiumLbl) podiumLbl.textContent = `Squad standing · ${me.office}`;
+
+  const podiumSquads = [...squadData].sort((a, b) => b.wtd.sra - a.wtd.sra || b.wtd.ac - a.wtd.ac);
+  const ORDER = [3, 1, 0, 2, 4];
+  const POS_CLASS = ['p-4th','p-2nd','p-1st','p-3rd','p-5th'];
+  const podiumStage = document.getElementById('off-podium-stage');
+  if (podiumStage) {
+    podiumStage.innerHTML = podiumSquads.length > 0 ? ORDER.map((sqIdx, colIdx) => {
+      const sq = podiumSquads[sqIdx];
+      if (!sq) return '';
+      const rank = sqIdx + 1;
+      const dim  = sq.wtd.sra === 0 ? ' dim' : '';
+      const youTag = sq.isYou ? `<div class="podium-you-tag" style="background:var(--rp-office)">you</div>` : '';
+      return `<div class="podium-col ${POS_CLASS[colIdx]}">
+        <div class="podium-plate">
+          ${youTag}
+          <div class="podium-name${dim}">${sq.name}</div>
+          <div class="podium-sra${dim}">${sq.wtd.sra} <span class="podium-sra-lbl">SRA</span></div>
+        </div>
+        <div class="podium-block"><span class="podium-num">${rank}</span></div>
+      </div>`;
+    }).join('') : '';
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
