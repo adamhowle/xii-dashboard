@@ -4970,7 +4970,7 @@ function rpParseRoster(rows) {
       email:     r['Email']     || '',
       address:   r['Address']   || '',
       recruiter: r['Recruiter'] || '',
-      pod:       r['Pod']       || '',
+      pod:       r['Pod'] || r['pod'] || '',
     };
     RP.roster[id] = rec;
     if (rec.email) RP.rosterByEmail[rec.email.toLowerCase()] = rec;
