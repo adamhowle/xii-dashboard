@@ -7623,7 +7623,8 @@ async function fetchSheetsData(opts) {
     var exRows = sheetsRowsToObjects((await exRes.json()).values || []).map(function(r) {
       var id = String(r['employee id'] || '').trim();
       if (!id || !/^\d+$/.test(id)) return null;
-      return { id, name: String(r['name']||''), office: shortOffice(String(r['office']||'')), title: String(r['title']||''), currentRank: String(r['current rank']||'NO STATUS'), highestRank: String(r['highest rank']||'NO STATUS'), rankPace: String(r['rank pace']||'NO STATUS'), llPoints: csvNum(r['ll install points']), qInstalls: csvNum(r['q installs (w/ add-ons)']), capPoints: csvNum(r['cap points']), sraPoints: csvNum(r['sra points']), careerIC: csvNum(r['career ic']) };
+      var normRank = function(v){ return String(v||'NO STATUS').replace(/^NO LEVEL$/i,'NO STATUS'); };
+      return { id, name: String(r['name']||''), office: shortOffice(String(r['office']||'')), title: String(r['title']||''), currentRank: normRank(r['current rank']), highestRank: normRank(r['highest rank']), rankPace: normRank(r['rank pace']), llPoints: csvNum(r['ll install points']), qInstalls: csvNum(r['q installs (w/ add-ons)']), capPoints: csvNum(r['cap points']), sraPoints: csvNum(r['sra points']), careerIC: csvNum(r['career ic']) };
     }).filter(Boolean);
     if (exRows.length) { rankingsData = exRows; RANKINGS_MAP = Object.fromEntries(exRows.map(function(r){ return [r.id, {title:r.title, currentRank:r.currentRank, highestRank:r.highestRank}]; })); }
   } catch(e) { errors.push('Export: ' + e.message); }
