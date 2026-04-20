@@ -1694,7 +1694,7 @@ body {
 </head>
 <body>
 
-<div style="position:relative; width:340px;">
+<div id="screen-me" style="position:relative; width:340px;">
 
   <!-- CONFETTI LAYER (outside phone, covers full frame) -->
   <div class="confetti-container" id="confetti-container"></div>
@@ -1886,21 +1886,15 @@ body {
         </div>
         <div class="sc sc-goal-cell" id="me-qtd-sc-sragoal">
           <div class="sc-label">QTD SRA Goal</div>
-          <div class="sc-val" id="me-qtd-goal-sra-val" style="font-size:28px">—</div>
+          <div class="sc-val" id="me-qtd-goal-sra-val" style="font-size:22px">—</div>
           <div class="sc-goal" id="me-qtd-goal-sra-sub">Set in More</div>
-          <div class="goal-bar-wrap" id="me-qtd-goal-sra-bar-wrap" style="display:none">
-            <div class="goal-bar-track"><div class="goal-bar-fill" id="me-qtd-goal-sra-fill"></div></div>
-            <div class="goal-bar-pct" id="me-qtd-goal-sra-pct"></div>
-          </div>
+          <div class="goal-bar-wrap" id="me-qtd-goal-sra-bar-wrap" style="display:none"><div class="goal-bar-track"><div class="goal-bar-fill" id="me-qtd-goal-sra-fill"></div></div><div class="goal-bar-pct" id="me-qtd-goal-sra-pct"></div></div>
         </div>
         <div class="sc sc-goal-cell" id="me-qtd-sc-icgoal">
           <div class="sc-label">QTD IC Goal</div>
-          <div class="sc-val" id="me-qtd-goal-ic-val" style="font-size:28px">—</div>
+          <div class="sc-val" id="me-qtd-goal-ic-val" style="font-size:22px">—</div>
           <div class="sc-goal" id="me-qtd-goal-ic-sub">Set in More</div>
-          <div class="goal-bar-wrap" id="me-qtd-goal-ic-bar-wrap" style="display:none">
-            <div class="goal-bar-track"><div class="goal-bar-fill" id="me-qtd-goal-ic-fill"></div></div>
-            <div class="goal-bar-pct" id="me-qtd-goal-ic-pct"></div>
-          </div>
+          <div class="goal-bar-wrap" id="me-qtd-goal-ic-bar-wrap" style="display:none"><div class="goal-bar-track"><div class="goal-bar-fill" id="me-qtd-goal-ic-fill"></div></div><div class="goal-bar-pct" id="me-qtd-goal-ic-pct"></div></div>
         </div>
         <div class="pace-cell qtd-wide">
           <div class="pace-lbl">QTD pace</div>
@@ -1928,47 +1922,32 @@ body {
     </div>
 
     <!-- ── ZOOM STRIP ── -->
-    <div class="zoom-strip">
+    <div class="zoom-strip" onclick="rpZoomToPod()" style="cursor:pointer;">
       <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
         <path d="M5 8V2M2 4l3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       Zoom out · Pod view
     </div>
 
-    <!-- ── NAV BAR ── -->
     <div class="nav">
-      <div class="ni on">
-        <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="11" cy="8.5" r="3.5" stroke="#1B7A52" stroke-width="1.5"/>
-          <path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#1B7A52" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="ni-lbl" style="color:var(--rp-me)">Me</span>
+      <div class="ni on" onclick="rpSwitch('me')">
+        <div class="ni-bar" style="background:#1B7A52"></div>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8.5" r="3.5" stroke="#1B7A52" stroke-width="1.5"/><path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#1B7A52" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span class="ni-lbl" style="color:#1B7A52">Me</span>
       </div>
-      <div class="ni">
+      <div class="ni" onclick="rpSwitch('squad')">
         <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="7" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/>
-          <circle cx="15" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/>
-          <path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="7" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><circle cx="15" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/><path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
         <span class="ni-lbl">Squad</span>
       </div>
-      <div class="ni">
+      <div class="ni" onclick="rpSwitch('office')">
         <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/>
-          <rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/><rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/></svg>
         <span class="ni-lbl">Office</span>
       </div>
-      <div class="ni">
+      <div class="ni" onclick="rpSwitch('status')">
         <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/></svg>
         <span class="ni-lbl">Status</span>
       </div>
     </div>
@@ -1976,7 +1955,6 @@ body {
   </div><!-- /phone -->
 </div><!-- /phone-wrap -->
 
-<div class="dev-label">Tap WTD · QTD to toggle · tap IC cell to celebrate</div>
 
 <script>
 /* ═══════════════════════════════════════════════
@@ -2076,13 +2054,12 @@ function confirmPay() {
 }
 </script>
 
-<div class="dev-label" style="margin-top:0.5rem">Me screen — tap WTD · QTD to toggle · tap IC cell to celebrate</div>
 
 <!-- ════════════════════════════════════════════════════════
      POD SCREEN
      Zone: #59A210 field green · Squad tab active in nav
      ════════════════════════════════════════════════════════ -->
-<div style="position:relative; width:340px;">
+<div id="screen-pod" style="position:relative; width:340px; display:none;">
 
   <div class="phone">
 
@@ -2272,40 +2249,25 @@ function confirmPay() {
       Zoom out · Squad view
     </div>
 
-    <!-- NAV BAR — Squad tab active -->
     <div class="nav">
-      <div class="ni">
+      <div class="ni" onclick="rpSwitch('me')">
         <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/>
-          <path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/><path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
         <span class="ni-lbl">Me</span>
       </div>
-      <div class="ni">
-        <div class="ni-bar" style="background:var(--rp-squad)"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="7" cy="9" r="2.5" stroke="var(--rp-squad)" stroke-width="1.5"/>
-          <circle cx="15" cy="9" r="2.5" stroke="var(--rp-squad)" stroke-width="1.5"/>
-          <path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="var(--rp-squad)" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="var(--rp-squad)" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="ni-lbl" style="color:var(--rp-squad)">Squad</span>
+      <div class="ni on" onclick="rpSwitch('squad')">
+        <div class="ni-bar" style="background:#1A3A5C"></div>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="7" cy="9" r="2.5" stroke="#1A3A5C" stroke-width="1.5"/><circle cx="15" cy="9" r="2.5" stroke="#1A3A5C" stroke-width="1.5"/><path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#1A3A5C" stroke-width="1.5" stroke-linecap="round"/><path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#1A3A5C" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span class="ni-lbl" style="color:#1A3A5C">Squad</span>
       </div>
-      <div class="ni">
+      <div class="ni" onclick="rpSwitch('office')">
         <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/>
-          <rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/><rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/></svg>
         <span class="ni-lbl">Office</span>
       </div>
-      <div class="ni">
+      <div class="ni" onclick="rpSwitch('status')">
         <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/></svg>
         <span class="ni-lbl">Status</span>
       </div>
     </div>
@@ -2313,7 +2275,6 @@ function confirmPay() {
   </div><!-- /phone -->
 </div><!-- /pod-screen-wrap -->
 
-<div class="dev-label" style="margin-bottom:2rem">Pod screen — tap WTD · QTD to toggle</div>
 
 <script>
 function podShowTab(tab) {
@@ -2343,7 +2304,7 @@ function podShowTab(tab) {
      SQUAD SCREEN
      Zone: #1A3A5C explorer navy · Office tab active in nav
      ════════════════════════════════════════════════════════ -->
-<div style="position:relative; width:340px;">
+<div id="screen-squad" style="position:relative; width:340px; display:none;">
 
   <div class="phone">
 
@@ -2474,40 +2435,25 @@ function podShowTab(tab) {
       Zoom out · Office view
     </div>
 
-    <!-- NAV BAR — Squad tab active -->
     <div class="nav">
-      <div class="ni">
+      <div class="ni" onclick="rpSwitch('me')">
         <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/>
-          <path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/><path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
         <span class="ni-lbl">Me</span>
       </div>
-      <div class="ni">
-        <div class="ni-bar" style="background:var(--rp-squad)"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="7" cy="9" r="2.5" stroke="var(--rp-squad)" stroke-width="1.5"/>
-          <circle cx="15" cy="9" r="2.5" stroke="var(--rp-squad)" stroke-width="1.5"/>
-          <path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="var(--rp-squad)" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="var(--rp-squad)" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="ni-lbl" style="color:var(--rp-squad)">Squad</span>
+      <div class="ni on" onclick="rpSwitch('squad')">
+        <div class="ni-bar" style="background:#1A3A5C"></div>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="7" cy="9" r="2.5" stroke="#1A3A5C" stroke-width="1.5"/><circle cx="15" cy="9" r="2.5" stroke="#1A3A5C" stroke-width="1.5"/><path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#1A3A5C" stroke-width="1.5" stroke-linecap="round"/><path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#1A3A5C" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span class="ni-lbl" style="color:#1A3A5C">Squad</span>
       </div>
-      <div class="ni">
+      <div class="ni" onclick="rpSwitch('office')">
         <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/>
-          <rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/><rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/></svg>
         <span class="ni-lbl">Office</span>
       </div>
-      <div class="ni">
+      <div class="ni" onclick="rpSwitch('status')">
         <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/></svg>
         <span class="ni-lbl">Status</span>
       </div>
     </div>
@@ -2515,7 +2461,6 @@ function podShowTab(tab) {
   </div><!-- /phone -->
 </div><!-- /squad-screen-wrap -->
 
-<div class="dev-label" style="margin-bottom:2rem">Squad screen — tap WTD · QTD to toggle</div>
 
 <script>
 /* ── SQUAD DATA ───────────────────────────────────────────────────────────── */
@@ -2677,7 +2622,7 @@ sqRenderQtd();
      OFFICE SCREEN
      Zone: #FF6200 Sunrun orange · Office tab active in nav
      ════════════════════════════════════════════════════════ -->
-<div style="position:relative; width:340px;">
+<div id="screen-office" style="position:relative; width:340px; display:none;">
   <div class="phone">
 
 
@@ -2788,40 +2733,25 @@ sqRenderQtd();
       Zoom out · Region view
     </div>
 
-    <!-- NAV BAR — Office tab active -->
     <div class="nav">
-      <div class="ni">
+      <div class="ni" onclick="rpSwitch('me')">
         <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/>
-          <path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/><path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
         <span class="ni-lbl">Me</span>
       </div>
-      <div class="ni">
+      <div class="ni" onclick="rpSwitch('squad')">
         <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="7" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/>
-          <circle cx="15" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/>
-          <path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="7" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><circle cx="15" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/><path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
         <span class="ni-lbl">Squad</span>
       </div>
-      <div class="ni">
-        <div class="ni-bar" style="background:var(--rp-office)"></div>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M3 10.5L12 3l9 7.5" stroke="var(--rp-office)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="3" y="10" width="18" height="11" rx="1" stroke="var(--rp-office)" stroke-width="1.5"/>
-          <rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="var(--rp-office)" stroke-width="1.3"/>
-        </svg>
-        <span class="ni-lbl" style="color:var(--rp-office)">Office</span>
+      <div class="ni on" onclick="rpSwitch('office')">
+        <div class="ni-bar" style="background:#FF6200"></div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5" stroke="#FF6200" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="10" width="18" height="11" rx="1" stroke="#FF6200" stroke-width="1.5"/><rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#FF6200" stroke-width="1.3"/></svg>
+        <span class="ni-lbl" style="color:#FF6200">Office</span>
       </div>
-      <div class="ni">
+      <div class="ni" onclick="rpSwitch('status')">
         <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/></svg>
         <span class="ni-lbl">Status</span>
       </div>
     </div>
@@ -2829,7 +2759,6 @@ sqRenderQtd();
   </div><!-- /phone -->
 </div><!-- /office-screen-wrap -->
 
-<div class="dev-label" style="margin-bottom:2rem">Office screen — tap WTD · QTD to toggle</div>
 
 <script>
 /* ── OFFICE DATA ─────────────────────────────────────────────────────────── */
@@ -3025,7 +2954,7 @@ offRenderQtd();
      YOUR row: pinned to top, highlighted in zone color, with pushpin toggle
      Expand: tap row to reveal progress bars toward next rank
      ════════════════════════════════════════════════════════ -->
-<div style="position:relative; width:340px;">
+<div id="screen-status" style="position:relative; width:340px; display:none;">
   <div class="phone">
 
 
@@ -3087,40 +3016,25 @@ offRenderQtd();
       </table>
     </div>
 
-    <!-- NAV BAR — Status tab active -->
     <div class="nav">
-      <div class="ni">
+      <div class="ni" onclick="rpSwitch('me')">
         <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/>
-          <path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/><path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
         <span class="ni-lbl">Me</span>
       </div>
-      <div class="ni">
+      <div class="ni" onclick="rpSwitch('squad')">
         <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="7" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/>
-          <circle cx="15" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/>
-          <path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="7" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><circle cx="15" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/><path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
         <span class="ni-lbl">Squad</span>
       </div>
-      <div class="ni">
+      <div class="ni" onclick="rpSwitch('office')">
         <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/>
-          <rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/><rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/></svg>
         <span class="ni-lbl">Office</span>
       </div>
-      <div class="ni">
+      <div class="ni on" onclick="rpSwitch('status')">
         <div class="ni-bar" style="background:#A07800"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#A07800" stroke-width="1.5" stroke-linejoin="round"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#A07800" stroke-width="1.5" stroke-linejoin="round"/></svg>
         <span class="ni-lbl" style="color:#A07800">Status</span>
       </div>
     </div>
@@ -3128,7 +3042,6 @@ offRenderQtd();
   </div><!-- /phone -->
 </div><!-- /rankings-screen-wrap -->
 
-<div class="dev-label" style="margin-bottom:2rem">Status screen — tap any row to expand progress · pin toggle on your row</div>
 
 <style>
 /* ═══════════════════════════════════════════════
@@ -4165,6 +4078,95 @@ function _rpGoogleSignIn() {
   }
 }
 </script>
+
+<script>
+/* ================================================
+   RALLY POINT — TAB SWITCHING
+   ================================================ */
+const RP_SCREENS = ['me','pod','squad','office','status'];
+
+function rpSwitch(target) {
+  /* Squad tap: go to pod if user has one, else squad */
+  var show = target;
+  if (target === 'squad') {
+    show = (RP.user && RP.user.pod) ? 'pod' : 'squad';
+  }
+  RP_SCREENS.forEach(function(id) {
+    var el = document.getElementById('screen-' + id);
+    if (el) el.style.display = 'none';
+  });
+  var el = document.getElementById('screen-' + show);
+  if (el) el.style.display = '';
+  try {
+    if (show === 'me')     rpRenderMe();
+    if (show === 'pod')    rpRenderPod();
+    if (show === 'squad')  rpRenderSquad();
+    if (show === 'office') rpRenderOffice();
+    if (show === 'status') rpRenderRankings();
+  } catch(e) { console.warn('rpSwitch render:', e); }
+  RP._screen = show;
+}
+
+/* Pod zoom-strip tap — go back to squad */
+function rpZoomOut() {
+  RP_SCREENS.forEach(function(id) {
+    var el = document.getElementById('screen-' + id);
+    if (el) el.style.display = 'none';
+  });
+  var sq = document.getElementById('screen-squad');
+  if (sq) sq.style.display = '';
+  try { rpRenderSquad(); } catch(e) {}
+  RP._screen = 'squad';
+}
+
+/* Me zoom-strip tap — go to pod */
+function rpZoomToPod() {
+  RP_SCREENS.forEach(function(id) {
+    var el = document.getElementById('screen-' + id);
+    if (el) el.style.display = 'none';
+  });
+  var pod = document.getElementById('screen-pod');
+  if (pod) pod.style.display = '';
+  try { rpRenderPod(); } catch(e) {}
+  RP._screen = 'pod';
+}
+
+/* ── QTD GOAL CELLS ── */
+function rpRenderGoalCells() {
+  var qtd = (RP.user && RP.qtdPoints && RP.qtdPoints[RP.user.id]) ? RP.qtdPoints[RP.user.id] : {};
+  var sraGoal = 0, icGoal = 0;
+  try {
+    sraGoal = parseInt(localStorage.getItem('rp_qtd_sra_goal') || '0') || 0;
+    icGoal  = parseInt(localStorage.getItem('rp_qtd_ic_goal')  || '0') || 0;
+  } catch(e) {}
+  var sraActual = qtd.sraQtr || 0;
+  var icActual  = qtd.icQtrPoints || 0;
+
+  function renderCell(valId, subId, barWrapId, fillId, pctId, actual, goal) {
+    var valEl  = document.getElementById(valId);
+    var subEl  = document.getElementById(subId);
+    var wrapEl = document.getElementById(barWrapId);
+    var fillEl = document.getElementById(fillId);
+    var pctEl  = document.getElementById(pctId);
+    if (!valEl) return;
+    if (!goal) {
+      valEl.textContent = '—'; valEl.style.fontSize = '28px';
+      if (subEl)  subEl.textContent  = 'Set in More';
+      if (wrapEl) wrapEl.style.display = 'none';
+    } else {
+      valEl.textContent = actual + ' / ' + goal; valEl.style.fontSize = '20px';
+      if (subEl)  subEl.textContent  = 'quarter goal';
+      var pct = Math.min(100, Math.round((actual / goal) * 100));
+      if (wrapEl) wrapEl.style.display = '';
+      if (fillEl) fillEl.style.width = pct + '%';
+      if (pctEl)  pctEl.textContent = pct + '%';
+    }
+  }
+  renderCell('me-qtd-goal-sra-val','me-qtd-goal-sra-sub','me-qtd-goal-sra-bar-wrap','me-qtd-goal-sra-fill','me-qtd-goal-sra-pct', sraActual, sraGoal);
+  renderCell('me-qtd-goal-ic-val', 'me-qtd-goal-ic-sub', 'me-qtd-goal-ic-bar-wrap', 'me-qtd-goal-ic-fill', 'me-qtd-goal-ic-pct',  icActual,  icGoal);
+}
+</script>
+
 </body>
 </html>
 " style="flex:1;border:none;width:100%;height:100%;" title="Recruit Intake Form"></iframe>
@@ -4371,7 +4373,6 @@ function _rpGoogleSignIn() {
     </div>
     <button class="pref-save-btn" onclick="drwSavePrefs()">Save Preferences</button>
     <div class="pref-saved-note" id="pref-saved-note"></div>
-
     <div class="pref-section-lbl" style="margin-top:20px;">Quarterly Goals</div>
     <div class="pref-card">
       <div class="pref-card-label">QTD SRA Goal</div>
@@ -4472,8 +4473,7 @@ function _rpGoogleSignIn() {
   display: none;
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  width: 100%;
-  max-width: none;
+  width: 100%; max-width: none;
   background: #F7F6F3;
   z-index: 1100;
   flex-direction: column;
@@ -4573,7 +4573,7 @@ document.addEventListener('DOMContentLoaded', () => {
   drwLoadUserContacts();
   drwLoadTraining();
   drwLoadPrefs();
-  rpRenderGoalCells();
+  if (typeof rpRenderGoalCells === "function") rpRenderGoalCells();
 });
 
 /* ── USER CONTACTS ── */
@@ -4672,20 +4672,13 @@ function drwSavePrefs() {
     val = document.getElementById('pay-custom-input').value || '5000';
   }
   try { localStorage.setItem('rp_pay_per_install', val); } catch(_) {}
-
-  /* Save quarterly goals */
-  const sraGoalEl = document.getElementById('pref-sra-goal');
-  const icGoalEl  = document.getElementById('pref-ic-goal');
-  const sraGoal   = sraGoalEl ? sraGoalEl.value.trim() : '';
-  const icGoal    = icGoalEl  ? icGoalEl.value.trim()  : '';
   try {
-    localStorage.setItem('rp_qtd_sra_goal', sraGoal);
-    localStorage.setItem('rp_qtd_ic_goal',  icGoal);
+    const sg = document.getElementById('pref-sra-goal');
+    const ig = document.getElementById('pref-ic-goal');
+    if (sg) localStorage.setItem('rp_qtd_sra_goal', sg.value.trim());
+    if (ig) localStorage.setItem('rp_qtd_ic_goal',  ig.value.trim());
   } catch(_) {}
-
-  /* Refresh goal cells on Me screen */
-  rpRenderGoalCells();
-
+  if (typeof rpRenderGoalCells === 'function') rpRenderGoalCells();
   const note = document.getElementById('pref-saved-note');
   note.textContent = 'Saved ✓';
   setTimeout(() => { note.textContent = ''; }, 2500);
@@ -4693,30 +4686,28 @@ function drwSavePrefs() {
 function drwLoadPrefs() {
   try {
     const val = localStorage.getItem('rp_pay_per_install');
-    if (val) {
-      const presets = ['3000','4000','5000','6000'];
-      document.querySelectorAll('.pay-opt').forEach(b => b.classList.remove('active'));
-      if (presets.includes(val)) {
-        const match = document.querySelector('.pay-opt[data-val="' + val + '"]');
-        if (match) match.classList.add('active');
-      } else {
-        const custom = document.querySelector('.pay-opt[data-val="custom"]');
-        if (custom) { custom.classList.add('active'); }
-        const inp = document.getElementById('pay-custom-input');
-        if (inp) { inp.value = val; }
-        const wrap = document.getElementById('pay-custom-wrap');
-        if (wrap) wrap.classList.add('visible');
-      }
+    if (!val) return;
+    const presets = ['3000','4000','5000','6000'];
+    document.querySelectorAll('.pay-opt').forEach(b => b.classList.remove('active'));
+    if (presets.includes(val)) {
+      const match = document.querySelector('.pay-opt[data-val="' + val + '"]');
+      if (match) match.classList.add('active');
+    } else {
+      const custom = document.querySelector('.pay-opt[data-val="custom"]');
+      if (custom) { custom.classList.add('active'); }
+      const inp = document.getElementById('pay-custom-input');
+      if (inp) { inp.value = val; }
+      const wrap = document.getElementById('pay-custom-wrap');
+      if (wrap) wrap.classList.add('visible');
     }
   } catch(_) {}
-  /* Load quarterly goals into inputs */
   try {
-    const sraGoal = localStorage.getItem('rp_qtd_sra_goal') || '';
-    const icGoal  = localStorage.getItem('rp_qtd_ic_goal')  || '';
-    const sraEl   = document.getElementById('pref-sra-goal');
-    const icEl    = document.getElementById('pref-ic-goal');
-    if (sraEl) sraEl.value = sraGoal;
-    if (icEl)  icEl.value  = icGoal;
+    const sg = localStorage.getItem('rp_qtd_sra_goal') || '';
+    const ig = localStorage.getItem('rp_qtd_ic_goal')  || '';
+    const se = document.getElementById('pref-sra-goal');
+    const ie = document.getElementById('pref-ic-goal');
+    if (se) se.value = sg;
+    if (ie) ie.value = ig;
   } catch(_) {}
 }
 
@@ -5553,44 +5544,6 @@ function rpRenderMe() {
   }
 }
 
-/* ── QTD GOAL CELLS ── */
-function rpRenderGoalCells() {
-  const qtd = (RP.user && RP.qtdPoints[RP.user.id]) ? RP.qtdPoints[RP.user.id] : {};
-  let sraGoal = 0, icGoal = 0;
-  try {
-    sraGoal = parseInt(localStorage.getItem('rp_qtd_sra_goal') || '0') || 0;
-    icGoal  = parseInt(localStorage.getItem('rp_qtd_ic_goal')  || '0') || 0;
-  } catch(_) {}
-
-  const sraActual = qtd.sraQtr || 0;
-  const icActual  = qtd.icQtrPoints || 0;
-
-  function renderGoalCell(valId, subId, barWrapId, fillId, pctId, actual, goal) {
-    const valEl  = document.getElementById(valId);
-    const subEl  = document.getElementById(subId);
-    const wrapEl = document.getElementById(barWrapId);
-    const fillEl = document.getElementById(fillId);
-    const pctEl  = document.getElementById(pctId);
-    if (!valEl) return;
-    if (!goal) {
-      valEl.textContent = '—';
-      if (subEl)  subEl.textContent = 'Set in More';
-      if (wrapEl) wrapEl.style.display = 'none';
-    } else {
-      valEl.textContent = actual + ' / ' + goal;
-      valEl.style.fontSize = '22px';
-      if (subEl)  subEl.textContent = 'quarter goal';
-      const pct = Math.min(100, Math.round((actual / goal) * 100));
-      if (wrapEl) wrapEl.style.display = '';
-      if (fillEl) fillEl.style.width = pct + '%';
-      if (pctEl)  pctEl.textContent = pct + '%';
-    }
-  }
-
-  renderGoalCell('me-qtd-goal-sra-val','me-qtd-goal-sra-sub','me-qtd-goal-sra-bar-wrap','me-qtd-goal-sra-fill','me-qtd-goal-sra-pct', sraActual, sraGoal);
-  renderGoalCell('me-qtd-goal-ic-val', 'me-qtd-goal-ic-sub', 'me-qtd-goal-ic-bar-wrap', 'me-qtd-goal-ic-fill', 'me-qtd-goal-ic-pct',  icActual,  icGoal);
-}
-
 /* ── POD SCREEN ── */
 function rpRenderPod() {
   if (!RP.user) return;
@@ -6008,6 +5961,95 @@ function rpBoot() {
   };
 })();
 
+</script>
+
+
+<script>
+/* ================================================
+   RALLY POINT — TAB SWITCHING
+   ================================================ */
+const RP_SCREENS = ['me','pod','squad','office','status'];
+
+function rpSwitch(target) {
+  /* Squad tap: go to pod if user has one, else squad */
+  var show = target;
+  if (target === 'squad') {
+    show = (RP.user && RP.user.pod) ? 'pod' : 'squad';
+  }
+  RP_SCREENS.forEach(function(id) {
+    var el = document.getElementById('screen-' + id);
+    if (el) el.style.display = 'none';
+  });
+  var el = document.getElementById('screen-' + show);
+  if (el) el.style.display = '';
+  try {
+    if (show === 'me')     rpRenderMe();
+    if (show === 'pod')    rpRenderPod();
+    if (show === 'squad')  rpRenderSquad();
+    if (show === 'office') rpRenderOffice();
+    if (show === 'status') rpRenderRankings();
+  } catch(e) { console.warn('rpSwitch render:', e); }
+  RP._screen = show;
+}
+
+/* Pod zoom-strip tap — go back to squad */
+function rpZoomOut() {
+  RP_SCREENS.forEach(function(id) {
+    var el = document.getElementById('screen-' + id);
+    if (el) el.style.display = 'none';
+  });
+  var sq = document.getElementById('screen-squad');
+  if (sq) sq.style.display = '';
+  try { rpRenderSquad(); } catch(e) {}
+  RP._screen = 'squad';
+}
+
+/* Me zoom-strip tap — go to pod */
+function rpZoomToPod() {
+  RP_SCREENS.forEach(function(id) {
+    var el = document.getElementById('screen-' + id);
+    if (el) el.style.display = 'none';
+  });
+  var pod = document.getElementById('screen-pod');
+  if (pod) pod.style.display = '';
+  try { rpRenderPod(); } catch(e) {}
+  RP._screen = 'pod';
+}
+
+/* ── QTD GOAL CELLS ── */
+function rpRenderGoalCells() {
+  var qtd = (RP.user && RP.qtdPoints && RP.qtdPoints[RP.user.id]) ? RP.qtdPoints[RP.user.id] : {};
+  var sraGoal = 0, icGoal = 0;
+  try {
+    sraGoal = parseInt(localStorage.getItem('rp_qtd_sra_goal') || '0') || 0;
+    icGoal  = parseInt(localStorage.getItem('rp_qtd_ic_goal')  || '0') || 0;
+  } catch(e) {}
+  var sraActual = qtd.sraQtr || 0;
+  var icActual  = qtd.icQtrPoints || 0;
+
+  function renderCell(valId, subId, barWrapId, fillId, pctId, actual, goal) {
+    var valEl  = document.getElementById(valId);
+    var subEl  = document.getElementById(subId);
+    var wrapEl = document.getElementById(barWrapId);
+    var fillEl = document.getElementById(fillId);
+    var pctEl  = document.getElementById(pctId);
+    if (!valEl) return;
+    if (!goal) {
+      valEl.textContent = '—'; valEl.style.fontSize = '28px';
+      if (subEl)  subEl.textContent  = 'Set in More';
+      if (wrapEl) wrapEl.style.display = 'none';
+    } else {
+      valEl.textContent = actual + ' / ' + goal; valEl.style.fontSize = '20px';
+      if (subEl)  subEl.textContent  = 'quarter goal';
+      var pct = Math.min(100, Math.round((actual / goal) * 100));
+      if (wrapEl) wrapEl.style.display = '';
+      if (fillEl) fillEl.style.width = pct + '%';
+      if (pctEl)  pctEl.textContent = pct + '%';
+    }
+  }
+  renderCell('me-qtd-goal-sra-val','me-qtd-goal-sra-sub','me-qtd-goal-sra-bar-wrap','me-qtd-goal-sra-fill','me-qtd-goal-sra-pct', sraActual, sraGoal);
+  renderCell('me-qtd-goal-ic-val', 'me-qtd-goal-ic-sub', 'me-qtd-goal-ic-bar-wrap', 'me-qtd-goal-ic-fill', 'me-qtd-goal-ic-pct',  icActual,  icGoal);
+}
 </script>
 
 </body>
