@@ -3266,11 +3266,9 @@ function calcSelfGen() {
   // An SRA is truly Self Gen if: metric == SRA, assist/own == Own,
   // AND its address does NOT appear in any Assist row at the same metric.
   if (!INSTALL_LIST.length) return { selfGen: null, total: null, pct: null };
-  // Install List uses full Sunrun office names (e.g. 'CA-10 Orange County Solar')
-  // Match by substring so 'Orange County' matches 'CA-10 Orange County Solar'
+  var officeSet = new Set(CONSUL_CONFIG.offices);
   var officeRows = INSTALL_LIST.filter(function(r) {
-    var rowOffice = (r['office'] || '').toLowerCase();
-    return CONSUL_CONFIG.offices.some(function(o) { return rowOffice.includes(o.toLowerCase()); });
+    return officeSet.has((r['office'] || '').trim());
   });
   var sraRows = officeRows.filter(function(r) {
     return (r['metric'] || '').trim().toUpperCase() === 'SRA';
@@ -3472,14 +3470,14 @@ function renderOverview(){
   renderLeadershipPulse(qtdPace);
   document.getElementById('wtd-progress').innerHTML =
     ['CS','SRA','CAP','IC'].map(c => buildProgressCard(
-      c, getTarget('wtd', c, CONSUL_CONFIG.offices[0]), wtdActual[c],
+      c, getTarget('wtd', c), wtdActual[c],
       calcPace(wtdActual[c], wtdPace), 'wtd'
     )).join('');
 
   // CS now available from Totals sheet — show all four QTD metrics
   document.getElementById('qtd-progress').innerHTML =
     ['CS','SRA','CAP','IC'].map(c => buildProgressCard(
-      c, getTarget('qtd', c, CONSUL_CONFIG.offices[0]), qtdActual[c],
+      c, getTarget('qtd', c), qtdActual[c],
       calcPace(qtdActual[c], qtdPace), 'qtd'
     )).join('');
 
@@ -6429,21 +6427,31 @@ function reapplyRepPerfAuthority() {
 function buildSIFromRepPerf() {
   const rosterById = Object.fromEntries(ROSTER_EMPLOYEES.map(e => [e.id, e]));
 
-  // Build the list from Rankings — anyone whose BOTH current AND highest rank is NO STATUS
-  // (highest rank != NO STATUS means they achieved a level before and are excluded)
-  const eligible = Object.entries(RANKINGS_MAP)
-    .filter(([id, r]) => {
-      const cur  = (r.currentRank  || '').toUpperCase();
-      const high = (r.highestRank  || '').toUpperCase();
-      const noStatus = v => v === 'NO STATUS' || v === 'NO LEVEL' || v === '';
-      return noStatus(cur) && noStatus(high);
-    })
-    .map(([id]) => id);
-
-  if (!eligible.length) {
-    // Rankings not yet loaded — show waiting message and bail
+  // Start from QTD_EMPLOYEES (active reps with data this quarter),
+  // then keep only those whose highestRank in the Export tab contains
+  // 'NO STATUS' or 'NO LEVEL' — meaning they have never previously achieved a rank.
+  if (!QTD_EMPLOYEES.length) {
+    const emptyEl = document.getElementById('si-empty-state');
+    if (emptyEl) { emptyEl.textContent = 'Awaiting QTD data from Sheets…'; emptyEl.style.display = 'block'; }
+    return;
+  }
+  if (!Object.keys(RANKINGS_MAP).length) {
     const emptyEl = document.getElementById('si-empty-state');
     if (emptyEl) { emptyEl.textContent = 'Awaiting Rankings data from Sheets…'; emptyEl.style.display = 'block'; }
+    return;
+  }
+
+  const eligible = QTD_EMPLOYEES
+    .filter(e => {
+      const rk   = RANKINGS_MAP[e.id] || {};
+      const high = (rk.highestRank || '').toUpperCase();
+      return high.includes('NO STATUS') || high.includes('NO LEVEL') || high === '';
+    })
+    .map(e => e.id);
+
+  if (!eligible.length) {
+    const emptyEl = document.getElementById('si-empty-state');
+    if (emptyEl) { emptyEl.textContent = 'No Status Chasers found.'; emptyEl.style.display = 'block'; }
     return;
   }
 
