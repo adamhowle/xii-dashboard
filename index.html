@@ -3266,9 +3266,9 @@ function calcSelfGen() {
   // An SRA is truly Self Gen if: metric == SRA, assist/own == Own,
   // AND its address does NOT appear in any Assist row at the same metric.
   if (!INSTALL_LIST.length) return { selfGen: null, total: null, pct: null };
-  var officeSet = new Set(CONSUL_CONFIG.offices.map(function(o){ return o.trim().toLowerCase(); }));
+  var officeSet = new Set(CONSUL_CONFIG.offices);
   var officeRows = INSTALL_LIST.filter(function(r) {
-    return officeSet.has((r['office'] || '').trim().toLowerCase());
+    return officeSet.has((r['office'] || '').trim());
   });
   var sraRows = officeRows.filter(function(r) {
     return (r['metric'] || '').trim().toUpperCase() === 'SRA';
@@ -6427,13 +6427,14 @@ function reapplyRepPerfAuthority() {
 function buildSIFromRepPerf() {
   const rosterById = Object.fromEntries(ROSTER_EMPLOYEES.map(e => [e.id, e]));
 
-  // Build the list from Rankings — anyone whose BOTH current AND highest rank is NO STATUS
-  // (highest rank != NO STATUS means they achieved a level before and are excluded)
+  // Build the list from Rankings — current rank is NO STATUS/NO LEVEL
+  // AND highest rank is also NO STATUS/NO LEVEL (never previously achieved a rank)
   const eligible = Object.entries(RANKINGS_MAP)
     .filter(([id, r]) => {
       const cur  = (r.currentRank  || '').toUpperCase();
       const high = (r.highestRank  || '').toUpperCase();
-      return cur === 'NO STATUS' && (high === 'NO STATUS' || high === '');
+      const noStatus = v => v === 'NO STATUS' || v === 'NO LEVEL' || v === '';
+      return noStatus(cur) && noStatus(high);
     })
     .map(([id]) => id);
 
@@ -7623,8 +7624,7 @@ async function fetchSheetsData(opts) {
     var exRows = sheetsRowsToObjects((await exRes.json()).values || []).map(function(r) {
       var id = String(r['employee id'] || '').trim();
       if (!id || !/^\d+$/.test(id)) return null;
-      var normRank = function(v){ return String(v||'NO STATUS').replace(/^NO LEVEL$/i,'NO STATUS'); };
-      return { id, name: String(r['name']||''), office: shortOffice(String(r['office']||'')), title: String(r['title']||''), currentRank: normRank(r['current rank']), highestRank: normRank(r['highest rank']), rankPace: normRank(r['rank pace']), llPoints: csvNum(r['ll install points']), qInstalls: csvNum(r['q installs (w/add-ons)']), capPoints: csvNum(r['cap points']), sraPoints: csvNum(r['sra points']), careerIC: csvNum(r['career ic']) };
+      return { id, name: String(r['name']||''), office: shortOffice(String(r['office']||'')), title: String(r['title']||''), currentRank: String(r['current rank']||'NO STATUS'), highestRank: String(r['highest rank']||'NO STATUS'), rankPace: String(r['rank pace']||'NO STATUS'), llPoints: csvNum(r['ll install points']), qInstalls: csvNum(r['q installs (w/ add-ons)']), capPoints: csvNum(r['cap points']), sraPoints: csvNum(r['sra points']), careerIC: csvNum(r['career ic']) };
     }).filter(Boolean);
     if (exRows.length) { rankingsData = exRows; RANKINGS_MAP = Object.fromEntries(exRows.map(function(r){ return [r.id, {title:r.title, currentRank:r.currentRank, highestRank:r.highestRank}]; })); }
   } catch(e) { errors.push('Export: ' + e.message); }
