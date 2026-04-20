@@ -591,6 +591,13 @@ body {
   font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
 }
 
+/* ── QTD Goal bars ── */
+.sc-goal-cell { position: relative; }
+.goal-bar-wrap { display: flex; align-items: center; gap: 6px; margin-top: 6px; padding: 0 2px; }
+.goal-bar-track { flex: 1; height: 4px; background: rgba(0,0,0,0.1); border-radius: 2px; overflow: hidden; }
+.goal-bar-fill { height: 4px; background: #1B7A52; border-radius: 2px; transition: width 0.4s ease; max-width: 100%; }
+.goal-bar-pct { font-size: 9px; font-weight: 700; letter-spacing: 0.5px; color: #1B7A52; white-space: nowrap; min-width: 28px; text-align: right; }
+
 /* ── Preferences ── */
 .pref-section-lbl {
   font-size: 7px;
@@ -1892,15 +1899,23 @@ body {
           <div class="sc-val" id="me-qtd-val-sra" style="font-size:28px">—</div>
           <div class="sc-goal">status pts</div>
         </div>
-        <div class="sc">
-          <div class="sc-label">CS total</div>
-          <div class="sc-val" id="me-qtd-val-cs" style="font-size:28px">—</div>
-          <div class="sc-goal">quarter</div>
+        <div class="sc sc-goal-cell" id="me-qtd-sc-sragoal">
+          <div class="sc-label">QTD SRA Goal</div>
+          <div class="sc-val" id="me-qtd-goal-sra-val" style="font-size:28px">—</div>
+          <div class="sc-goal" id="me-qtd-goal-sra-sub">Set in More</div>
+          <div class="goal-bar-wrap" id="me-qtd-goal-sra-bar-wrap" style="display:none">
+            <div class="goal-bar-track"><div class="goal-bar-fill" id="me-qtd-goal-sra-fill"></div></div>
+            <div class="goal-bar-pct" id="me-qtd-goal-sra-pct"></div>
+          </div>
         </div>
-        <div class="sc">
-          <div class="sc-label">AC total</div>
-          <div class="sc-val" id="me-qtd-val-ac" style="font-size:28px">—</div>
-          <div class="sc-goal">quarter</div>
+        <div class="sc sc-goal-cell" id="me-qtd-sc-icgoal">
+          <div class="sc-label">QTD IC Goal</div>
+          <div class="sc-val" id="me-qtd-goal-ic-val" style="font-size:28px">—</div>
+          <div class="sc-goal" id="me-qtd-goal-ic-sub">Set in More</div>
+          <div class="goal-bar-wrap" id="me-qtd-goal-ic-bar-wrap" style="display:none">
+            <div class="goal-bar-track"><div class="goal-bar-fill" id="me-qtd-goal-ic-fill"></div></div>
+            <div class="goal-bar-pct" id="me-qtd-goal-ic-pct"></div>
+          </div>
         </div>
         <div class="pace-cell qtd-wide">
           <div class="pace-lbl">QTD pace</div>
@@ -1970,6 +1985,14 @@ body {
           <path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/>
         </svg>
         <span class="ni-lbl">Status</span>
+      </div>
+      <div class="ni" onclick="rpGoMore()">
+        <div class="ni-bar"></div>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+          <circle cx="11" cy="11" r="9" stroke="#888780" stroke-width="1.5"/>
+          <path d="M11 7v8M7 11h8" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="ni-lbl">More</span>
       </div>
     </div>
 
@@ -2308,6 +2331,14 @@ function confirmPay() {
         </svg>
         <span class="ni-lbl">Status</span>
       </div>
+      <div class="ni" onclick="rpGoMore()">
+        <div class="ni-bar"></div>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+          <circle cx="11" cy="11" r="9" stroke="#888780" stroke-width="1.5"/>
+          <path d="M11 7v8M7 11h8" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="ni-lbl">More</span>
+      </div>
     </div>
 
   </div><!-- /phone -->
@@ -2509,6 +2540,14 @@ function podShowTab(tab) {
           <path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/>
         </svg>
         <span class="ni-lbl">Status</span>
+      </div>
+      <div class="ni" onclick="rpGoMore()">
+        <div class="ni-bar"></div>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+          <circle cx="11" cy="11" r="9" stroke="#888780" stroke-width="1.5"/>
+          <path d="M11 7v8M7 11h8" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="ni-lbl">More</span>
       </div>
     </div>
 
@@ -2824,6 +2863,14 @@ sqRenderQtd();
         </svg>
         <span class="ni-lbl">Status</span>
       </div>
+      <div class="ni" onclick="rpGoMore()">
+        <div class="ni-bar"></div>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+          <circle cx="11" cy="11" r="9" stroke="#888780" stroke-width="1.5"/>
+          <path d="M11 7v8M7 11h8" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="ni-lbl">More</span>
+      </div>
     </div>
 
   </div><!-- /phone -->
@@ -3122,6 +3169,14 @@ offRenderQtd();
           <path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#A07800" stroke-width="1.5" stroke-linejoin="round"/>
         </svg>
         <span class="ni-lbl" style="color:#A07800">Status</span>
+      </div>
+      <div class="ni" onclick="rpGoMore()">
+        <div class="ni-bar"></div>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+          <circle cx="11" cy="11" r="9" stroke="#888780" stroke-width="1.5"/>
+          <path d="M11 7v8M7 11h8" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="ni-lbl">More</span>
       </div>
     </div>
 
@@ -3458,6 +3513,215 @@ function rnkTogglePin(e) {
      ════════════════════════════════════════════════════════ -->
 
 <!-- DRAWER OVERLAY (fixed, covers full viewport) -->
+<!-- ══════════════════════════════════════════════════════
+     MORE SCREEN
+     Zone color: #888780
+     ══════════════════════════════════════════════════════ -->
+<div class="more-screen-wrap" id="more-screen-wrap">
+  <div class="phone-wrap"><div class="phone">
+
+    <!-- Header -->
+    <div class="app-hdr" style="background:#888780;">
+      <div class="app-hdr-left">
+        <button class="hbg" onclick="openDrawer(event)" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+      <div class="app-hdr-title">MORE</div>
+      <div class="app-hdr-right"></div>
+    </div>
+
+    <!-- Menu list -->
+    <div class="more-list">
+
+      <div class="more-item" onclick="moreOpen('prefs')">
+        <div class="more-item-icon">⚙️</div>
+        <div class="more-item-text">
+          <div class="more-item-label">Preferences</div>
+          <div class="more-item-sub">$/install, quarterly goals</div>
+        </div>
+        <div class="more-item-arrow">›</div>
+      </div>
+
+      <div class="more-item" onclick="moreOpen('onboarding')">
+        <div class="more-item-icon">📋</div>
+        <div class="more-item-text">
+          <div class="more-item-label">Refer a Friend</div>
+          <div class="more-item-sub">Submit a new candidate</div>
+        </div>
+        <div class="more-item-arrow">›</div>
+      </div>
+
+      <div class="more-item" onclick="moreOpen('contacts')">
+        <div class="more-item-icon">👥</div>
+        <div class="more-item-text">
+          <div class="more-item-label">Contacts</div>
+          <div class="more-item-sub">Sunrun support &amp; team directory</div>
+        </div>
+        <div class="more-item-arrow">›</div>
+      </div>
+
+      <div class="more-item" onclick="moreOpen('training')">
+        <div class="more-item-icon">🎓</div>
+        <div class="more-item-text">
+          <div class="more-item-label">Training</div>
+          <div class="more-item-sub">RunX learning &amp; required courses</div>
+        </div>
+        <div class="more-item-arrow">›</div>
+      </div>
+
+      <div class="more-item" onclick="moreOpen('tools')">
+        <div class="more-item-icon">🛠️</div>
+        <div class="more-item-text">
+          <div class="more-item-label">Tools</div>
+          <div class="more-item-sub">Apps &amp; downloads</div>
+        </div>
+        <div class="more-item-arrow">›</div>
+      </div>
+
+    </div><!-- /more-list -->
+
+    <!-- Footer actions -->
+    <div class="more-footer">
+      <div class="more-footer-item" onclick="moreOpen('help')">
+        <div class="more-item-icon">❓</div>
+        <div class="more-footer-label">Help &amp; Feedback</div>
+      </div>
+      <div class="more-footer-item more-signout" onclick="moreSignOut()">
+        <div class="more-item-icon">🚪</div>
+        <div class="more-footer-label" id="more-signout-btn" data-confirm="0">Sign Out</div>
+      </div>
+    </div>
+
+    <!-- Nav bar -->
+    <div class="nav">
+      <div class="ni">
+        <div class="ni-bar"></div>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+          <circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/>
+          <path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="ni-lbl">Me</span>
+      </div>
+      <div class="ni">
+        <div class="ni-bar"></div>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+          <circle cx="7" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/>
+          <circle cx="15" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/>
+          <path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="ni-lbl">Squad</span>
+      </div>
+      <div class="ni">
+        <div class="ni-bar"></div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/>
+          <rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/>
+        </svg>
+        <span class="ni-lbl">Office</span>
+      </div>
+      <div class="ni">
+        <div class="ni-bar"></div>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+          <path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        <span class="ni-lbl">Status</span>
+      </div>
+      <div class="ni on" onclick="rpGoMore()">
+        <div class="ni-bar" style="background:#888780"></div>
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+          <circle cx="11" cy="11" r="9" stroke="#888780" stroke-width="1.5"/>
+          <path d="M11 7v8M7 11h8" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="ni-lbl" style="color:#888780">More</span>
+      </div>
+    </div>
+
+  </div></div>
+</div><!-- /more-screen-wrap -->
+
+<style>
+.more-screen-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 auto 2rem;
+}
+.more-list {
+  flex: 1;
+  overflow-y: auto;
+  background: #fff;
+  padding: 6px 0;
+}
+.more-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid #F0EEE8;
+  transition: background 0.1s;
+  min-height: 48px;
+}
+.more-item:active { background: #F7F6F3; }
+.more-item-icon { font-size: 20px; width: 26px; text-align: center; flex-shrink: 0; }
+.more-item-text { flex: 1; }
+.more-item-label { font-size: 15px; font-weight: 600; color: #111110; }
+.more-item-sub { font-size: 11px; color: #888780; margin-top: 2px; }
+.more-item-arrow { font-size: 18px; color: #C8C5BF; }
+.more-footer {
+  border-top: 1px solid #E0DDD6;
+  padding: 6px 0 10px;
+  flex-shrink: 0;
+  background: #fff;
+}
+.more-footer-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  cursor: pointer;
+  transition: background 0.1s;
+  min-height: 48px;
+}
+.more-footer-item:active { background: #F7F6F3; }
+.more-footer-label { font-size: 14px; font-weight: 500; color: #444441; }
+.more-signout .more-footer-label { color: #C0392B; }
+</style>
+
+<script>
+/* ── MORE SCREEN ── */
+function moreOpen(name) {
+  document.getElementById('sub-' + name).classList.add('open');
+}
+
+function moreSignOut() {
+  const btn = document.getElementById('more-signout-btn');
+  if (!btn) return;
+  if (btn.dataset.confirm === '1') {
+    rpSignOut();
+    btn.dataset.confirm = '0';
+    btn.textContent = 'Sign Out';
+  } else {
+    btn.dataset.confirm = '1';
+    btn.textContent = 'Tap again to confirm';
+    setTimeout(() => {
+      btn.dataset.confirm = '0';
+      btn.textContent = 'Sign Out';
+    }, 3000);
+  }
+}
+
+function rpGoMore() {
+  const el = document.getElementById('more-screen-wrap');
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+
+<div class="dev-label" style="margin-bottom:2rem">More screen — tap items to open full-screen</div>
+
 <div class="drw-overlay" id="drw-overlay" onclick="drwCloseDrawer(event)">
   <div class="drw-panel" id="drw-panel">
 
@@ -4376,6 +4640,16 @@ function _rpGoogleSignIn() {
     </div>
     <button class="pref-save-btn" onclick="drwSavePrefs()">Save Preferences</button>
     <div class="pref-saved-note" id="pref-saved-note"></div>
+
+    <div class="pref-section-lbl" style="margin-top:20px;">Quarterly Goals</div>
+    <div class="pref-card">
+      <div class="pref-card-label">QTD SRA Goal</div>
+      <input class="pay-custom-input" id="pref-sra-goal" type="number" placeholder="e.g. 20" min="0" max="999" style="display:block;margin-top:8px;">
+    </div>
+    <div class="pref-card" style="margin-top:10px;">
+      <div class="pref-card-label">QTD IC Goal</div>
+      <input class="pay-custom-input" id="pref-ic-goal" type="number" placeholder="e.g. 10" min="0" max="999" style="display:block;margin-top:8px;">
+    </div>
   </div>
 </div>
 
@@ -4570,6 +4844,7 @@ document.addEventListener('DOMContentLoaded', () => {
   drwLoadUserContacts();
   drwLoadTraining();
   drwLoadPrefs();
+  rpRenderGoalCells();
 });
 
 /* ── USER CONTACTS ── */
@@ -4668,27 +4943,51 @@ function drwSavePrefs() {
     val = document.getElementById('pay-custom-input').value || '5000';
   }
   try { localStorage.setItem('rp_pay_per_install', val); } catch(_) {}
+
+  /* Save quarterly goals */
+  const sraGoalEl = document.getElementById('pref-sra-goal');
+  const icGoalEl  = document.getElementById('pref-ic-goal');
+  const sraGoal   = sraGoalEl ? sraGoalEl.value.trim() : '';
+  const icGoal    = icGoalEl  ? icGoalEl.value.trim()  : '';
+  try {
+    localStorage.setItem('rp_qtd_sra_goal', sraGoal);
+    localStorage.setItem('rp_qtd_ic_goal',  icGoal);
+  } catch(_) {}
+
+  /* Refresh goal cells on Me screen */
+  rpRenderGoalCells();
+
   const note = document.getElementById('pref-saved-note');
-  note.textContent = 'Saved — $' + parseInt(val).toLocaleString() + '/install';
+  note.textContent = 'Saved ✓';
   setTimeout(() => { note.textContent = ''; }, 2500);
 }
 function drwLoadPrefs() {
   try {
     const val = localStorage.getItem('rp_pay_per_install');
-    if (!val) return;
-    const presets = ['3000','4000','5000','6000'];
-    document.querySelectorAll('.pay-opt').forEach(b => b.classList.remove('active'));
-    if (presets.includes(val)) {
-      const match = document.querySelector('.pay-opt[data-val="' + val + '"]');
-      if (match) match.classList.add('active');
-    } else {
-      const custom = document.querySelector('.pay-opt[data-val="custom"]');
-      if (custom) { custom.classList.add('active'); }
-      const inp = document.getElementById('pay-custom-input');
-      if (inp) { inp.value = val; }
-      const wrap = document.getElementById('pay-custom-wrap');
-      if (wrap) wrap.classList.add('visible');
+    if (val) {
+      const presets = ['3000','4000','5000','6000'];
+      document.querySelectorAll('.pay-opt').forEach(b => b.classList.remove('active'));
+      if (presets.includes(val)) {
+        const match = document.querySelector('.pay-opt[data-val="' + val + '"]');
+        if (match) match.classList.add('active');
+      } else {
+        const custom = document.querySelector('.pay-opt[data-val="custom"]');
+        if (custom) { custom.classList.add('active'); }
+        const inp = document.getElementById('pay-custom-input');
+        if (inp) { inp.value = val; }
+        const wrap = document.getElementById('pay-custom-wrap');
+        if (wrap) wrap.classList.add('visible');
+      }
     }
+  } catch(_) {}
+  /* Load quarterly goals into inputs */
+  try {
+    const sraGoal = localStorage.getItem('rp_qtd_sra_goal') || '';
+    const icGoal  = localStorage.getItem('rp_qtd_ic_goal')  || '';
+    const sraEl   = document.getElementById('pref-sra-goal');
+    const icEl    = document.getElementById('pref-ic-goal');
+    if (sraEl) sraEl.value = sraGoal;
+    if (icEl)  icEl.value  = icGoal;
   } catch(_) {}
 }
 
@@ -5471,14 +5770,15 @@ function rpRenderMe() {
   /* ── QTD grid ── */
   setEl('me-qtd-val-ic',  qtd.icQtrPoints || 0);
   setEl('me-qtd-val-sra', qtd.sraQtr      || 0);
-  setEl('me-qtd-val-cs',  qtd.csWeek      || 0);  /* QTD CS not in sheet — using week as proxy */
-  setEl('me-qtd-val-ac',  rpt.ac          || 0);
 
   /* Pace cell */
   const paceVal = document.getElementById('me-qtd-pace-val');
   const paceSub = document.getElementById('me-qtd-pace-sub');
   if (paceVal) paceVal.textContent = qtd.pace ? 'IC pace: ' + qtd.pace + ' pts' : '—';
   if (paceSub) paceSub.textContent = qtd.qtrStatus || '—';
+
+  /* Goal cells */
+  rpRenderGoalCells();
 
   /* ── Rank bar ── */
   const rawRank    = exp.currentRank || 'NO LEVEL';
@@ -5522,6 +5822,44 @@ function rpRenderMe() {
     const fill = document.getElementById('me-rank-fill');
     if (fill) fill.style.width = rank === 'Franchise' ? '100%' : '0%';
   }
+}
+
+/* ── QTD GOAL CELLS ── */
+function rpRenderGoalCells() {
+  const qtd = (RP.user && RP.qtdPoints[RP.user.id]) ? RP.qtdPoints[RP.user.id] : {};
+  let sraGoal = 0, icGoal = 0;
+  try {
+    sraGoal = parseInt(localStorage.getItem('rp_qtd_sra_goal') || '0') || 0;
+    icGoal  = parseInt(localStorage.getItem('rp_qtd_ic_goal')  || '0') || 0;
+  } catch(_) {}
+
+  const sraActual = qtd.sraQtr || 0;
+  const icActual  = qtd.icQtrPoints || 0;
+
+  function renderGoalCell(valId, subId, barWrapId, fillId, pctId, actual, goal) {
+    const valEl  = document.getElementById(valId);
+    const subEl  = document.getElementById(subId);
+    const wrapEl = document.getElementById(barWrapId);
+    const fillEl = document.getElementById(fillId);
+    const pctEl  = document.getElementById(pctId);
+    if (!valEl) return;
+    if (!goal) {
+      valEl.textContent = '—';
+      if (subEl)  subEl.textContent = 'Set in More';
+      if (wrapEl) wrapEl.style.display = 'none';
+    } else {
+      valEl.textContent = actual + ' / ' + goal;
+      valEl.style.fontSize = '22px';
+      if (subEl)  subEl.textContent = 'quarter goal';
+      const pct = Math.min(100, Math.round((actual / goal) * 100));
+      if (wrapEl) wrapEl.style.display = '';
+      if (fillEl) fillEl.style.width = pct + '%';
+      if (pctEl)  pctEl.textContent = pct + '%';
+    }
+  }
+
+  renderGoalCell('me-qtd-goal-sra-val','me-qtd-goal-sra-sub','me-qtd-goal-sra-bar-wrap','me-qtd-goal-sra-fill','me-qtd-goal-sra-pct', sraActual, sraGoal);
+  renderGoalCell('me-qtd-goal-ic-val', 'me-qtd-goal-ic-sub', 'me-qtd-goal-ic-bar-wrap', 'me-qtd-goal-ic-fill', 'me-qtd-goal-ic-pct',  icActual,  icGoal);
 }
 
 /* ── POD SCREEN ── */
