@@ -1631,11 +1631,12 @@ body {
 }
 
 .sra-badge {
-  display: inline-block;
+  display: block;
   font-size: 8px; font-weight: 700;
   letter-spacing: 1px; text-transform: uppercase;
   padding: 3px 7px; margin-top: 4px;
   border-radius: 0;
+  width: fit-content;
 }
 .sra-badge-risk {
   color: #A06020;
@@ -1683,7 +1684,7 @@ body {
   </div>
 
   <!-- PHONE -->
-  <div class="phone">
+  <div class="phone" id="me-screen">
 
 
     <div class="uni-hdr">
@@ -2305,8 +2306,8 @@ function podShowTab(tab) {
       </button>
     </div>
     <div class="hdr" style="background:var(--rp-squad);">
-      <div class="hdr-name">G-Squad</div>
-      <div class="hdr-meta">
+      <div class="hdr-name" id="sq-hdr-name">G-Squad</div>
+      <div class="hdr-meta" id="sq-hdr-meta">
         <span class="hdr-chip">Newport Beach</span>
         <span class="hdr-dot"></span>
         <span class="hdr-chip">Squad</span>
@@ -2907,7 +2908,7 @@ function offRenderWtd() {
       + '</div>'
       /* leader row — same column structure */
       + '<div class="off-leader-row ' + ldrBg + '">'
-      +   '<div class="off-col-name off-ldr-name' + (isYou ? ' off-ldr-you' : '') + '">' + sq.leader + '</div>'
+      +   '<div class="off-col-name off-ldr-name' + (isYou ? ' off-ldr-you' : '') + '">' + sq.leader.split(' ')[0] + '</div>'
       +   lc(ldr.pitch) + lc(ldr.ac) + lc(ldr.cs) + lc(ldr.sra) + lc(ldr.cap) + lc(ldr.ic)
       + '</div>'
       + '</div>';
@@ -2942,7 +2943,7 @@ function offRenderQtd() {
       +   '<div class="off-col-stat"></div>'
       + '</div>'
       + '<div class="off-leader-row ' + ldrBg + '">'
-      +   '<div class="off-col-name off-ldr-name' + (isYou ? ' off-ldr-you' : '') + '">' + sq.leader + '</div>'
+      +   '<div class="off-col-name off-ldr-name' + (isYou ? ' off-ldr-you' : '') + '">' + sq.leader.split(' ')[0] + '</div>'
       +   lc(ldr.totSra) + lc(ldr.totIc) + lc(ldr.sraPts) + lc(ldr.icPts)
       +   '<div class="off-col-stat td-rank ' + rc + '">' + ldr.rank + '</div>'
       + '</div>'
@@ -5171,16 +5172,25 @@ function rpRenderAll() {
 function rpUpdateHeaders() {
   if (!RP.user) return;
   const u = RP.user;
-  /* Me screen hdr-name = rep's actual name */
-  const meHdr = document.querySelector('.phone .hdr-name');
+
+  /* Me screen */
+  const meHdr = document.querySelector('#me-screen .hdr-name, .me-screen .hdr-name');
   if (meHdr) meHdr.textContent = u.name;
-  /* Chips */
-  const meChips = document.querySelectorAll('.phone .hdr-chip');
+  const meChips = document.querySelectorAll('#me-screen .hdr-chip, .me-screen .hdr-chip');
   if (meChips.length >= 3) {
     meChips[0].textContent = u.squad;
     meChips[1].textContent = u.pod || 'No Pod';
     meChips[2].textContent = u.office;
   }
+
+  /* Squad screen */
+  const sqName = document.getElementById('sq-hdr-name');
+  if (sqName) sqName.textContent = u.squad;
+  const sqMeta = document.getElementById('sq-hdr-meta');
+  if (sqMeta) sqMeta.innerHTML =
+    `<span class="hdr-chip">${u.office}</span>` +
+    `<span class="hdr-dot"></span>` +
+    `<span class="hdr-chip">Squad</span>`;
 }
 
 /* ── SQUAD SCREEN ── */
@@ -5841,7 +5851,7 @@ function rpRenderOffice() {
         ${tc(w.pitch)}${tc(w.ac)}${tc(w.cs)}${tc(w.sra, sq.sraGoal)}${tc(w.cap)}${tc(w.ic, sq.icGoal)}
       </div>
       <div class="off-leader-row ${ldrBg}">
-        <div class="off-col-name off-ldr-name${sq.isYou ? ' off-ldr-you' : ''}">${sq.leader}</div>
+        <div class="off-col-name off-ldr-name${sq.isYou ? ' off-ldr-you' : ''}">${sq.leader.split(' ')[0]}</div>
         ${lc(w.ldrPitch)}${lc(w.ldrAc)}${lc(w.ldrCs)}${lc(w.ldrSra)}${lc(w.ldrCap)}${lc(w.ldrIc)}
       </div>
     </div>`;
@@ -5863,7 +5873,7 @@ function rpRenderOffice() {
         <div class="off-col-stat"></div>
       </div>
       <div class="off-leader-row ${ldrBg}">
-        <div class="off-col-name off-ldr-name${sq.isYou ? ' off-ldr-you' : ''}">${sq.leader}</div>
+        <div class="off-col-name off-ldr-name${sq.isYou ? ' off-ldr-you' : ''}">${sq.leader.split(' ')[0]}</div>
         ${lc(q.ldrSraQtr)}${lc(q.ldrIcQtr)}${lc(q.ldrSraPts)}${lc(q.ldrIcPts)}
         <div class="off-col-stat td-rank ${q.ldrRankCls}">${q.ldrRank}</div>
       </div>
