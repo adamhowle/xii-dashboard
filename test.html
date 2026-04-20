@@ -3049,7 +3049,7 @@ offRenderQtd();
     <div class="toggle-row" id="rnk-scope-row">
       <div class="tog" id="rnk-tog-squad" onclick="rnkSetScope('squad')">Squad</div>
       <div class="tog on" id="rnk-tog-office" onclick="rnkSetScope('office')" style="color:#A07800;border-bottom-color:#A07800;background:#fff;">Office</div>
-      <div class="tog" id="rnk-tog-region" onclick="rnkSetScope('region')">The Originals</div>
+      <div class="tog" id="rnk-tog-region" onclick="rnkSetScope('region')">Region</div>
     </div>
 
     <!-- STATS STRIP: office snapshot -->
@@ -3409,196 +3409,8 @@ offRenderQtd();
 </style>
 
 <script>
-/* ── RANKINGS DATA ────────────────────────────────────────────────────────── */
-const RNK_YOU = 'Marcus Rivera';
-let   rnkPinned = true; /* start pinned */
-
-/* Rank thresholds for next-rank progress
-   Each entry: { label, sraNeed, icNeed, barClass }
-   null sraNeed/icNeed means already at max */
-const RNK_THRESHOLDS = {
-  'FR':  { next: null,  sraNeed: null, icNeed: null, barClass: 'rpf-maxed' },
-  'PR':  { next: 'FR',  sraNeed: 0,   icNeed: 20,   barClass: 'rpf-franchise' },  /* Franchise: 20 IC */
-  'L3':  { next: 'PR',  sraNeed: 20,  icNeed: 10,   barClass: 'rpf-premier' },    /* Premier: 20 SRA + 10 IC */
-  'L2':  { next: 'L3',  sraNeed: 16,  icNeed: 7,    barClass: 'rpf-l3' },
-  'L1':  { next: 'L2',  sraNeed: 12,  icNeed: 5,    barClass: 'rpf-l2' },
-  'CB':  { next: 'L1',  sraNeed: 7,   icNeed: 3,    barClass: 'rpf-l1' },
-  'NS':  { next: 'L1',  sraNeed: 7,   icNeed: 3,    barClass: 'rpf-l1' },
-};
-
-/* Badge class map */
-const RNK_BADGE_CLS = {
-  FR:'rb-franchise', PR:'rb-premier', L3:'rb-l3', L2:'rb-l2', L1:'rb-l1', CB:'rb-combine', NS:'rb-ns'
-};
-const RNK_BADGE_LBL = {
-  FR:'Franchise', PR:'Premier', L3:'Level III', L2:'Level II', L1:'Level I', CB:'Combine', NS:'No Status'
-};
-
-/* Rank sort order (lower = higher rank) */
-const RNK_ORDER = { FR:1, PR:2, L3:3, L2:4, L1:5, CB:6, NS:7 };
-
-/* ── Rep data sorted by rank ── */
-/* Columns: name, rank, llp(last-month-points), qtdIc, qtdSra, careerIc */
-const RNK_DATA = [
-  { name:'Chase Hermansen', rank:'PR', llp:12.5, qtdIc:11.5, qtdSra:28, careerIc:38 },
-  { name:'Russell Dean',    rank:'PR', llp:12,   qtdIc:16,   qtdSra:31, careerIc:42 },
-  { name:'Kendl Hansen',    rank:'PR', llp:10.5, qtdIc:11,   qtdSra:22, careerIc:31 },
-  { name:'Majhor Cheel',    rank:'PR', llp:10,   qtdIc:10,   qtdSra:21, careerIc:28 },
-  { name:'Preston Thompson',rank:'L2', llp:6,    qtdIc:7,    qtdSra:17.5, careerIc:19 },
-  { name:'Lafe Frandsen',   rank:'L2', llp:6,    qtdIc:7,    qtdSra:17, careerIc:18 },
-  { name:'Erik Oh',         rank:'L1', llp:6,    qtdIc:6,    qtdSra:10, careerIc:12 },
-  { name:'John Woodfield',  rank:'L2', llp:5.5,  qtdIc:5,    qtdSra:22.5, careerIc:17 },
-  { name:'Branson Hadfield', rank:'L2', llp:5,   qtdIc:6,    qtdSra:13, careerIc:16 },
-  { name:'Jaxon Junior',    rank:'L1', llp:3,    qtdIc:3,    qtdSra:10, careerIc:8 },
-  { name:'Marcus Rivera',   rank:'L2', llp:6,    qtdIc:9,    qtdSra:18, careerIc:21 },
-  { name:'Devon Okafor',    rank:'PR', llp:11,   qtdIc:12,   qtdSra:25, careerIc:35 },
-  { name:'Malik Animashaun',rank:'L1', llp:4,    qtdIc:4,    qtdSra:9,  careerIc:10 },
-  { name:'Angel Marquez',   rank:'L1', llp:3,    qtdIc:3,    qtdSra:8,  careerIc:7 },
-  { name:'Louie Gutierrez', rank:'L1', llp:4,    qtdIc:4,    qtdSra:10, careerIc:9 },
-  { name:'Caleb Torres',    rank:'CB', llp:1.5,  qtdIc:1,    qtdSra:4,  careerIc:3 },
-  { name:'Nico Reeves',     rank:'CB', llp:1,    qtdIc:0,    qtdSra:3,  careerIc:1 },
-  { name:'Sam Okeke',       rank:'CB', llp:0.5,  qtdIc:0,    qtdSra:2,  careerIc:0 },
-];
-
-/* Sort by rank then by qtdSra within same rank */
-const RNK_SORTED = [...RNK_DATA].sort((a,b) => {
-  const ro = (RNK_ORDER[a.rank]||9) - (RNK_ORDER[b.rank]||9);
-  if (ro !== 0) return ro;
-  return b.qtdSra - a.qtdSra;
-});
-
-/* ── Drawer HTML builder ── */
-function rnkDrawerHtml(rep, isBlueBg) {
-  const t = RNK_THRESHOLDS[rep.rank];
-  if (!t || !t.next) {
-    return '<td colspan="6"><div class="rnk-drawer-inner">'
-      + '<div class="rnk-drawer-title">Already at top rank — Franchise</div>'
-      + '</div></td>';
-  }
-  const nextLbl = RNK_BADGE_LBL[t.next] || t.next;
-  let html = '<td colspan="6"><div class="rnk-drawer-inner">'
-    + '<div class="rnk-drawer-title">→ ' + nextLbl + '</div>';
-
-  /* SRA bar */
-  if (t.sraNeed) {
-    const sraPct = Math.min(100, Math.round((rep.qtdSra / t.sraNeed) * 100));
-    html += '<div class="rnk-prog-row">'
-      + '<div class="rnk-prog-lbl">SRA</div>'
-      + '<div class="rnk-prog-track"><div class="rnk-prog-fill ' + t.barClass + '" style="width:' + sraPct + '%"></div></div>'
-      + '<div class="rnk-prog-nums">' + rep.qtdSra + '<span class="rnk-prog-goal">/' + t.sraNeed + '</span></div>'
-      + '</div>';
-  }
-
-  /* IC bar */
-  if (t.icNeed) {
-    const icPct = Math.min(100, Math.round((rep.qtdIc / t.icNeed) * 100));
-    html += '<div class="rnk-prog-row">'
-      + '<div class="rnk-prog-lbl">IC</div>'
-      + '<div class="rnk-prog-track"><div class="rnk-prog-fill ' + t.barClass + '" style="width:' + icPct + '%"></div></div>'
-      + '<div class="rnk-prog-nums">' + rep.qtdIc + '<span class="rnk-prog-goal">/' + t.icNeed + '</span></div>'
-      + '</div>';
-  }
-
-  html += '</div></td>';
-  return html;
-}
-
-/* ── Row builder ── */
-function rnkBuildRow(rep, rank, isYou) {
-  const badgeCls = RNK_BADGE_CLS[rep.rank] || 'rb-ns';
-  const badgeLbl = RNK_BADGE_LBL[rep.rank] || rep.rank;
-  const rowId    = 'rnkr-' + rank;
-  const drawId   = 'rnkd-' + rank;
-  const rowCls   = isYou ? 'rnk-tr rnk-tr-you' : 'rnk-tr';
-  const llpDisp  = rep.llp   === 0 ? '<span class="rnk-zero">—</span>' : rep.llp;
-  const icDisp   = rep.qtdIc === 0 ? '<span class="rnk-zero">0</span>' : rep.qtdIc;
-  const sraDisp  = rep.qtdSra=== 0 ? '<span class="rnk-zero">0</span>' : rep.qtdSra;
-  const carDisp  = rep.careerIc===0? '<span class="rnk-zero">0</span>' : rep.careerIc;
-
-  const pinBtn = isYou
-    ? '<button class="rnk-pin-btn' + (rnkPinned ? ' pinned' : '') + '" id="rnk-pin-btn" onclick="rnkTogglePin(event)" title="Pin to top">📌</button>'
-    : '';
-
-  return '<tr class="' + rowCls + '" id="' + rowId + '" onclick="rnkToggleRow(' + rank + ')">'
-    + '<td class="rnk-td-rank">' + rank + '</td>'
-    + '<td class="rnk-td-name">'
-    +   '<div>' + (isYou ? '<strong>' + rep.name + '</strong>' : rep.name) + pinBtn + '</div>'
-    +   '<div><span class="rnk-badge ' + badgeCls + '">' + badgeLbl + '</span></div>'
-    + '</td>'
-    + '<td class="rnk-td">' + llpDisp + '</td>'
-    + '<td class="rnk-td">' + icDisp + '</td>'
-    + '<td class="rnk-td">' + sraDisp + '</td>'
-    + '<td class="rnk-td">' + carDisp + ' <span class="rnk-chevron">›</span></td>'
-    + '</tr>'
-    + '<tr class="rnk-drawer' + (isYou ? ' rnk-drawer-you' : '') + '" id="' + drawId + '">'
-    + rnkDrawerHtml(rep)
-    + '</tr>';
-}
-
-/* ── Pinned YOU row at top of table ── */
-function rnkYouPinnedHtml(rep, rank) {
-  const badgeCls = RNK_BADGE_CLS[rep.rank] || 'rb-ns';
-  const badgeLbl = RNK_BADGE_LBL[rep.rank] || rep.rank;
-  const llpDisp  = rep.llp === 0 ? '—' : rep.llp;
-  return '<tr class="rnk-you-pinned' + (rnkPinned ? ' visible' : '') + '" id="rnk-you-pinned" onclick="rnkTogglePinnedDrawer()">'
-    + '<td class="rnk-td-rank" style="color:rgba(255,255,255,0.7)">' + rank + '</td>'
-    + '<td class="rnk-td-name" style="color:#fff">'
-    +   '<div><strong>' + rep.name + '</strong>'
-    +   '<button class="rnk-pin-btn pinned" id="rnk-pin-btn-top" onclick="rnkTogglePin(event)" title="Unpin">📌</button></div>'
-    +   '<div><span class="rnk-badge rb-you-pinned ' + badgeCls + '">' + badgeLbl + '</span></div>'
-    + '</td>'
-    + '<td class="rnk-td" style="color:#fff">' + llpDisp + '</td>'
-    + '<td class="rnk-td" style="color:#fff">' + rep.qtdIc + '</td>'
-    + '<td class="rnk-td" style="color:#fff">' + rep.qtdSra + '</td>'
-    + '<td class="rnk-td" style="color:#fff">' + rep.careerIc + ' <span class="rnk-chevron" style="color:rgba(255,255,255,0.5)">›</span></td>'
-    + '</tr>'
-    + '<tr class="rnk-you-drawer-pinned" id="rnk-you-drawer-pinned">'
-    + rnkDrawerHtml(rep)
-    + '</tr>';
-}
-
-/* ── Render function ── */
-function rnkRender() {
-  const tbody = document.getElementById('rnk-tbody');
-  let youRank = 1;
-  let youRep = null;
-  let html = '';
-
-  /* First find the YOU rep rank */
-  RNK_SORTED.forEach((rep, i) => {
-    if (rep.name === RNK_YOU) { youRank = i + 1; youRep = rep; }
-  });
-
-  /* ── Stats strip: Level I+, % Level I+, counted reps (col O from QTD Points) ── */
-  /* "Counted" = total reps pulled from QTD Points col O (hardcoded until live data) */
-  const RNK_COUNTED = RNK_SORTED.length; /* replace with col-O value from sheet */
-  const l1PlusRanks = new Set(['FR','PR','L3','L2','L1']);
-  const l1Plus = RNK_SORTED.filter(r => l1PlusRanks.has(r.rank)).length;
-  const pct = RNK_COUNTED > 0 ? Math.round((l1Plus / RNK_COUNTED) * 100) : 0;
-  document.getElementById('rnk-stat-l1plus').textContent  = l1Plus;
-  document.getElementById('rnk-stat-pct').textContent     = pct + '%';
-  document.getElementById('rnk-stat-counted').textContent = RNK_COUNTED;
-
-  /* Build pinned header */
-  html += rnkYouPinnedHtml(youRep, youRank);
-
-  /* Ghost row (placeholder height when pinned) */
-  html += '<tr class="rnk-tr-you-ghost' + (rnkPinned ? ' visible' : '') + '" id="rnk-you-ghost"></tr>';
-
-  /* All rows */
-  RNK_SORTED.forEach((rep, i) => {
-    const rank  = i + 1;
-    const isYou = rep.name === RNK_YOU;
-    /* If pinned, you row renders as ghost + no duplicate */
-    if (isYou && rnkPinned) {
-      html += '<tr class="rnk-tr-you-ghost visible" id="rnk-you-ghost-data" style="height:0;border:none;"><td colspan="6"></td></tr>';
-      return;
-    }
-    html += rnkBuildRow(rep, rank, isYou);
-  });
-
-  tbody.innerHTML = html;
-}
+/* ── RANKINGS STATE ── */
+let rnkPinned = true; /* start pinned */
 
 /* ── Toggle expand/collapse ── */
 function rnkToggleRow(rank) {
@@ -3606,13 +3418,8 @@ function rnkToggleRow(rank) {
   const draw = document.getElementById('rnkd-' + rank);
   if (!row || !draw) return;
   const isOpen = draw.classList.contains('open');
-  /* Close all other open drawers */
-  document.querySelectorAll('.rnk-drawer.open, .rnk-you-drawer-pinned.open').forEach(el => {
-    el.classList.remove('open');
-  });
-  document.querySelectorAll('.rnk-tr.expanded, .rnk-you-pinned.expanded').forEach(el => {
-    el.classList.remove('expanded');
-  });
+  document.querySelectorAll('.rnk-drawer.open, .rnk-you-drawer-pinned.open').forEach(el => el.classList.remove('open'));
+  document.querySelectorAll('.rnk-tr.expanded, .rnk-you-pinned.expanded').forEach(el => el.classList.remove('expanded'));
   if (!isOpen) {
     draw.classList.add('open');
     row.classList.add('expanded');
@@ -3635,15 +3442,12 @@ function rnkTogglePinnedDrawer() {
   }
 }
 
-/* ── Toggle pin ── */
+/* ── Toggle pin — calls live render ── */
 function rnkTogglePin(e) {
   e.stopPropagation();
   rnkPinned = !rnkPinned;
-  rnkRender();
+  rpRenderStatus();
 }
-
-/* Init */
-rnkRender();
 </script>
 
 <!-- ════════════════════════════════════════════════════════
@@ -3716,7 +3520,7 @@ rnkRender();
       </div>
       <div class="drw-footer-item drw-signout" onclick="drwSignOut()">
         <div class="drw-item-icon">🚪</div>
-        <div class="drw-footer-label">Sign Out</div>
+        <div class="drw-footer-label" id="drw-signout-btn" data-confirm="0">Sign Out</div>
       </div>
     </div>
 
@@ -4889,10 +4693,21 @@ function drwLoadPrefs() {
 }
 
 function drwSignOut() {
-  if (confirm('Sign out of Rally Point?')) {
-    /* In production: revoke Google OAuth token and redirect to login */
-    alert('Signed out.');
+  /* iOS Safari blocks confirm()/alert() — use inline confirmation */
+  const btn = document.getElementById('drw-signout-btn');
+  if (!btn) return;
+  if (btn.dataset.confirm === '1') {
+    rpSignOut();
     document.getElementById('drw-overlay').classList.remove('open');
+    btn.textContent = 'Sign Out';
+    btn.dataset.confirm = '0';
+  } else {
+    btn.textContent = 'Tap again to confirm';
+    btn.dataset.confirm = '1';
+    setTimeout(() => {
+      btn.textContent = 'Sign Out';
+      btn.dataset.confirm = '0';
+    }, 3000);
   }
 }
 </script>
@@ -5479,7 +5294,7 @@ function rpRenderStatus() {
         <div><span class="rnk-badge ${badgeCls}">${badgeLbl}</span></div>
       </td>
       <td class="rnk-td" style="color:#fff">${exp.llPoints||'—'}</td>
-      <td class="rnk-td" style="color:#fff">${exp.careerIC||0}</td>
+      <td class="rnk-td" style="color:#fff">${(RP.qtdPoints[rep.id]?.icQtrPoints||0)}</td>
       <td class="rnk-td" style="color:#fff">${exp.sraPoints||0}</td>
       <td class="rnk-td" style="color:#fff">${exp.careerIC||0} <span class="rnk-chevron" style="color:rgba(255,255,255,.5)">›</span></td>
     </tr>
@@ -5510,7 +5325,7 @@ function rpRenderStatus() {
         <div><span class="rnk-badge ${badgeCls}">${badgeLbl}</span></div>
       </td>
       <td class="rnk-td">${exp.llPoints||'—'}</td>
-      <td class="rnk-td">${exp.careerIC||0}</td>
+      <td class="rnk-td">${(RP.qtdPoints[rep.id]?.icQtrPoints||0)}</td>
       <td class="rnk-td">${exp.sraPoints||0}</td>
       <td class="rnk-td">${exp.careerIC||0} <span class="rnk-chevron">›</span></td>
     </tr>
