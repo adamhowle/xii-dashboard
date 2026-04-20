@@ -4115,7 +4115,7 @@ function _rpGoogleSignIn() {
 /* ================================================
    RALLY POINT — TAB SWITCHING
    ================================================ */
-const RP_SCREENS = ['me','pod','squad','office','status'];
+var RP_SCREENS = ['me','pod','squad','office','status'];
 
 function rpSwitch(target) {
   /* Nav tabs always go directly to their screen.
@@ -6168,103 +6168,30 @@ function rpBoot() {
 
 
 <script>
-/* ================================================
-   RALLY POINT — TAB SWITCHING
-   ================================================ */
-const RP_SCREENS = ['me','pod','squad','office','status'];
-
-function rpSwitch(target) {
-  /* Nav tabs always go directly to their screen.
-     Pod is only accessible via zoom strips from Me or Squad. */
-  var show = target;
-  RP_SCREENS.forEach(function(id) {
-    var wrap = document.getElementById('screen-' + id);
-    if (wrap) { wrap.style.display = 'none'; wrap.classList.remove('rp-active'); }
-  });
-  var wrap = document.getElementById('screen-' + show);
-  if (wrap) { wrap.style.display = 'flex'; wrap.classList.add('rp-active'); wrap.scrollTop = 0; }
-  try {
-    if (show === 'me')     rpRenderMe();
-    if (show === 'pod')    rpRenderPod();
-    if (show === 'squad')  rpRenderSquad();
-    if (show === 'office') rpRenderOffice();
-    if (show === 'status') rpRenderRankings();
-  } catch(e) { console.warn('rpSwitch render:', e); }
-  RP._screen = show;
-}
-
-
-
-/* ── QTD GOAL CELLS ── */
-function rpRenderGoalCells() {
-  var qtd = (RP.user && RP.qtdPoints && RP.qtdPoints[RP.user.id]) ? RP.qtdPoints[RP.user.id] : {};
-  var sraGoal = 0, icGoal = 0;
-  try {
-    sraGoal = parseInt(localStorage.getItem('rp_qtd_sra_goal') || '0') || 0;
-    icGoal  = parseInt(localStorage.getItem('rp_qtd_ic_goal')  || '0') || 0;
-  } catch(e) {}
-  var sraActual = qtd.sraQtr || 0;
-  var icActual  = qtd.icQtrPoints || 0;
-
-  function renderCell(valId, subId, barWrapId, fillId, pctId, actual, goal) {
-    var valEl  = document.getElementById(valId);
-    var subEl  = document.getElementById(subId);
-    var wrapEl = document.getElementById(barWrapId);
-    var fillEl = document.getElementById(fillId);
-    var pctEl  = document.getElementById(pctId);
-    if (!valEl) return;
-    if (!goal) {
-      valEl.textContent = '—'; valEl.style.fontSize = '28px';
-      if (subEl)  subEl.textContent  = 'Set in More';
-      if (wrapEl) wrapEl.style.display = 'none';
-    } else {
-      valEl.textContent = actual + ' / ' + goal; valEl.style.fontSize = '20px';
-      if (subEl)  subEl.textContent  = 'quarter goal';
-      var pct = Math.min(100, Math.round((actual / goal) * 100));
-      if (wrapEl) wrapEl.style.display = '';
-      if (fillEl) fillEl.style.width = pct + '%';
-      if (pctEl)  pctEl.textContent = pct + '%';
-    }
-  }
-  renderCell('me-qtd-goal-sra-val','me-qtd-goal-sra-sub','me-qtd-goal-sra-bar-wrap','me-qtd-goal-sra-fill','me-qtd-goal-sra-pct', sraActual, sraGoal);
-  renderCell('me-qtd-goal-ic-val', 'me-qtd-goal-ic-sub', 'me-qtd-goal-ic-bar-wrap', 'me-qtd-goal-ic-fill', 'me-qtd-goal-ic-pct',  icActual,  icGoal);
-}
-</script>
-
-
-/* ── SWIPE GESTURE — swipe up on Me = go to Pod, swipe up on Pod = go to Squad ── */
+/* ── SWIPE GESTURE — swipe up on Me = Pod, swipe up/right on Pod = Squad ── */
 (function() {
   var _startY = 0, _startX = 0;
-
   function onTouchStart(e) {
     _startY = e.touches[0].clientY;
     _startX = e.touches[0].clientX;
   }
-
   function onTouchEnd(e) {
-    var dy = _startY - e.changedTouches[0].clientY;
-    var dx = Math.abs(_startX - e.changedTouches[0].clientX);
-    var screen = RP._screen;
-    /* Require predominantly vertical swipe, at least 80px up */
-    if (dy > 80 && dx < 60) {
-      if (screen === 'me') {
-        rpZoomToPod();
-      } else if (screen === 'pod') {
-        rpZoomOut();
-      }
-    }
-    /* Swipe right (dx > 80, dy < 60) on pod = go back to squad */
+    var dy     = _startY - e.changedTouches[0].clientY;
+    var dx     = Math.abs(_startX - e.changedTouches[0].clientX);
     var dxRight = e.changedTouches[0].clientX - _startX;
+    var screen = RP._screen;
+    if (dy > 80 && dx < 60) {
+      if (screen === 'me')  rpZoomToPod();
+      else if (screen === 'pod') rpZoomOut();
+    }
     if (dxRight > 80 && Math.abs(_startY - e.changedTouches[0].clientY) < 60) {
-      if (screen === 'pod') {
-        rpZoomOut();
-      }
+      if (screen === 'pod') rpZoomOut();
     }
   }
-
   document.addEventListener('touchstart', onTouchStart, { passive: true });
   document.addEventListener('touchend',   onTouchEnd,   { passive: true });
 })();
+</script>
 
 </body>
 </html>
