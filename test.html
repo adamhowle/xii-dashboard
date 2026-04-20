@@ -144,13 +144,12 @@ body {
   position: fixed;
   inset: 0;
   display: none;
-  flex-direction: column;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   background: #fff;
 }
 .rp-screen-wrap.rp-active {
   display: flex;
+  flex-direction: column;
 }
 
 
@@ -163,12 +162,27 @@ body {
   background: #fff;
   border-radius: 0;
   border: none;
-  overflow-x: hidden;
   overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+}
+.phone > .nav {
+  position: sticky;
+  bottom: 0;
+  background: var(--rp-steel, #F5F3EF);
+  z-index: 20;
+  margin-top: auto;
+}
+.phone > .zoom-strip {
+  position: sticky;
+  bottom: 57px;
+  background: var(--rp-steel, #F5F3EF);
+  z-index: 19;
 }
 
 /* ═══════════════════════════════════════════════
@@ -3398,8 +3412,8 @@ function rnkTogglePin(e) {
     <!-- Drawer header -->
     <div class="drw-hdr">
       <div class="drw-hdr-wordmark">Rally Point</div>
-      <div class="drw-hdr-name">Marcus Rivera</div>
-      <div class="drw-hdr-squad">Pirates · G-Squad · Newport Beach</div>
+      <div class="drw-hdr-name" id="drw-user-name">—</div>
+      <div class="drw-hdr-squad" id="drw-user-squad">—</div>
     </div>
 
     <!-- Main items -->
@@ -3960,7 +3974,24 @@ body{
 
 </div>
 </div>
-
+  <div class="sub-screen-nav">
+    <div class="ni" onclick="drwCloseSub_toScreen('me')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/><path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="ni-lbl">Me</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('squad')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="7" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><circle cx="15" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/><path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="ni-lbl">Squad</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('office')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/><rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/></svg>
+      <span class="ni-lbl">Office</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('status')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <span class="ni-lbl">Status</span>
+    </div>
+  </div>
 </div>
 
 <!-- SUCCESS -->
@@ -4101,93 +4132,7 @@ function _rpGoogleSignIn() {
 }
 </script>
 
-<script>
-/* ================================================
-   RALLY POINT — TAB SWITCHING
-   ================================================ */
-var RP_SCREENS = ['me','pod','squad','office','status'];
 
-function rpSwitch(target) {
-  /* Nav tabs always go directly to their screen.
-     Pod is only accessible via zoom strips from Me or Squad. */
-  var show = target;
-  RP_SCREENS.forEach(function(id) {
-    var wrap = document.getElementById('screen-' + id);
-    if (wrap) { wrap.style.display = 'none'; wrap.classList.remove('rp-active'); }
-  });
-  var wrap = document.getElementById('screen-' + show);
-  if (wrap) { wrap.style.display = 'flex'; wrap.classList.add('rp-active'); wrap.scrollTop = 0; }
-  try {
-    if (show === 'me')     rpRenderMe();
-    if (show === 'pod')    rpRenderPod();
-    if (show === 'squad')  rpRenderSquad();
-    if (show === 'office') rpRenderOffice();
-    if (show === 'status') rpRenderRankings();
-  } catch(e) { console.warn('rpSwitch render:', e); }
-  RP._screen = show;
-}
-
-
-/* Pod zoom-strip tap — go back to squad */
-function rpZoomOut() {
-  RP_SCREENS.forEach(function(id) {
-    var w = document.getElementById('screen-' + id);
-    if (w) { w.style.display = 'none'; w.classList.remove('rp-active'); }
-  });
-  var sq = document.getElementById('screen-squad');
-  if (sq) { sq.style.display = 'flex'; sq.classList.add('rp-active'); sq.scrollTop = 0; }
-  try { rpRenderSquad(); } catch(e) {}
-  RP._screen = 'squad';
-}
-
-/* Me zoom-strip tap — go to pod */
-function rpZoomToPod() {
-  RP_SCREENS.forEach(function(id) {
-    var w = document.getElementById('screen-' + id);
-    if (w) { w.style.display = 'none'; w.classList.remove('rp-active'); }
-  });
-  var pod = document.getElementById('screen-pod');
-  if (pod) { pod.style.display = 'flex'; pod.classList.add('rp-active'); pod.scrollTop = 0; }
-  try { rpRenderPod(); } catch(e) {}
-  RP._screen = 'pod';
-}
-
-
-/* ── QTD GOAL CELLS ── */
-function rpRenderGoalCells() {
-  var qtd = (RP.user && RP.qtdPoints && RP.qtdPoints[RP.user.id]) ? RP.qtdPoints[RP.user.id] : {};
-  var sraGoal = 0, icGoal = 0;
-  try {
-    sraGoal = parseInt(localStorage.getItem('rp_qtd_sra_goal') || '0') || 0;
-    icGoal  = parseInt(localStorage.getItem('rp_qtd_ic_goal')  || '0') || 0;
-  } catch(e) {}
-  var sraActual = qtd.sraQtr || 0;
-  var icActual  = qtd.icQtrPoints || 0;
-
-  function renderCell(valId, subId, barWrapId, fillId, pctId, actual, goal) {
-    var valEl  = document.getElementById(valId);
-    var subEl  = document.getElementById(subId);
-    var wrapEl = document.getElementById(barWrapId);
-    var fillEl = document.getElementById(fillId);
-    var pctEl  = document.getElementById(pctId);
-    if (!valEl) return;
-    if (!goal) {
-      valEl.textContent = '—'; valEl.style.fontSize = '28px';
-      if (subEl)  subEl.textContent  = 'Set in More';
-      if (wrapEl) wrapEl.style.display = 'none';
-    } else {
-      valEl.textContent = actual + ' / ' + goal; valEl.style.fontSize = '20px';
-      if (subEl)  subEl.textContent  = 'quarter goal';
-      var pct = Math.min(100, Math.round((actual / goal) * 100));
-      if (wrapEl) wrapEl.style.display = '';
-      if (fillEl) fillEl.style.width = pct + '%';
-      if (pctEl)  pctEl.textContent = pct + '%';
-    }
-  }
-  renderCell('me-qtd-goal-sra-val','me-qtd-goal-sra-sub','me-qtd-goal-sra-bar-wrap','me-qtd-goal-sra-fill','me-qtd-goal-sra-pct', sraActual, sraGoal);
-  renderCell('me-qtd-goal-ic-val', 'me-qtd-goal-ic-sub', 'me-qtd-goal-ic-bar-wrap', 'me-qtd-goal-ic-fill', 'me-qtd-goal-ic-pct',  icActual,  icGoal);
-}
-</script>
 
 
 /* ── SWIPE GESTURE — swipe up on Me = go to Pod, swipe up on Pod = go to Squad ── */
@@ -4334,24 +4279,6 @@ function rpRenderGoalCells() {
     </div>
 
   </div><!-- /sub-body -->
-  <div class="sub-screen-nav">
-    <div class="ni" onclick="drwCloseSub_toScreen('me')">
-      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/><path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
-      <span class="ni-lbl">Me</span>
-    </div>
-    <div class="ni" onclick="drwCloseSub_toScreen('squad')">
-      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="7" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><circle cx="15" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/><path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
-      <span class="ni-lbl">Squad</span>
-    </div>
-    <div class="ni" onclick="drwCloseSub_toScreen('office')">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/><rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/></svg>
-      <span class="ni-lbl">Office</span>
-    </div>
-    <div class="ni" onclick="drwCloseSub_toScreen('status')">
-      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/></svg>
-      <span class="ni-lbl">Status</span>
-    </div>
-  </div>
 </div><!-- /sub-contacts -->
 
 <!-- TRAINING -->
@@ -4943,6 +4870,84 @@ function drwSignOut() {
 
 <!-- RALLY POINT DATA LAYER -->
 <script>
+/* ================================================
+   RALLY POINT — TAB SWITCHING & ZOOM
+   ================================================ */
+var RP_SCREENS = ['me','pod','squad','office','status'];
+
+function rpSwitch(target) {
+  var show = target;
+  RP_SCREENS.forEach(function(id) {
+    var wrap = document.getElementById('screen-' + id);
+    if (wrap) { wrap.style.display = 'none'; wrap.classList.remove('rp-active'); }
+  });
+  var wrap = document.getElementById('screen-' + show);
+  if (wrap) { wrap.style.display = 'flex'; wrap.classList.add('rp-active'); wrap.scrollTop = 0; }
+  try {
+    if (show === 'me')     rpRenderMe();
+    if (show === 'pod')    rpRenderPod();
+    if (show === 'squad')  rpRenderSquad();
+    if (show === 'office') rpRenderOffice();
+    if (show === 'status') rpRenderRankings();
+  } catch(e) { console.warn('rpSwitch render:', e); }
+  RP._screen = show;
+}
+
+function rpZoomOut() {
+  RP_SCREENS.forEach(function(id) {
+    var w = document.getElementById('screen-' + id);
+    if (w) { w.style.display = 'none'; w.classList.remove('rp-active'); }
+  });
+  var sq = document.getElementById('screen-squad');
+  if (sq) { sq.style.display = 'flex'; sq.classList.add('rp-active'); sq.scrollTop = 0; }
+  try { rpRenderSquad(); } catch(e) {}
+  RP._screen = 'squad';
+}
+
+function rpZoomToPod() {
+  RP_SCREENS.forEach(function(id) {
+    var w = document.getElementById('screen-' + id);
+    if (w) { w.style.display = 'none'; w.classList.remove('rp-active'); }
+  });
+  var pod = document.getElementById('screen-pod');
+  if (pod) { pod.style.display = 'flex'; pod.classList.add('rp-active'); pod.scrollTop = 0; }
+  try { rpRenderPod(); } catch(e) {}
+  RP._screen = 'pod';
+}
+
+function rpRenderGoalCells() {
+  var qtd = (RP.user && RP.qtdPoints && RP.qtdPoints[RP.user.id]) ? RP.qtdPoints[RP.user.id] : {};
+  var sraGoal = 0, icGoal = 0;
+  try {
+    sraGoal = parseInt(localStorage.getItem('rp_qtd_sra_goal') || '0') || 0;
+    icGoal  = parseInt(localStorage.getItem('rp_qtd_ic_goal')  || '0') || 0;
+  } catch(e) {}
+  var sraActual = qtd.sraQtr || 0;
+  var icActual  = qtd.icQtrPoints || 0;
+  function renderCell(valId, subId, barWrapId, fillId, pctId, actual, goal) {
+    var valEl = document.getElementById(valId);
+    var subEl = document.getElementById(subId);
+    var wrapEl = document.getElementById(barWrapId);
+    var fillEl = document.getElementById(fillId);
+    var pctEl  = document.getElementById(pctId);
+    if (!valEl) return;
+    if (!goal) {
+      valEl.textContent = '\u2014'; valEl.style.fontSize = '28px';
+      if (subEl) subEl.textContent = 'Set in More';
+      if (wrapEl) wrapEl.style.display = 'none';
+    } else {
+      valEl.textContent = actual + ' / ' + goal; valEl.style.fontSize = '20px';
+      if (subEl) subEl.textContent = 'quarter goal';
+      var pct = Math.min(100, Math.round((actual / goal) * 100));
+      if (wrapEl) wrapEl.style.display = '';
+      if (fillEl) fillEl.style.width = pct + '%';
+      if (pctEl)  pctEl.textContent = pct + '%';
+    }
+  }
+  renderCell('me-qtd-goal-sra-val','me-qtd-goal-sra-sub','me-qtd-goal-sra-bar-wrap','me-qtd-goal-sra-fill','me-qtd-goal-sra-pct', sraActual, sraGoal);
+  renderCell('me-qtd-goal-ic-val', 'me-qtd-goal-ic-sub', 'me-qtd-goal-ic-bar-wrap', 'me-qtd-goal-ic-fill', 'me-qtd-goal-ic-pct',  icActual,  icGoal);
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    RALLY POINT — LIVE DATA LAYER
    Google Sheets API + OAuth 2.0 (GIS)
@@ -5020,7 +5025,7 @@ function rpInitAuth() {
 }
 
 function rpSignIn() {
-  _tokenClient.requestAccessToken({ prompt: 'consent' });
+  _tokenClient.requestAccessToken({ prompt: 'select_account' });
 }
 
 function rpSignOut() {
@@ -5307,6 +5312,12 @@ function rpRenderAll() {
 function rpUpdateHeaders() {
   if (!RP.user) return;
   const u = RP.user;
+
+  /* Drawer */
+  var dn = document.getElementById('drw-user-name');
+  var ds = document.getElementById('drw-user-squad');
+  if (dn) dn.textContent = u.name;
+  if (ds) ds.textContent = u.squad + (u.pod ? ' · ' + u.pod : '') + ' · ' + u.office;
 
   /* Me screen */
   const meHdr = document.querySelector('#me-screen .hdr-name, .me-screen .hdr-name');
@@ -6140,9 +6151,8 @@ function rpBoot() {
       }
     },
   });
-  /* Auto-request token if user was previously signed in */
+  /* Show login screen — user taps button to sign in */
   rpShowLoginScreen();
-  _tokenClient && _tokenClient.requestAccessToken({ prompt: '' });
 }
 
 /* ── AUTO-BOOT: poll until GIS library is ready, then call rpBoot ── */
@@ -6172,34 +6182,60 @@ function rpBoot() {
   };
 })();
 
+/* ── SWIPE GESTURES ── */
+(function() {
+  var _startY = 0, _startX = 0;
+  function onTouchStart(e) { _startY = e.touches[0].clientY; _startX = e.touches[0].clientX; }
+  function onTouchEnd(e) {
+    var dy = _startY - e.changedTouches[0].clientY;
+    var dx = Math.abs(_startX - e.changedTouches[0].clientX);
+    var dxR = e.changedTouches[0].clientX - _startX;
+    var s = RP._screen;
+    if (dy > 80 && dx < 60) { if (s === 'me') rpZoomToPod(); else if (s === 'pod') rpZoomOut(); }
+    if (dxR > 80 && Math.abs(_startY - e.changedTouches[0].clientY) < 60 && s === 'pod') rpZoomOut();
+  }
+  document.addEventListener('touchstart', onTouchStart, {passive:true});
+  document.addEventListener('touchend',   onTouchEnd,   {passive:true});
+})();
 </script>
 
 
-<script>
-/* ── SWIPE GESTURE — swipe up on Me = Pod, swipe up/right on Pod = Squad ── */
+
+
+
+/* ── SWIPE GESTURE — swipe up on Me = go to Pod, swipe up on Pod = go to Squad ── */
 (function() {
   var _startY = 0, _startX = 0;
+
   function onTouchStart(e) {
     _startY = e.touches[0].clientY;
     _startX = e.touches[0].clientX;
   }
+
   function onTouchEnd(e) {
-    var dy     = _startY - e.changedTouches[0].clientY;
-    var dx     = Math.abs(_startX - e.changedTouches[0].clientX);
-    var dxRight = e.changedTouches[0].clientX - _startX;
+    var dy = _startY - e.changedTouches[0].clientY;
+    var dx = Math.abs(_startX - e.changedTouches[0].clientX);
     var screen = RP._screen;
+    /* Require predominantly vertical swipe, at least 80px up */
     if (dy > 80 && dx < 60) {
-      if (screen === 'me')  rpZoomToPod();
-      else if (screen === 'pod') rpZoomOut();
+      if (screen === 'me') {
+        rpZoomToPod();
+      } else if (screen === 'pod') {
+        rpZoomOut();
+      }
     }
+    /* Swipe right (dx > 80, dy < 60) on pod = go back to squad */
+    var dxRight = e.changedTouches[0].clientX - _startX;
     if (dxRight > 80 && Math.abs(_startY - e.changedTouches[0].clientY) < 60) {
-      if (screen === 'pod') rpZoomOut();
+      if (screen === 'pod') {
+        rpZoomOut();
+      }
     }
   }
+
   document.addEventListener('touchstart', onTouchStart, { passive: true });
   document.addEventListener('touchend',   onTouchEnd,   { passive: true });
 })();
-</script>
 
 </body>
 </html>
