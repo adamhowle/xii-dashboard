@@ -348,21 +348,6 @@ body {
 /* ═══════════════════════════════════════════════
    SUB-SCREEN LAYER (slides in over phone content)
    ═══════════════════════════════════════════════ */
-.sub-screen {
-  display: none;
-  position: absolute;
-  inset: 0;
-  background: #F7F6F3;
-  z-index: 300;
-  flex-direction: column;
-  transform: translateX(100%);
-  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
-}
-.sub-screen.open {
-  display: flex;
-  transform: translateX(0);
-}
-
 /* Sub-screen header */
 .sub-hdr {
   background: #2C2C2A;
@@ -1986,14 +1971,6 @@ body {
         </svg>
         <span class="ni-lbl">Status</span>
       </div>
-      <div class="ni" onclick="rpGoMore()">
-        <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="11" cy="11" r="9" stroke="#888780" stroke-width="1.5"/>
-          <path d="M11 7v8M7 11h8" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="ni-lbl">More</span>
-      </div>
     </div>
 
   </div><!-- /phone -->
@@ -2331,14 +2308,6 @@ function confirmPay() {
         </svg>
         <span class="ni-lbl">Status</span>
       </div>
-      <div class="ni" onclick="rpGoMore()">
-        <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="11" cy="11" r="9" stroke="#888780" stroke-width="1.5"/>
-          <path d="M11 7v8M7 11h8" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="ni-lbl">More</span>
-      </div>
     </div>
 
   </div><!-- /phone -->
@@ -2540,14 +2509,6 @@ function podShowTab(tab) {
           <path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/>
         </svg>
         <span class="ni-lbl">Status</span>
-      </div>
-      <div class="ni" onclick="rpGoMore()">
-        <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="11" cy="11" r="9" stroke="#888780" stroke-width="1.5"/>
-          <path d="M11 7v8M7 11h8" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="ni-lbl">More</span>
       </div>
     </div>
 
@@ -2863,14 +2824,6 @@ sqRenderQtd();
         </svg>
         <span class="ni-lbl">Status</span>
       </div>
-      <div class="ni" onclick="rpGoMore()">
-        <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="11" cy="11" r="9" stroke="#888780" stroke-width="1.5"/>
-          <path d="M11 7v8M7 11h8" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="ni-lbl">More</span>
-      </div>
     </div>
 
   </div><!-- /phone -->
@@ -3169,14 +3122,6 @@ offRenderQtd();
           <path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#A07800" stroke-width="1.5" stroke-linejoin="round"/>
         </svg>
         <span class="ni-lbl" style="color:#A07800">Status</span>
-      </div>
-      <div class="ni" onclick="rpGoMore()">
-        <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="11" cy="11" r="9" stroke="#888780" stroke-width="1.5"/>
-          <path d="M11 7v8M7 11h8" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="ni-lbl">More</span>
       </div>
     </div>
 
@@ -3513,215 +3458,6 @@ function rnkTogglePin(e) {
      ════════════════════════════════════════════════════════ -->
 
 <!-- DRAWER OVERLAY (fixed, covers full viewport) -->
-<!-- ══════════════════════════════════════════════════════
-     MORE SCREEN
-     Zone color: #888780
-     ══════════════════════════════════════════════════════ -->
-<div class="more-screen-wrap" id="more-screen-wrap">
-  <div class="phone-wrap"><div class="phone">
-
-    <!-- Header -->
-    <div class="app-hdr" style="background:#888780;">
-      <div class="app-hdr-left">
-        <button class="hbg" onclick="openDrawer(event)" aria-label="Menu">
-          <span></span><span></span><span></span>
-        </button>
-      </div>
-      <div class="app-hdr-title">MORE</div>
-      <div class="app-hdr-right"></div>
-    </div>
-
-    <!-- Menu list -->
-    <div class="more-list">
-
-      <div class="more-item" onclick="moreOpen('prefs')">
-        <div class="more-item-icon">⚙️</div>
-        <div class="more-item-text">
-          <div class="more-item-label">Preferences</div>
-          <div class="more-item-sub">$/install, quarterly goals</div>
-        </div>
-        <div class="more-item-arrow">›</div>
-      </div>
-
-      <div class="more-item" onclick="moreOpen('onboarding')">
-        <div class="more-item-icon">📋</div>
-        <div class="more-item-text">
-          <div class="more-item-label">Refer a Friend</div>
-          <div class="more-item-sub">Submit a new candidate</div>
-        </div>
-        <div class="more-item-arrow">›</div>
-      </div>
-
-      <div class="more-item" onclick="moreOpen('contacts')">
-        <div class="more-item-icon">👥</div>
-        <div class="more-item-text">
-          <div class="more-item-label">Contacts</div>
-          <div class="more-item-sub">Sunrun support &amp; team directory</div>
-        </div>
-        <div class="more-item-arrow">›</div>
-      </div>
-
-      <div class="more-item" onclick="moreOpen('training')">
-        <div class="more-item-icon">🎓</div>
-        <div class="more-item-text">
-          <div class="more-item-label">Training</div>
-          <div class="more-item-sub">RunX learning &amp; required courses</div>
-        </div>
-        <div class="more-item-arrow">›</div>
-      </div>
-
-      <div class="more-item" onclick="moreOpen('tools')">
-        <div class="more-item-icon">🛠️</div>
-        <div class="more-item-text">
-          <div class="more-item-label">Tools</div>
-          <div class="more-item-sub">Apps &amp; downloads</div>
-        </div>
-        <div class="more-item-arrow">›</div>
-      </div>
-
-    </div><!-- /more-list -->
-
-    <!-- Footer actions -->
-    <div class="more-footer">
-      <div class="more-footer-item" onclick="moreOpen('help')">
-        <div class="more-item-icon">❓</div>
-        <div class="more-footer-label">Help &amp; Feedback</div>
-      </div>
-      <div class="more-footer-item more-signout" onclick="moreSignOut()">
-        <div class="more-item-icon">🚪</div>
-        <div class="more-footer-label" id="more-signout-btn" data-confirm="0">Sign Out</div>
-      </div>
-    </div>
-
-    <!-- Nav bar -->
-    <div class="nav">
-      <div class="ni">
-        <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/>
-          <path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="ni-lbl">Me</span>
-      </div>
-      <div class="ni">
-        <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="7" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/>
-          <circle cx="15" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/>
-          <path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="ni-lbl">Squad</span>
-      </div>
-      <div class="ni">
-        <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/>
-          <rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/>
-        </svg>
-        <span class="ni-lbl">Office</span>
-      </div>
-      <div class="ni">
-        <div class="ni-bar"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/>
-        </svg>
-        <span class="ni-lbl">Status</span>
-      </div>
-      <div class="ni on" onclick="rpGoMore()">
-        <div class="ni-bar" style="background:#888780"></div>
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <circle cx="11" cy="11" r="9" stroke="#888780" stroke-width="1.5"/>
-          <path d="M11 7v8M7 11h8" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="ni-lbl" style="color:#888780">More</span>
-      </div>
-    </div>
-
-  </div></div>
-</div><!-- /more-screen-wrap -->
-
-<style>
-.more-screen-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0 auto 2rem;
-}
-.more-list {
-  flex: 1;
-  overflow-y: auto;
-  background: #fff;
-  padding: 6px 0;
-}
-.more-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 20px;
-  cursor: pointer;
-  border-bottom: 1px solid #F0EEE8;
-  transition: background 0.1s;
-  min-height: 48px;
-}
-.more-item:active { background: #F7F6F3; }
-.more-item-icon { font-size: 20px; width: 26px; text-align: center; flex-shrink: 0; }
-.more-item-text { flex: 1; }
-.more-item-label { font-size: 15px; font-weight: 600; color: #111110; }
-.more-item-sub { font-size: 11px; color: #888780; margin-top: 2px; }
-.more-item-arrow { font-size: 18px; color: #C8C5BF; }
-.more-footer {
-  border-top: 1px solid #E0DDD6;
-  padding: 6px 0 10px;
-  flex-shrink: 0;
-  background: #fff;
-}
-.more-footer-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 20px;
-  cursor: pointer;
-  transition: background 0.1s;
-  min-height: 48px;
-}
-.more-footer-item:active { background: #F7F6F3; }
-.more-footer-label { font-size: 14px; font-weight: 500; color: #444441; }
-.more-signout .more-footer-label { color: #C0392B; }
-</style>
-
-<script>
-/* ── MORE SCREEN ── */
-function moreOpen(name) {
-  document.getElementById('sub-' + name).classList.add('open');
-}
-
-function moreSignOut() {
-  const btn = document.getElementById('more-signout-btn');
-  if (!btn) return;
-  if (btn.dataset.confirm === '1') {
-    rpSignOut();
-    btn.dataset.confirm = '0';
-    btn.textContent = 'Sign Out';
-  } else {
-    btn.dataset.confirm = '1';
-    btn.textContent = 'Tap again to confirm';
-    setTimeout(() => {
-      btn.dataset.confirm = '0';
-      btn.textContent = 'Sign Out';
-    }, 3000);
-  }
-}
-
-function rpGoMore() {
-  const el = document.getElementById('more-screen-wrap');
-  if (el) el.scrollIntoView({ behavior: 'smooth' });
-}
-</script>
-
-<div class="dev-label" style="margin-bottom:2rem">More screen — tap items to open full-screen</div>
-
 <div class="drw-overlay" id="drw-overlay" onclick="drwCloseDrawer(event)">
   <div class="drw-panel" id="drw-panel">
 
@@ -3796,7 +3532,6 @@ function rpGoMore() {
 <!-- ONBOARDING FORM -->
 <div class="sub-screen" id="sub-onboarding">
   <div class="sub-hdr">
-    <button class="sub-hdr-back" onclick="drwCloseSub('onboarding')">‹</button>
     <div class="sub-hdr-title">Onboarding Form</div>
   </div>
   <div class="form-iframe-wrap">
@@ -4439,7 +4174,6 @@ function _rpGoogleSignIn() {
 <!-- CONTACTS -->
 <div class="sub-screen" id="sub-contacts">
   <div class="sub-hdr">
-    <button class="sub-hdr-back" onclick="drwCloseSub('contacts')">‹</button>
     <div class="sub-hdr-title">Contacts</div>
   </div>
   <div class="sub-body" id="contacts-body">
@@ -4546,7 +4280,6 @@ function _rpGoogleSignIn() {
 <!-- TRAINING -->
 <div class="sub-screen" id="sub-training">
   <div class="sub-hdr">
-    <button class="sub-hdr-back" onclick="drwCloseSub('training')">‹</button>
     <div class="sub-hdr-title">Training</div>
   </div>
   <div class="sub-body">
@@ -4582,7 +4315,6 @@ function _rpGoogleSignIn() {
 <!-- TOOLS -->
 <div class="sub-screen" id="sub-tools">
   <div class="sub-hdr">
-    <button class="sub-hdr-back" onclick="drwCloseSub('tools')">‹</button>
     <div class="sub-hdr-title">Tools</div>
   </div>
   <div class="sub-body">
@@ -4620,7 +4352,6 @@ function _rpGoogleSignIn() {
 <!-- PREFERENCES -->
 <div class="sub-screen" id="sub-prefs">
   <div class="sub-hdr">
-    <button class="sub-hdr-back" onclick="drwCloseSub('prefs')">‹</button>
     <div class="sub-hdr-title">Preferences</div>
   </div>
   <div class="sub-body">
@@ -4656,7 +4387,6 @@ function _rpGoogleSignIn() {
 <!-- HELP & FEEDBACK -->
 <div class="sub-screen" id="sub-help">
   <div class="sub-hdr">
-    <button class="sub-hdr-back" onclick="drwCloseSub('help')">‹</button>
     <div class="sub-hdr-title">Help &amp; Feedback</div>
   </div>
   <div class="sub-body">
@@ -4737,27 +4467,26 @@ function _rpGoogleSignIn() {
 .drw-footer-label { font-size: 13px; font-weight: 500; color: #444441; }
 .drw-signout .drw-footer-label { color: #C0392B; }
 
-/* Sub-screens — fixed, full viewport */
+/* Sub-screens — fixed, true full viewport */
 .sub-screen {
   display: none;
   position: fixed;
-  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%;
+  max-width: none;
   background: #F7F6F3;
   z-index: 1100;
   flex-direction: column;
-  /* max-width mirrors a phone shell in the prototype */
-  max-width: 390px;
-  left: 50%;
-  transform: translateX(calc(-50% + 100vw));
+  transform: translateX(100%);
   transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
 }
 .sub-screen.open {
   display: flex;
-  transform: translateX(-50%);
+  transform: translateX(0);
 }
 
 .sub-hdr {
-  background: #2C2C2A; padding: 50px 16px 14px;
+  background: #111110; padding: 50px 16px 14px;
   display: flex; align-items: center; gap: 10px; flex-shrink: 0;
 }
 .sub-hdr-back {
