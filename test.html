@@ -3037,12 +3037,19 @@ offRenderQtd();
       </button>
     </div>
     <div class="hdr" style="background:#A07800;">
-      <div class="hdr-name">Status</div>
-      <div class="hdr-meta">
+      <div class="hdr-name" id="rnk-hdr-name">Status</div>
+      <div class="hdr-meta" id="rnk-hdr-meta">
         <span class="hdr-chip">Newport Beach</span>
         <span class="hdr-dot"></span>
         <span class="hdr-chip">Q2 · 2026</span>
       </div>
+    </div>
+
+    <!-- SCOPE TOGGLE -->
+    <div class="toggle-row" id="rnk-scope-row">
+      <div class="tog" id="rnk-tog-squad" onclick="rnkSetScope('squad')">Squad</div>
+      <div class="tog on" id="rnk-tog-office" onclick="rnkSetScope('office')" style="color:#A07800;border-bottom-color:#A07800;background:#fff;">Office</div>
+      <div class="tog" id="rnk-tog-region" onclick="rnkSetScope('region')">The Originals</div>
     </div>
 
     <!-- STATS STRIP: office snapshot -->
@@ -5369,8 +5376,31 @@ function rpRenderSquadQTD(squadInfo) {
     `<td>—</td></tr>`;
 }
 
+/* ── STATUS SCREEN scope state ── */
+let rnkScope = 'office'; /* 'squad' | 'office' | 'region' */
+
+function rnkSetScope(scope) {
+  rnkScope = scope;
+  /* Update toggle active state */
+  ['squad','office','region'].forEach(s => {
+    const el = document.getElementById('rnk-tog-' + s);
+    if (!el) return;
+    if (s === scope) {
+      el.style.cssText = 'color:#A07800;border-bottom-color:#A07800;background:#fff;';
+      el.classList.add('on');
+    } else {
+      el.style.cssText = '';
+      el.classList.remove('on');
+    }
+  });
+  rpRenderStatus();
+}
+
 /* ── STATUS SCREEN ── */
 function rpRenderStatus() {
+  if (!RP.user) return;
+  const me = RP.user;
+
   const RANK_ORDER = { 'Franchise':1,'Premier':2,'Level III':3,'Level II':4,'Level I':5,'In Combine':6,'No Status':7 };
   const RANK_BADGE = {
     'Franchise': 'rb-franchise','Premier':'rb-premier','Level III':'rb-l3',
@@ -5381,8 +5411,32 @@ function rpRenderStatus() {
     'Level II':'Level II','Level I':'Level I','In Combine':'Combine','No Status':'No Status'
   };
 
-  /* Filter to logged-in user's office */
-  const officeExport = RP.officeRoster
+  /* ── Determine roster pool based on scope ── */
+  let pool, scopeLabel;
+  if (rnkScope === 'squad') {
+    pool = RP.squadRoster;
+    scopeLabel = me.squad;
+  } else if (rnkScope === 'region') {
+    pool = Object.values(RP.roster);
+    scopeLabel = 'The Originals';
+  } else {
+    pool = RP.officeRoster;
+    scopeLabel = me.office;
+  }
+
+  /* ── Header ── */
+  const hdrName = document.getElementById('rnk-hdr-name');
+  if (hdrName) hdrName.textContent = 'Status';
+  const hdrMeta = document.getElementById('rnk-hdr-meta');
+  if (hdrMeta) {
+    const now = new Date();
+    const qtr = 'Q' + Math.ceil((now.getMonth()+1)/3);
+    const yr  = now.getFullYear();
+    hdrMeta.innerHTML = `<span class="hdr-chip">${scopeLabel}</span><span class="hdr-dot"></span><span class="hdr-chip">${qtr} · ${yr}</span>`;
+  }
+
+  /* ── Build sorted list ── */
+  const exportList = pool
     .map(rep => ({ rep, exp: RP.exportData[rep.id] }))
     .filter(x => x.exp)
     .sort((a,b) => {
@@ -5390,10 +5444,10 @@ function rpRenderStatus() {
       return ro !== 0 ? ro : b.exp.llPoints - a.exp.llPoints;
     });
 
-  /* Header stats */
-  const counted   = RP.officeRoster.filter(r => RP.qtdPoints[r.id]?.countsToward).length;
+  /* ── Stats strip ── */
+  const counted   = pool.filter(r => RP.qtdPoints[r.id]?.countsToward).length;
   const l1PlusSet = new Set(['Level I','Level II','Level III','Premier','Franchise']);
-  const l1plus    = officeExport.filter(x => l1PlusSet.has(x.exp.currentRank)).length;
+  const l1plus    = exportList.filter(x => l1PlusSet.has(x.exp.currentRank)).length;
   const pct       = counted > 0 ? Math.round((l1plus/counted)*100) : 0;
 
   const s1 = document.getElementById('rnk-stat-l1plus');
@@ -5403,12 +5457,12 @@ function rpRenderStatus() {
   if (s2) s2.textContent = pct + '%';
   if (s3) s3.textContent = counted;
 
-  /* Rows */
+  /* ── Rows ── */
   const tbody = document.getElementById('rnk-tbody');
   if (!tbody) return;
 
   let youRank = 1, youRep = null, youExp = null;
-  officeExport.forEach(({rep,exp},i) => {
+  exportList.forEach(({rep,exp},i) => {
     if (rep.id === RP.user?.id) { youRank = i+1; youRep = rep; youExp = exp; }
   });
 
@@ -5435,7 +5489,7 @@ function rpRenderStatus() {
   let html = pinnedRowHtml(youRep, youExp, youRank);
   html += `<tr class="rnk-tr-you-ghost${rnkPinned?' visible':''}" id="rnk-you-ghost"></tr>`;
 
-  officeExport.forEach(({rep,exp},i) => {
+  exportList.forEach(({rep,exp},i) => {
     const rank = i+1;
     const isYou = rep.id === RP.user?.id;
     if (isYou && rnkPinned) {
