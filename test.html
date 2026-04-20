@@ -1619,34 +1619,44 @@ body {
   display: inline-block;
   width: 7px; height: 7px;
   border-radius: 50%;
-  margin-right: 6px;
-  vertical-align: middle;
+  margin-left: 7px;
   flex-shrink: 0;
+  vertical-align: middle;
 }
-.sra-dot-amber { background: #F0A020; }
+.sra-dot-green { background: #2DC48E; }
+.sra-dot-amber { background: #F0A020; animation: sra-pulse 2s ease-in-out infinite; }
 .sra-dot-red   { background: #F05252; animation: sra-pulse 2s ease-in-out infinite; }
 
 @keyframes sra-pulse {
   0%,100% { opacity:1; } 50% { opacity:.4; }
 }
 
+.sra-name-row {
+  display: flex;
+  align-items: center;
+}
+
 .sra-badge {
   display: block;
   font-size: 8px; font-weight: 700;
   letter-spacing: 1px; text-transform: uppercase;
-  padding: 3px 7px; margin-top: 4px;
+  padding: 2px 6px; margin-top: 3px;
   border-radius: 0;
   width: fit-content;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .sra-badge-risk {
-  color: #A06020;
-  background: rgba(240,160,32,.12);
-  border: 1px solid rgba(240,160,32,.35);
+  color: #7A3800;
+  background: rgba(240,140,20,0.18);
+  border: 1px solid rgba(240,140,20,0.4);
 }
 .sra-badge-suspended {
-  color: #F05252;
-  background: rgba(240,82,82,.1);
-  border: 1px solid rgba(240,82,82,.3);
+  color: #7A3800;
+  background: rgba(240,140,20,0.18);
+  border: 1px solid rgba(240,140,20,0.4);
 }
 </style>
 </head>
@@ -5091,31 +5101,32 @@ function rpResolveIdentity() {
    ═══════════════════════════════════════════════════════════════════ */
 function rpSRAIndicator(employeeId) {
   const qtd = RP.qtdPoints[employeeId];
-  if (!qtd) return { dotClass:'', badge:'', rowFade:false };
+  /* No data = new rep, treat as clean green */
+  if (!qtd) return { dotClass:'sra-dot-green', badge:'', badgeClass:'', rowHighlight:false };
   const d = qtd.daysSinceSRA;
   if (d >= RP_CONFIG.SRA_WARN_SUSP) {
     return {
-      dotClass: 'sra-dot-red',
-      badge:    '30 days — sales tools suspended',
-      badgeClass:'sra-badge-suspended',
-      rowFade:  true,
+      dotClass:     'sra-dot-red',
+      badge:        'At risk for term',
+      badgeClass:   'sra-badge-suspended',
+      rowHighlight: true,
     };
   }
   if (d >= RP_CONFIG.SRA_WARN_BADGE) {
     return {
-      dotClass: 'sra-dot-red',
-      badge:    '28 days — tools at risk',
-      badgeClass:'sra-badge-risk',
-      rowFade:  false,
+      dotClass:     'sra-dot-red',
+      badge:        'At risk for term',
+      badgeClass:   'sra-badge-risk',
+      rowHighlight: false,
     };
   }
   if (d >= RP_CONFIG.SRA_WARN_RED) {
-    return { dotClass:'sra-dot-red',   badge:'', badgeClass:'', rowFade:false };
+    return { dotClass:'sra-dot-red',   badge:'', badgeClass:'', rowHighlight:false };
   }
   if (d >= RP_CONFIG.SRA_WARN_AMBER) {
-    return { dotClass:'sra-dot-amber', badge:'', badgeClass:'', rowFade:false };
+    return { dotClass:'sra-dot-amber', badge:'', badgeClass:'', rowHighlight:false };
   }
-  return { dotClass:'', badge:'', badgeClass:'', rowFade:false };
+  return { dotClass:'sra-dot-green', badge:'', badgeClass:'', rowHighlight:false };
 }
 
 /* Helper: build the name cell HTML with SRA indicator + contact bar */
@@ -5125,9 +5136,7 @@ function rpNameCell(rep, zoneColorVar) {
   const sra = rpSRAIndicator(rep.id);
   const phone = rep.mobile.replace(/\D/g,'');
 
-  const dot = sra.dotClass
-    ? `<span class="sra-dot ${sra.dotClass}"></span>`
-    : '';
+  const dot = `<span class="sra-dot ${sra.dotClass}"></span>`;
 
   const badge = sra.badge
     ? `<div class="sra-badge ${sra.badgeClass}">${sra.badge}</div>`
@@ -5140,18 +5149,20 @@ function rpNameCell(rep, zoneColorVar) {
        </div>`
     : '';
 
-  const rowFadeStyle = sra.rowFade ? 'opacity:0.38;' : '';
+  const rowHighlightStyle = sra.rowHighlight ? 'background:rgba(255,160,50,0.10);' : '';
 
   return {
-    td: `<td class="col-name" 
+    td: `<td class="col-name"
             onclick="sqShowContact(this,'${rep.name}','${phone}')"
-            style="cursor:pointer;${rowFadeStyle}">
-           ${dot}
-           <span style="${youStyle}">${rep.name}</span>
+            style="cursor:pointer;">
+           <div class="sra-name-row">
+             <span style="${youStyle}">${rep.name}</span>
+             ${dot}
+           </div>
            ${badge}
            ${contactBar}
          </td>`,
-    rowStyle: rowFadeStyle,
+    rowStyle: rowHighlightStyle,
   };
 }
 
