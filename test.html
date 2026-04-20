@@ -134,26 +134,40 @@
 
 body {
   font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
-  background: #E0DDD6;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  min-height: 100vh;
-  padding: 2rem 1rem;
-  gap: 1rem;
+  background: #111110;
+  margin: 0;
+  padding: 0;
+  min-height: 100svh;
 }
+/* ── SCREEN WRAPPERS: each fills the full viewport ── */
+.rp-screen-wrap {
+  position: fixed;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #fff;
+}
+.rp-screen-wrap.rp-active {
+  display: flex;
+}
+
 
 /* ═══════════════════════════════════════════════
    PHONE SHELL
    ═══════════════════════════════════════════════ */
 .phone {
-  width: 340px;
+  width: 100%;
+  max-width: 100%;
   background: #fff;
-  border-radius: 44px;
-  border: 2.5px solid #C8C8C4;
+  border-radius: 0;
+  border: none;
   overflow: hidden;
   position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ═══════════════════════════════════════════════
@@ -1694,13 +1708,13 @@ body {
 </head>
 <body>
 
-<div id="screen-me" style="position:relative; width:340px;">
+<div id="screen-me" class="rp-screen-wrap rp-active">
 
-  <!-- CONFETTI LAYER (outside phone, covers full frame) -->
-  <div class="confetti-container" id="confetti-container"></div>
+  <!-- CONFETTI LAYER -->
+  <div class="confetti-container" id="confetti-container" style="position:fixed;inset:0;pointer-events:none;z-index:8000;"></div>
 
   <!-- IC POP-UP -->
-  <div class="popup-overlay" id="popup" onclick="handleOverlay(event)">
+  <div class="popup-overlay" id="popup" style="position:fixed;inset:0;z-index:8500;" onclick="handleOverlay(event)">
     <div class="popup-card" id="popup-card" onclick="event.stopPropagation()">
       <div class="popup-header">
         <div style="font-size:34px;margin-bottom:6px;line-height:1">🎯</div>
@@ -2059,7 +2073,7 @@ function confirmPay() {
      POD SCREEN
      Zone: #59A210 field green · Squad tab active in nav
      ════════════════════════════════════════════════════════ -->
-<div id="screen-pod" style="position:relative; width:340px; display:none;">
+<div id="screen-pod" class="rp-screen-wrap">
 
   <div class="phone">
 
@@ -2242,7 +2256,7 @@ function confirmPay() {
     </div>
 
     <!-- ZOOM STRIP — up to Squad view -->
-    <div class="zoom-strip">
+    <div class="zoom-strip" onclick="rpZoomOut()" style="cursor:pointer;">
       <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
         <path d="M5 8V2M2 4l3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -2304,7 +2318,7 @@ function podShowTab(tab) {
      SQUAD SCREEN
      Zone: #1A3A5C explorer navy · Office tab active in nav
      ════════════════════════════════════════════════════════ -->
-<div id="screen-squad" style="position:relative; width:340px; display:none;">
+<div id="screen-squad" class="rp-screen-wrap">
 
   <div class="phone">
 
@@ -2622,7 +2636,7 @@ sqRenderQtd();
      OFFICE SCREEN
      Zone: #FF6200 Sunrun orange · Office tab active in nav
      ════════════════════════════════════════════════════════ -->
-<div id="screen-office" style="position:relative; width:340px; display:none;">
+<div id="screen-office" class="rp-screen-wrap">
   <div class="phone">
 
 
@@ -2954,7 +2968,7 @@ offRenderQtd();
      YOUR row: pinned to top, highlighted in zone color, with pushpin toggle
      Expand: tap row to reveal progress bars toward next rank
      ════════════════════════════════════════════════════════ -->
-<div id="screen-status" style="position:relative; width:340px; display:none;">
+<div id="screen-status" class="rp-screen-wrap">
   <div class="phone">
 
 
@@ -3939,6 +3953,24 @@ body{
 
 </div>
 </div>
+  <div class="sub-screen-nav">
+    <div class="ni" onclick="drwCloseSub_toScreen('me')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/><path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="ni-lbl">Me</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('squad')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="7" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><circle cx="15" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/><path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="ni-lbl">Squad</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('office')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/><rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/></svg>
+      <span class="ni-lbl">Office</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('status')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <span class="ni-lbl">Status</span>
+    </div>
+  </div>
 </div>
 
 <!-- SUCCESS -->
@@ -4086,17 +4118,15 @@ function _rpGoogleSignIn() {
 const RP_SCREENS = ['me','pod','squad','office','status'];
 
 function rpSwitch(target) {
-  /* Squad tap: go to pod if user has one, else squad */
+  /* Nav tabs always go directly to their screen.
+     Pod is only accessible via zoom strips from Me or Squad. */
   var show = target;
-  if (target === 'squad') {
-    show = (RP.user && RP.user.pod) ? 'pod' : 'squad';
-  }
   RP_SCREENS.forEach(function(id) {
-    var el = document.getElementById('screen-' + id);
-    if (el) el.style.display = 'none';
+    var wrap = document.getElementById('screen-' + id);
+    if (wrap) { wrap.style.display = 'none'; wrap.classList.remove('rp-active'); }
   });
-  var el = document.getElementById('screen-' + show);
-  if (el) el.style.display = '';
+  var wrap = document.getElementById('screen-' + show);
+  if (wrap) { wrap.style.display = ''; wrap.classList.add('rp-active'); wrap.scrollTop = 0; }
   try {
     if (show === 'me')     rpRenderMe();
     if (show === 'pod')    rpRenderPod();
@@ -4107,14 +4137,15 @@ function rpSwitch(target) {
   RP._screen = show;
 }
 
+
 /* Pod zoom-strip tap — go back to squad */
 function rpZoomOut() {
   RP_SCREENS.forEach(function(id) {
-    var el = document.getElementById('screen-' + id);
-    if (el) el.style.display = 'none';
+    var w = document.getElementById('screen-' + id);
+    if (w) { w.style.display = 'none'; w.classList.remove('rp-active'); }
   });
   var sq = document.getElementById('screen-squad');
-  if (sq) sq.style.display = '';
+  if (sq) { sq.style.display = ''; sq.classList.add('rp-active'); sq.scrollTop = 0; }
   try { rpRenderSquad(); } catch(e) {}
   RP._screen = 'squad';
 }
@@ -4122,14 +4153,15 @@ function rpZoomOut() {
 /* Me zoom-strip tap — go to pod */
 function rpZoomToPod() {
   RP_SCREENS.forEach(function(id) {
-    var el = document.getElementById('screen-' + id);
-    if (el) el.style.display = 'none';
+    var w = document.getElementById('screen-' + id);
+    if (w) { w.style.display = 'none'; w.classList.remove('rp-active'); }
   });
   var pod = document.getElementById('screen-pod');
-  if (pod) pod.style.display = '';
+  if (pod) { pod.style.display = ''; pod.classList.add('rp-active'); pod.scrollTop = 0; }
   try { rpRenderPod(); } catch(e) {}
   RP._screen = 'pod';
 }
+
 
 /* ── QTD GOAL CELLS ── */
 function rpRenderGoalCells() {
@@ -4312,6 +4344,42 @@ function rpRenderGoalCells() {
       <div class="training-status" id="ts-2">Not started</div>
     </div>
   </div>
+  <div class="sub-screen-nav">
+    <div class="ni" onclick="drwCloseSub_toScreen('me')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/><path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="ni-lbl">Me</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('squad')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="7" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><circle cx="15" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/><path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="ni-lbl">Squad</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('office')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/><rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/></svg>
+      <span class="ni-lbl">Office</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('status')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <span class="ni-lbl">Status</span>
+    </div>
+  </div>
+  <div class="sub-screen-nav">
+    <div class="ni" onclick="drwCloseSub_toScreen('me')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/><path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="ni-lbl">Me</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('squad')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="7" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><circle cx="15" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/><path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="ni-lbl">Squad</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('office')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/><rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/></svg>
+      <span class="ni-lbl">Office</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('status')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <span class="ni-lbl">Status</span>
+    </div>
+  </div>
 </div>
 
 <!-- TOOLS -->
@@ -4349,6 +4417,24 @@ function rpRenderGoalCells() {
       <a class="tool-dl-btn" href="https://apps.apple.com/us/app/pronto-team-communication/id1258991852" target="_blank">Get</a>
     </div>
   </div>
+  <div class="sub-screen-nav">
+    <div class="ni" onclick="drwCloseSub_toScreen('me')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/><path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="ni-lbl">Me</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('squad')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="7" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><circle cx="15" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/><path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="ni-lbl">Squad</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('office')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/><rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/></svg>
+      <span class="ni-lbl">Office</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('status')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <span class="ni-lbl">Status</span>
+    </div>
+  </div>
 </div>
 
 <!-- PREFERENCES -->
@@ -4383,6 +4469,24 @@ function rpRenderGoalCells() {
       <input class="pay-custom-input" id="pref-ic-goal" type="number" placeholder="e.g. 10" min="0" max="999" style="display:block;margin-top:8px;">
     </div>
   </div>
+  <div class="sub-screen-nav">
+    <div class="ni" onclick="drwCloseSub_toScreen('me')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/><path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="ni-lbl">Me</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('squad')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="7" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><circle cx="15" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/><path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="ni-lbl">Squad</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('office')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/><rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/></svg>
+      <span class="ni-lbl">Office</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('status')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <span class="ni-lbl">Status</span>
+    </div>
+  </div>
 </div>
 
 <!-- HELP & FEEDBACK -->
@@ -4400,6 +4504,24 @@ function rpRenderGoalCells() {
     <div class="pref-card">
       <div class="pref-card-label">App Version</div>
       <div style="font-size:12px;color:#888780;">Rally Point v2.0 · April 2026</div>
+    </div>
+  </div>
+  <div class="sub-screen-nav">
+    <div class="ni" onclick="drwCloseSub_toScreen('me')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/><path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="ni-lbl">Me</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('squad')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="7" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><circle cx="15" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/><path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="ni-lbl">Squad</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('office')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/><rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/></svg>
+      <span class="ni-lbl">Office</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('status')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <span class="ni-lbl">Status</span>
     </div>
   </div>
 </div>
@@ -4495,6 +4617,35 @@ function rpRenderGoalCells() {
   padding: 0 6px 0 0; flex-shrink: 0;
 }
 .sub-hdr-title { font-size: 16px; font-weight: 700; color: #fff; }
+
+/* Sub-screen bottom nav */
+.sub-screen-nav {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  display: flex;
+  padding: 8px 0 20px;
+  z-index: 10;
+}
+.sub-screen-nav .ni {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  padding: 4px 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.sub-screen-nav .ni-lbl {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #888780;
+}
+
 .sub-body { flex: 1; overflow-y: auto; padding: 14px 16px 32px; }
 
 /* Long-press hint */
@@ -4709,6 +4860,19 @@ function drwLoadPrefs() {
     if (se) se.value = sg;
     if (ie) ie.value = ig;
   } catch(_) {}
+}
+
+
+function drwCloseSub_toScreen(screenTarget) {
+  /* Close any open sub-screens */
+  document.querySelectorAll('.sub-screen.open').forEach(function(el) {
+    el.classList.remove('open');
+  });
+  /* Also close drawer if open */
+  var overlay = document.getElementById('drw-overlay');
+  if (overlay) overlay.classList.remove('open');
+  /* Navigate to target screen */
+  rpSwitch(screenTarget);
 }
 
 function drwSignOut() {
@@ -5971,17 +6135,15 @@ function rpBoot() {
 const RP_SCREENS = ['me','pod','squad','office','status'];
 
 function rpSwitch(target) {
-  /* Squad tap: go to pod if user has one, else squad */
+  /* Nav tabs always go directly to their screen.
+     Pod is only accessible via zoom strips from Me or Squad. */
   var show = target;
-  if (target === 'squad') {
-    show = (RP.user && RP.user.pod) ? 'pod' : 'squad';
-  }
   RP_SCREENS.forEach(function(id) {
-    var el = document.getElementById('screen-' + id);
-    if (el) el.style.display = 'none';
+    var wrap = document.getElementById('screen-' + id);
+    if (wrap) { wrap.style.display = 'none'; wrap.classList.remove('rp-active'); }
   });
-  var el = document.getElementById('screen-' + show);
-  if (el) el.style.display = '';
+  var wrap = document.getElementById('screen-' + show);
+  if (wrap) { wrap.style.display = ''; wrap.classList.add('rp-active'); wrap.scrollTop = 0; }
   try {
     if (show === 'me')     rpRenderMe();
     if (show === 'pod')    rpRenderPod();
@@ -5992,29 +6154,7 @@ function rpSwitch(target) {
   RP._screen = show;
 }
 
-/* Pod zoom-strip tap — go back to squad */
-function rpZoomOut() {
-  RP_SCREENS.forEach(function(id) {
-    var el = document.getElementById('screen-' + id);
-    if (el) el.style.display = 'none';
-  });
-  var sq = document.getElementById('screen-squad');
-  if (sq) sq.style.display = '';
-  try { rpRenderSquad(); } catch(e) {}
-  RP._screen = 'squad';
-}
 
-/* Me zoom-strip tap — go to pod */
-function rpZoomToPod() {
-  RP_SCREENS.forEach(function(id) {
-    var el = document.getElementById('screen-' + id);
-    if (el) el.style.display = 'none';
-  });
-  var pod = document.getElementById('screen-pod');
-  if (pod) pod.style.display = '';
-  try { rpRenderPod(); } catch(e) {}
-  RP._screen = 'pod';
-}
 
 /* ── QTD GOAL CELLS ── */
 function rpRenderGoalCells() {
