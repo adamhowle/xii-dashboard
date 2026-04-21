@@ -4957,10 +4957,12 @@ function rpRenderGoalCells() {
    ═══════════════════════════════════════════════════════════════════ */
 
 const RP_CONFIG = {
-  CLIENT_ID:  '824495442632-o4v639jl9rcsj7dq2fgvfcr6joj98s2c.apps.googleusercontent.com', /* swap in */
+  CLIENT_ID:  '824495442632-o4v639jl9rcsj7dq2fgvfcr6joj98s2c.apps.googleusercontent.com',
   SHEET_ID:   '1Awy-KgfNtf8IBAZf-nY8pmv26n0juNk28IRTfN0usn4',
   SCOPES:     'https://www.googleapis.com/auth/spreadsheets.readonly',
   API_BASE:   'https://sheets.googleapis.com/v4/spreadsheets',
+  /* ── Apps Script proxy URL — replace with YOUR deployment URL ── */
+  PROXY_URL:  'YOUR_APPS_SCRIPT_DEPLOYMENT_URL_HERE',
   /* Days Since Last SRA thresholds */
   SRA_WARN_AMBER: 7,
   SRA_WARN_RED:   14,
@@ -5002,13 +5004,19 @@ const RP = {
 let _tokenClient;
 
 function rpInitAuth() {
+  /* When using the proxy, we only need email scope (no Sheets access needed).
+     When using direct mode, we need both. */
+  const scopes = _RP_USE_PROXY
+    ? 'https://www.googleapis.com/auth/userinfo.email'
+    : 'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/userinfo.email';
+  
   _tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: RP_CONFIG.CLIENT_ID,
-    scope:     'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/userinfo.email',
+    scope:     scopes,
     callback:  async (resp) => {
       if (resp.error) { rpShowAuthError(resp.error); return; }
       RP.token = resp.access_token;
-      /* Resolve email from userinfo endpoint using the access token */
+      /* Resolve email from userinfo endpoint */
       try {
         const uiRes  = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: 'Bearer ' + RP.token }
@@ -5018,6 +5026,10 @@ function rpInitAuth() {
         console.log('Login email resolved:', RP._loginEmail);
       } catch(e) {
         console.warn('Could not fetch userinfo:', e);
+        /* If userinfo call was blocked by Safari privacy, try the JWT from credential response */
+        if (!RP._loginEmail) {
+          console.warn('No email from userinfo or JWT — user identity cannot be resolved.');
+        }
       }
       await rpLoadAll();
     },
@@ -5041,89 +5053,144 @@ function rpShowAuthError(msg) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   SHEET FETCH UTILITY
+   SHEET FETCH — via Apps Script Proxy
+   One HTTP call fetches all tabs. No cross-origin Google API calls.
+   Falls back to direct Sheets API if proxy URL is not configured.
    ═══════════════════════════════════════════════════════════════════ */
-async function rpFetchSheet(tabName) {
-  const url = `${RP_CONFIG.API_BASE}/${RP_CONFIG.SHEET_ID}/values/${encodeURIComponent(tabName)}`;
+
+const _RP_USE_PROXY = RP_CONFIG.PROXY_URL && !RP_CONFIG.PROXY_URL.startsWith('YOUR_');
+
+async function rpFetchAllSheets(tabNames) {
+  if (_RP_USE_PROXY) {
+    return _rpFetchViaProxy(tabNames);
+  } else {
+    return _rpFetchDirect(tabNames);
+  }
+}
+
+/* ── PROXY PATH: one call, all tabs ── */
+async function _rpFetchViaProxy(tabNames) {
+  const url = `${RP_CONFIG.PROXY_URL}?action=sheetproxy&tabs=${encodeURIComponent(tabNames.join(','))}`;
   let res;
   try {
-    res = await fetch(url, {
-      headers: { Authorization: `Bearer ${RP.token}` }
-    });
+    res = await fetch(url);
   } catch(netErr) {
-    const msg = `Network error: ${netErr.message}`;
-    window._rpDiagLog.push({ tab: tabName, ok: false, msg });
-    throw new Error(`${tabName}: ${msg}`);
+    const msg = `Network error reaching proxy: ${netErr.message}`;
+    tabNames.forEach(t => window._rpDiagLog.push({ tab: t, ok: false, msg }));
+    throw new Error(msg);
   }
+  
   if (!res.ok) {
     let body = '';
     try { body = await res.text(); } catch(e) {}
-    const msg = `HTTP ${res.status} ${res.statusText}${body ? ' — ' + body.substring(0, 120) : ''}`;
-    window._rpDiagLog.push({ tab: tabName, ok: false, msg });
-    /* 401 = token expired, 403 = forbidden/scope */
-    if (res.status === 401 || res.status === 403) {
-      throw new Error(`Auth failed on "${tabName}" (${res.status}). Token may have expired.`);
-    }
-    throw new Error(`Failed to fetch "${tabName}": ${msg}`);
+    const msg = `Proxy returned HTTP ${res.status}${body ? ' — ' + body.substring(0, 200) : ''}`;
+    tabNames.forEach(t => window._rpDiagLog.push({ tab: t, ok: false, msg }));
+    throw new Error(msg);
   }
+  
   const json = await res.json();
-  const rows = json.values || [];
-  if (rows.length < 2) {
-    window._rpDiagLog.push({ tab: tabName, ok: true, msg: `OK but empty (${rows.length} rows)` });
-    return [];
+  if (!json.ok) {
+    const msg = `Proxy error: ${json.error || 'unknown'}`;
+    tabNames.forEach(t => window._rpDiagLog.push({ tab: t, ok: false, msg }));
+    throw new Error(msg);
   }
-  const headers = rows[0].map(h => h.trim());
-  window._rpDiagLog.push({ tab: tabName, ok: true, msg: `OK — ${rows.length - 1} rows, cols: ${headers.slice(0,5).join(', ')}${headers.length > 5 ? '...' : ''}` });
-  return rows.slice(1).map(row => {
-    const obj = {};
-    headers.forEach((h, i) => { obj[h] = (row[i] || '').trim(); });
-    return obj;
+  
+  /* json.data = { "Roster": { rows: [...], headers: [...], count: N }, ... } */
+  const result = {};
+  for (const tabName of tabNames) {
+    const tabData = json.data[tabName];
+    if (!tabData) {
+      window._rpDiagLog.push({ tab: tabName, ok: false, msg: 'Tab missing from proxy response' });
+      result[tabName] = [];
+      continue;
+    }
+    if (tabData.error) {
+      window._rpDiagLog.push({ tab: tabName, ok: false, msg: `Proxy: ${tabData.error}` });
+      result[tabName] = [];
+      continue;
+    }
+    window._rpDiagLog.push({ tab: tabName, ok: true, msg: `OK — ${tabData.count} rows via proxy` });
+    result[tabName] = tabData.rows;
+  }
+  return result;
+}
+
+/* ── DIRECT PATH: original Sheets API calls (fallback / dev) ── */
+async function _rpFetchDirect(tabNames) {
+  const result = {};
+  const fetches = tabNames.map(async (tabName) => {
+    const url = `${RP_CONFIG.API_BASE}/${RP_CONFIG.SHEET_ID}/values/${encodeURIComponent(tabName)}`;
+    let res;
+    try {
+      res = await fetch(url, { headers: { Authorization: `Bearer ${RP.token}` } });
+    } catch(netErr) {
+      window._rpDiagLog.push({ tab: tabName, ok: false, msg: `Network error: ${netErr.message}` });
+      result[tabName] = [];
+      return;
+    }
+    if (!res.ok) {
+      let body = '';
+      try { body = await res.text(); } catch(e) {}
+      window._rpDiagLog.push({ tab: tabName, ok: false, msg: `HTTP ${res.status} ${res.statusText}${body ? ' — ' + body.substring(0, 120) : ''}` });
+      if (res.status === 401 || res.status === 403) {
+        throw new Error(`Auth failed on "${tabName}" (${res.status}). Token may have expired.`);
+      }
+      result[tabName] = [];
+      return;
+    }
+    const json = await res.json();
+    const rows = json.values || [];
+    if (rows.length < 2) {
+      window._rpDiagLog.push({ tab: tabName, ok: true, msg: `OK but empty (${rows.length} rows)` });
+      result[tabName] = [];
+      return;
+    }
+    const headers = rows[0].map(h => h.trim());
+    window._rpDiagLog.push({ tab: tabName, ok: true, msg: `OK — ${rows.length - 1} rows, cols: ${headers.slice(0,5).join(', ')}...` });
+    result[tabName] = rows.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = (row[i] || '').trim(); });
+      return obj;
+    });
   });
+  await Promise.all(fetches);
+  return result;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   LOAD ALL SHEETS IN PARALLEL
+   LOAD ALL SHEETS
    ═══════════════════════════════════════════════════════════════════ */
 async function rpLoadAll() {
   window._rpDiagLog = [];
   rpShowLoadingScreen();
   
-  /* Update loading message */
   const lm = document.getElementById('rp-loading-msg');
+  const tabNames = ['Roster', 'Report', 'QTD Points', 'Squad Structure', 'Export'];
   
   try {
-    if (lm) lm.textContent = 'Fetching sheets...';
-    const [roster, report, qtd, squad, exp] = await Promise.all([
-      rpFetchSheet('Roster'),
-      rpFetchSheet('Report'),
-      rpFetchSheet('QTD Points'),
-      rpFetchSheet('Squad Structure'),
-      rpFetchSheet('Export'),
-    ]);
+    if (lm) lm.textContent = _RP_USE_PROXY ? 'Fetching via proxy...' : 'Fetching sheets...';
+    const sheets = await rpFetchAllSheets(tabNames);
     
     if (lm) lm.textContent = 'Parsing data...';
-    rpParseRoster(roster);
-    rpParseReport(report);
-    rpParseQTD(qtd);
-    rpParseSquadStructure(squad);
-    rpParseExport(exp);
+    rpParseRoster(sheets['Roster'] || []);
+    rpParseReport(sheets['Report'] || []);
+    rpParseQTD(sheets['QTD Points'] || []);
+    rpParseSquadStructure(sheets['Squad Structure'] || []);
+    rpParseExport(sheets['Export'] || []);
     
     if (lm) lm.textContent = 'Resolving identity...';
-    rpResolveIdentity();   /* must run after all parse steps */
+    rpResolveIdentity();
     
-    /* Check if identity resolved — if not, show diagnostic */
+    /* Check if identity resolved */
     if (!RP.user) {
       const email = RP._loginEmail || '(no email captured)';
       const rosterCount = Object.keys(RP.roster).length;
       const emailCount = Object.keys(RP.rosterByEmail).length;
       window._rpDiagLog.push({ tab: 'Identity', ok: false, msg: `Email "${email}" not found in roster. ${rosterCount} reps loaded, ${emailCount} emails indexed.` });
-      
-      /* List a few roster emails for debugging */
       const sampleEmails = Object.keys(RP.rosterByEmail).slice(0, 5);
       if (sampleEmails.length) {
         window._rpDiagLog.push({ tab: 'Identity', ok: false, msg: `Sample roster emails: ${sampleEmails.join(', ')}` });
       }
-      
       rpShowErrorScreen(`Signed in as "${email}" but this email was not found in the Roster sheet. Check that your Google account email matches your Roster entry.`);
       return;
     }
