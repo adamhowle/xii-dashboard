@@ -5037,7 +5037,7 @@ function rpSignOut() {
 
 function rpShowAuthError(msg) {
   console.error('Auth error:', msg);
-  /* TODO: surface to UI */
+  rpShowErrorScreen('Authentication error: ' + msg);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -5045,14 +5045,35 @@ function rpShowAuthError(msg) {
    ═══════════════════════════════════════════════════════════════════ */
 async function rpFetchSheet(tabName) {
   const url = `${RP_CONFIG.API_BASE}/${RP_CONFIG.SHEET_ID}/values/${encodeURIComponent(tabName)}`;
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${RP.token}` }
-  });
-  if (!res.ok) throw new Error(`Failed to fetch ${tabName}: ${res.status}`);
+  let res;
+  try {
+    res = await fetch(url, {
+      headers: { Authorization: `Bearer ${RP.token}` }
+    });
+  } catch(netErr) {
+    const msg = `Network error: ${netErr.message}`;
+    window._rpDiagLog.push({ tab: tabName, ok: false, msg });
+    throw new Error(`${tabName}: ${msg}`);
+  }
+  if (!res.ok) {
+    let body = '';
+    try { body = await res.text(); } catch(e) {}
+    const msg = `HTTP ${res.status} ${res.statusText}${body ? ' — ' + body.substring(0, 120) : ''}`;
+    window._rpDiagLog.push({ tab: tabName, ok: false, msg });
+    /* 401 = token expired, 403 = forbidden/scope */
+    if (res.status === 401 || res.status === 403) {
+      throw new Error(`Auth failed on "${tabName}" (${res.status}). Token may have expired.`);
+    }
+    throw new Error(`Failed to fetch "${tabName}": ${msg}`);
+  }
   const json = await res.json();
   const rows = json.values || [];
-  if (rows.length < 2) return [];
+  if (rows.length < 2) {
+    window._rpDiagLog.push({ tab: tabName, ok: true, msg: `OK but empty (${rows.length} rows)` });
+    return [];
+  }
   const headers = rows[0].map(h => h.trim());
+  window._rpDiagLog.push({ tab: tabName, ok: true, msg: `OK — ${rows.length - 1} rows, cols: ${headers.slice(0,5).join(', ')}${headers.length > 5 ? '...' : ''}` });
   return rows.slice(1).map(row => {
     const obj = {};
     headers.forEach((h, i) => { obj[h] = (row[i] || '').trim(); });
@@ -5064,8 +5085,14 @@ async function rpFetchSheet(tabName) {
    LOAD ALL SHEETS IN PARALLEL
    ═══════════════════════════════════════════════════════════════════ */
 async function rpLoadAll() {
+  window._rpDiagLog = [];
   rpShowLoadingScreen();
+  
+  /* Update loading message */
+  const lm = document.getElementById('rp-loading-msg');
+  
   try {
+    if (lm) lm.textContent = 'Fetching sheets...';
     const [roster, report, qtd, squad, exp] = await Promise.all([
       rpFetchSheet('Roster'),
       rpFetchSheet('Report'),
@@ -5073,13 +5100,37 @@ async function rpLoadAll() {
       rpFetchSheet('Squad Structure'),
       rpFetchSheet('Export'),
     ]);
+    
+    if (lm) lm.textContent = 'Parsing data...';
     rpParseRoster(roster);
     rpParseReport(report);
     rpParseQTD(qtd);
     rpParseSquadStructure(squad);
     rpParseExport(exp);
+    
+    if (lm) lm.textContent = 'Resolving identity...';
     rpResolveIdentity();   /* must run after all parse steps */
+    
+    /* Check if identity resolved — if not, show diagnostic */
+    if (!RP.user) {
+      const email = RP._loginEmail || '(no email captured)';
+      const rosterCount = Object.keys(RP.roster).length;
+      const emailCount = Object.keys(RP.rosterByEmail).length;
+      window._rpDiagLog.push({ tab: 'Identity', ok: false, msg: `Email "${email}" not found in roster. ${rosterCount} reps loaded, ${emailCount} emails indexed.` });
+      
+      /* List a few roster emails for debugging */
+      const sampleEmails = Object.keys(RP.rosterByEmail).slice(0, 5);
+      if (sampleEmails.length) {
+        window._rpDiagLog.push({ tab: 'Identity', ok: false, msg: `Sample roster emails: ${sampleEmails.join(', ')}` });
+      }
+      
+      rpShowErrorScreen(`Signed in as "${email}" but this email was not found in the Roster sheet. Check that your Google account email matches your Roster entry.`);
+      return;
+    }
+    
+    if (lm) lm.textContent = 'Rendering...';
     rpRenderAll();
+    
   } catch(err) {
     console.error('Data load failed:', err);
     rpShowErrorScreen(err.message);
@@ -6114,11 +6165,22 @@ function rpRenderOffice() {
    LOADING / ERROR SCREENS
    ═══════════════════════════════════════════════════════════════════ */
 function rpShowLoadingScreen() {
-  /* TODO: show a loading state on the current visible phone */
   console.log('Loading data...');
+  /* Show a visible loading indicator */
+  let ld = document.getElementById('rp-loading-toast');
+  if (!ld) {
+    ld = document.createElement('div');
+    ld.id = 'rp-loading-toast';
+    ld.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:#111110;color:#fff;padding:28px 36px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;text-align:center;border:1px solid rgba(255,255,255,0.15);min-width:220px;';
+    ld.innerHTML = '<div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:10px;">RALLY POINT</div><div id="rp-loading-msg">Loading data...</div>';
+    document.body.appendChild(ld);
+  }
+  ld.style.display = 'block';
 }
 function rpHideLoadingScreen() {
   console.log('Data loaded.');
+  const ld = document.getElementById('rp-loading-toast');
+  if (ld) ld.style.display = 'none';
   rpHideLoginScreen();
 }
 function rpShowLoginScreen() {
@@ -6131,6 +6193,34 @@ function rpHideLoginScreen() {
 }
 function rpShowErrorScreen(msg) {
   console.error('Error:', msg);
+  /* Hide the loading toast */
+  const ld = document.getElementById('rp-loading-toast');
+  if (ld) ld.style.display = 'none';
+  /* Show a visible error overlay */
+  let ep = document.getElementById('rp-error-panel');
+  if (!ep) {
+    ep = document.createElement('div');
+    ep.id = 'rp-error-panel';
+    ep.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99998;background:rgba(17,17,16,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;';
+    document.body.appendChild(ep);
+  }
+  ep.innerHTML = `
+    <div style="max-width:340px;text-align:center;">
+      <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#E8273A;margin-bottom:16px;font-weight:700;">DATA LOAD FAILED</div>
+      <div style="font-size:14px;color:#F8F9F9;line-height:1.5;margin-bottom:20px;">${msg}</div>
+      <div id="rp-diag-details" style="text-align:left;font-size:11px;color:#888;line-height:1.6;margin-bottom:24px;max-height:200px;overflow-y:auto;"></div>
+      <button onclick="document.getElementById('rp-error-panel').remove();rpShowLoginScreen();" style="background:transparent;border:1px solid #F8F9F9;color:#F8F9F9;padding:12px 28px;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;cursor:pointer;">SIGN IN AGAIN</button>
+      <div style="margin-top:12px;">
+        <button onclick="document.getElementById('rp-error-panel').remove();rpLoadAll();" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:#888;padding:10px 24px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">RETRY</button>
+      </div>
+    </div>
+  `;
+  /* If we have diagnostic logs, show them */
+  const dd = document.getElementById('rp-diag-details');
+  if (dd && window._rpDiagLog && window._rpDiagLog.length) {
+    dd.innerHTML = '<div style="font-size:10px;letter-spacing:1px;color:#5A9EA0;margin-bottom:6px;text-transform:uppercase;">DIAGNOSTIC LOG</div>' +
+      window._rpDiagLog.map(l => `<div style="margin-bottom:4px;${l.ok?'color:#2DC48E':'color:#F05252'}">${l.ok?'✓':'✗'} ${l.tab} — ${l.msg}</div>`).join('');
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -6183,16 +6273,7 @@ function rpBoot() {
   }
 })();
 
-/* Wire sign-out button in drawer */
-(function() {
-  const origSignOut = window.drwSignOut;
-  window.drwSignOut = function() {
-    if (confirm('Sign out of Rally Point?')) {
-      rpSignOut();
-      document.getElementById('drw-overlay').classList.remove('open');
-    }
-  };
-})();
+/* sign-out uses the tap-twice pattern defined in drwSignOut() above — no override needed */
 
 /* ── SWIPE GESTURES ── */
 (function() {
@@ -6210,44 +6291,6 @@ function rpBoot() {
   document.addEventListener('touchend',   onTouchEnd,   {passive:true});
 })();
 </script>
-
-
-
-
-
-/* ── SWIPE GESTURE — swipe up on Me = go to Pod, swipe up on Pod = go to Squad ── */
-(function() {
-  var _startY = 0, _startX = 0;
-
-  function onTouchStart(e) {
-    _startY = e.touches[0].clientY;
-    _startX = e.touches[0].clientX;
-  }
-
-  function onTouchEnd(e) {
-    var dy = _startY - e.changedTouches[0].clientY;
-    var dx = Math.abs(_startX - e.changedTouches[0].clientX);
-    var screen = RP._screen;
-    /* Require predominantly vertical swipe, at least 80px up */
-    if (dy > 80 && dx < 60) {
-      if (screen === 'me') {
-        rpZoomToPod();
-      } else if (screen === 'pod') {
-        rpZoomOut();
-      }
-    }
-    /* Swipe right (dx > 80, dy < 60) on pod = go back to squad */
-    var dxRight = e.changedTouches[0].clientX - _startX;
-    if (dxRight > 80 && Math.abs(_startY - e.changedTouches[0].clientY) < 60) {
-      if (screen === 'pod') {
-        rpZoomOut();
-      }
-    }
-  }
-
-  document.addEventListener('touchstart', onTouchStart, { passive: true });
-  document.addEventListener('touchend',   onTouchEnd,   { passive: true });
-})();
 
 </body>
 </html>
