@@ -1772,13 +1772,13 @@ body {
       </button>
     </div>
     <div class="hdr">
-      <div class="hdr-name">Marcus Rivera</div>
+      <div class="hdr-name" id="me-hdr-name">—</div>
       <div class="hdr-meta">
-        <span class="hdr-chip">Pirates</span>
+        <span class="hdr-chip" id="me-chip-squad">—</span>
         <span class="hdr-dot"></span>
-        <span class="hdr-chip">Night Owls</span>
+        <span class="hdr-chip" id="me-chip-pod">—</span>
         <span class="hdr-dot"></span>
-        <span class="hdr-chip">Newport Beach</span>
+        <span class="hdr-chip" id="me-chip-office">—</span>
       </div>
     </div>
 
@@ -5320,14 +5320,14 @@ function rpUpdateHeaders() {
   if (ds) ds.textContent = u.squad + (u.pod ? ' · ' + u.pod : '') + ' · ' + u.office;
 
   /* Me screen */
-  const meHdr = document.querySelector('#me-screen .hdr-name, .me-screen .hdr-name');
+  const meHdr = document.getElementById('me-hdr-name') || document.querySelector('#me-screen .hdr-name');
   if (meHdr) meHdr.textContent = u.name;
-  const meChips = document.querySelectorAll('#me-screen .hdr-chip, .me-screen .hdr-chip');
-  if (meChips.length >= 3) {
-    meChips[0].textContent = u.squad;
-    meChips[1].textContent = u.pod || 'No Pod';
-    meChips[2].textContent = u.office;
-  }
+  const meChipSquad  = document.getElementById('me-chip-squad');
+  const meChipPod    = document.getElementById('me-chip-pod');
+  const meChipOffice = document.getElementById('me-chip-office');
+  if (meChipSquad)  meChipSquad.textContent  = u.squad;
+  if (meChipPod)    meChipPod.textContent    = u.pod || 'No Pod';
+  if (meChipOffice) meChipOffice.textContent = u.office;
 
   /* Squad screen */
   const sqName = document.getElementById('sq-hdr-name');
@@ -6155,8 +6155,20 @@ function rpBoot() {
   rpShowLoginScreen();
 }
 
-/* ── AUTO-BOOT: poll until GIS library is ready, then call rpBoot ── */
+/* ── AUTO-BOOT: show login immediately, then init auth when GIS is ready ── */
 (function() {
+  /* Show login screen right away — don't wait for GIS */
+  function showLoginNow() {
+    const s = document.getElementById('rp-login-screen');
+    if (s) s.classList.add('visible');
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', showLoginNow);
+  } else {
+    showLoginNow();
+  }
+
+  /* Then init auth once GIS library is ready */
   function tryBoot() {
     if (window.google && window.google.accounts && window.google.accounts.oauth2) {
       rpBoot();
