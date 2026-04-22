@@ -2164,7 +2164,7 @@ body.light-mode #panel-onboard-employee .dash-chip.active, body.light-mode /* Le
       </tr></thead>
       <tbody id="si-table-body"></tbody>
     </table>
-    <div class="empty-state" id="si-empty-state" style="display:block">Loading Status Chasers data from Sheets…</div>
+    <div class="empty-state" id="si-empty-state" style="display:block">Loading Status Chasers data…</div>
   </div>
   <!-- Game Changers sub-panel — shown when view toggle = Game Changers -->
   <div id="chasers-gc-panel" style="display:none">
@@ -2472,7 +2472,8 @@ function applyBranding() {
   if (modalOffice) {
     const cur = modalOffice.value;
     modalOffice.innerHTML = '<option value="">— Select —</option>' +
-      offices.map(o => `<option value="${o}"${o === cur ? ' selected' : ''}>${o}</option>`).join('');
+      [...new Set([...CONSUL_CONFIG.offices, ...(CONSUL_CONFIG.compare_offices||[])])]
+        .map(o => `<option value="${o}"${o === cur ? ' selected' : ''}>${o}</option>`).join('');
   }
 
   // ── Overview compare labels (default text) ────────────────────────────────
@@ -6427,17 +6428,33 @@ function reapplyRepPerfAuthority() {
 function buildSIFromRepPerf() {
   const rosterById = Object.fromEntries(ROSTER_EMPLOYEES.map(e => [e.id, e]));
 
-  // Build the list from Rankings — anyone whose BOTH current AND highest rank is NO STATUS
-  // (highest rank != NO STATUS means they achieved a level before and are excluded)
-  const eligible = Object.entries(RANKINGS_MAP)
-    .filter(([id, r]) => {
-      const cur  = (r.currentRank  || '').toUpperCase();
-      const high = (r.highestRank  || '').toUpperCase();
-      return cur === 'NO STATUS' && (high === 'NO STATUS' || high === '');
-    })
-    .map(([id]) => id);
+  // Start from QTD_EMPLOYEES (active reps with data this quarter),
+  // then keep only those whose highestRank in the Export tab contains
+  // 'NO STATUS' or 'NO LEVEL' — meaning they have never previously achieved a rank.
+  if (!QTD_EMPLOYEES.length) {
+    const emptyEl = document.getElementById('si-empty-state');
+    if (emptyEl) { emptyEl.textContent = 'Awaiting QTD data from Sheets…'; emptyEl.style.display = 'block'; }
+    return;
+  }
+  if (!Object.keys(RANKINGS_MAP).length) {
+    const emptyEl = document.getElementById('si-empty-state');
+    if (emptyEl) { emptyEl.textContent = 'Awaiting Rankings data from Sheets…'; emptyEl.style.display = 'block'; }
+    return;
+  }
 
-  if (!eligible.length) return; // Rankings not loaded yet
+  const eligible = QTD_EMPLOYEES
+    .filter(e => {
+      const rk   = RANKINGS_MAP[e.id] || {};
+      const high = (rk.highestRank || '').toUpperCase();
+      return high.includes('NO STATUS') || high.includes('NO LEVEL') || high === '';
+    })
+    .map(e => e.id);
+
+  if (!eligible.length) {
+    const emptyEl = document.getElementById('si-empty-state');
+    if (emptyEl) { emptyEl.textContent = 'No Status Chasers found.'; emptyEl.style.display = 'block'; }
+    return;
+  }
 
   allData = eligible.map((id, i) => {
     const roster = rosterById[id] || {};
@@ -6534,6 +6551,10 @@ function renderTable() {
 
   if (filteredData.length === 0) {
     tbody.innerHTML = '';
+    const hasRankings = Object.keys(RANKINGS_MAP).length > 0;
+    empty.textContent = hasRankings
+      ? 'All reps currently qualify for Status Chasers — see Rankings for QTD progress.'
+      : 'Awaiting Rankings data from Sheets…';
     empty.style.display = 'block';
     const fc = document.getElementById('si-footer-count');
     if (fc) fc.textContent = '— 0 records';
@@ -7744,7 +7765,7 @@ async function fetchSheetsData(opts) {
     var ilRes = await fetchWithTimeout(sheetsUrl('Install List'));
     if (!ilRes.ok) throw new Error('HTTP ' + ilRes.status);
     var ilRows = sheetsRowsToObjects((await ilRes.json()).values || []);
-    if (ilRows.length) { INSTALL_LIST.length = 0; ilRows.forEach(function(r){ INSTALL_LIST.push(r); }); }
+    if (ilRows.length) { INSTALL_LIST.length = 0; ilRows.forEach(function(r){ r['office'] = shortOffice(r['office'] || ''); INSTALL_LIST.push(r); }); }
     if (typeof renderLeadershipPulse === 'function') renderLeadershipPulse(null);
   } catch(e) { errors.push('Install List: ' + e.message); }
 
