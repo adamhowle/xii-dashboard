@@ -5110,7 +5110,7 @@ function rpParseRoster(rows) {
   RP.roster       = {};
   RP.rosterByEmail = {};
   rows.forEach(r => {
-    const id = r['Employee ID'];
+    const id = String(r['Employee ID'] || '').trim();
     if (!id) return;
     const rec = {
       id:        id,
@@ -5134,7 +5134,7 @@ function rpParseReport(rows) {
   /* Client User ID = Employee ID on all other tabs */
   RP.report = {};
   rows.forEach(r => {
-    const id = r['Client User ID'];
+    const id = String(r['Client User ID'] || '').trim();
     if (!id) return;
     RP.report[id] = {
       pitches: parseFloat(r['Pitches'])       || 0,
@@ -5149,7 +5149,7 @@ function rpParseReport(rows) {
 function rpParseQTD(rows) {
   RP.qtdPoints = {};
   rows.forEach(r => {
-    const id = r['Employee Id'];
+    const id = String(r['Employee Id'] || '').trim();
     if (!id) return;
     RP.qtdPoints[id] = {
       csWeek:       parseFloat(r['CS Week'])              || 0,
@@ -5195,7 +5195,7 @@ function rpParseSquadStructure(rows) {
 function rpParseExport(rows) {
   RP.exportData = {};
   rows.forEach(r => {
-    const id = r['Employee ID'];
+    const id = String(r['Employee ID'] || '').trim();
     if (!id) return;
     RP.exportData[id] = {
       name:           r['Name']                      || '',
@@ -5367,45 +5367,44 @@ function rpRenderSquad() {
 
 function rpRenderSquadPodium() {
   const me = RP.user;
-  /* All squads in the user's office, ranked by WTD SRA */
-  const officeSquads = Object.values(RP.squadById).filter(sq => sq.office === me.office);
-  const squadData = officeSquads.map(sq => {
-    const members = RP.officeRoster.filter(r => r.squad === sq.squad);
-    let sra = 0, ac = 0;
-    members.forEach(rep => {
-      const rpt = RP.report[rep.id] || {};
+
+  /* Top 5 reps in the user's squad, ranked by WTD SRA then AC */
+  const sorted = [...RP.squadRoster]
+    .map(rep => {
       const qtd = RP.qtdPoints[rep.id] || {};
-      sra += qtd.sraWeek || 0;
-      ac  += rpt.ac      || 0;
-    });
-    return { name: sq.squad, sra, ac, isYou: sq.squad === me.squad };
-  });
+      const rpt = RP.report[rep.id]    || {};
+      return { name: rep.name.split(' ')[0], sra: qtd.sraWeek || 0, ac: rpt.ac || 0, isYou: rep.id === me.id };
+    })
+    .sort((a, b) => b.sra - a.sra || b.ac - a.ac)
+    .slice(0, 5);
 
   /* Label */
   const lbl = document.getElementById('sq-podium-lbl');
-  if (lbl) lbl.textContent = 'Squad standing · ' + me.office;
+  if (lbl) lbl.textContent = me.squad + ' · Rep standings';
 
   /* Stage */
   const stage = document.getElementById('sq-podium-stage');
   if (!stage) return;
-  const sorted = [...squadData].sort((a, b) => b.sra - a.sra || b.ac - a.ac);
+
+  /* Podium display order: 4th · 2nd · 1st · 3rd · 5th */
   const ORDER     = [3, 1, 0, 2, 4];
   const POS_CLASS = ['p-4th','p-2nd','p-1st','p-3rd','p-5th'];
-  stage.innerHTML = sorted.length > 0 ? ORDER.map((sqIdx, colIdx) => {
-    const sq = sorted[sqIdx];
-    if (!sq) return '';
-    const rank  = sqIdx + 1;
-    const dim   = sq.sra === 0 ? ' dim' : '';
-    const youTag = sq.isYou ? '<div class="podium-you-tag" style="background:var(--rp-squad)">you</div>' : '';
+
+  stage.innerHTML = ORDER.map((repIdx, colIdx) => {
+    const rep = sorted[repIdx];
+    if (!rep) return '';
+    const rank   = repIdx + 1;
+    const dim    = rep.sra === 0 ? ' dim' : '';
+    const youTag = rep.isYou ? '<div class="podium-you-tag" style="background:var(--rp-squad)">you</div>' : '';
     return `<div class="podium-col ${POS_CLASS[colIdx]}">
       <div class="podium-plate">
         ${youTag}
-        <div class="podium-name${dim}">${sq.name}</div>
-        <div class="podium-sra${dim}">${sq.sra} <span class="podium-sra-lbl">SRA</span></div>
+        <div class="podium-name${dim}">${rep.name}</div>
+        <div class="podium-sra${dim}">${rep.sra} <span class="podium-sra-lbl">SRA</span></div>
       </div>
       <div class="podium-block"><span class="podium-num">${rank}</span></div>
     </div>`;
-  }).join('') : '';
+  }).join('');
 }
 
 function rpRenderSquadWTD(squadInfo) {
@@ -5568,7 +5567,8 @@ function rpRenderStatus() {
     });
 
   /* ── Stats strip ── */
-  const counted   = pool.filter(r => RP.qtdPoints[r.id]?.countsToward).length;
+  /* counted = reps who appear in export data (have a rank status) */
+  const counted   = exportList.length;
   const l1PlusSet = new Set(['Level I','Level II','Level III','Premier','Franchise']);
   const l1plus    = exportList.filter(x => l1PlusSet.has(x.exp.currentRank)).length;
   const pct       = counted > 0 ? Math.round((l1plus/counted)*100) : 0;
