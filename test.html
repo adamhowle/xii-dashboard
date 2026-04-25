@@ -3483,6 +3483,7 @@ function rnkTogglePin(e) {
 <!-- ONBOARDING FORM -->
 <div class="sub-screen" id="sub-onboarding">
   <div class="sub-hdr">
+    <button class="sub-hdr-back" onclick="drwCloseSub('onboarding')" aria-label="Back">‹</button>
     <div class="sub-hdr-title">Onboarding Form</div>
   </div>
   <div class="form-iframe-wrap">
@@ -4127,13 +4128,21 @@ function rpSwitch(target) {
   });
   var wrap = document.getElementById('screen-' + show);
   if (wrap) { wrap.style.display = 'flex'; wrap.classList.add('rp-active'); wrap.scrollTop = 0; }
+
+  /* Update .on class on nav items in the active screen */
+  if (wrap) {
+    wrap.querySelectorAll('.ni').forEach(function(ni) { ni.classList.remove('on'); });
+    var activeNi = wrap.querySelector('.ni[onclick*="' + show + '"]');
+    if (activeNi) activeNi.classList.add('on');
+  }
+
   try {
     if (show === 'me')     rpRenderMe();
     if (show === 'pod')    rpRenderPod();
     if (show === 'squad')  rpRenderSquad();
     if (show === 'office') rpRenderOffice();
     if (show === 'status') rpRenderRankings();
-  } catch(e) { console.warn('rpSwitch render:', e); }
+  } catch(e) { console.error('rpSwitch render error [' + show + ']:', e); }
   RP._screen = show;
 }
 
@@ -4241,6 +4250,7 @@ function rpRenderGoalCells() {
 <!-- CONTACTS -->
 <div class="sub-screen" id="sub-contacts">
   <div class="sub-hdr">
+    <button class="sub-hdr-back" onclick="drwCloseSub('contacts')" aria-label="Back">‹</button>
     <div class="sub-hdr-title">Contacts</div>
   </div>
   <div class="sub-body" id="contacts-body">
@@ -4347,6 +4357,7 @@ function rpRenderGoalCells() {
 <!-- TRAINING -->
 <div class="sub-screen" id="sub-training">
   <div class="sub-hdr">
+    <button class="sub-hdr-back" onclick="drwCloseSub('training')" aria-label="Back">‹</button>
     <div class="sub-hdr-title">Training</div>
   </div>
   <div class="sub-body">
@@ -4418,6 +4429,7 @@ function rpRenderGoalCells() {
 <!-- TOOLS -->
 <div class="sub-screen" id="sub-tools">
   <div class="sub-hdr">
+    <button class="sub-hdr-back" onclick="drwCloseSub('tools')" aria-label="Back">‹</button>
     <div class="sub-hdr-title">Tools</div>
   </div>
   <div class="sub-body">
@@ -4473,6 +4485,7 @@ function rpRenderGoalCells() {
 <!-- PREFERENCES -->
 <div class="sub-screen" id="sub-prefs">
   <div class="sub-hdr">
+    <button class="sub-hdr-back" onclick="drwCloseSub('prefs')" aria-label="Back">‹</button>
     <div class="sub-hdr-title">Preferences</div>
   </div>
   <div class="sub-body">
@@ -4525,6 +4538,7 @@ function rpRenderGoalCells() {
 <!-- HELP & FEEDBACK -->
 <div class="sub-screen" id="sub-help">
   <div class="sub-hdr">
+    <button class="sub-hdr-back" onclick="drwCloseSub('help')" aria-label="Back">‹</button>
     <div class="sub-hdr-title">Help &amp; Feedback</div>
   </div>
   <div class="sub-body">
@@ -5307,10 +5321,10 @@ function rpUpdateHeaders() {
   if (!RP.user) return;
   const u = RP.user;
 
-  /* Me screen */
-  const meHdr = document.querySelector('#me-screen .hdr-name, .me-screen .hdr-name');
+  /* Me screen — actual wrapper ID is screen-me */
+  const meHdr = document.querySelector('#screen-me .hdr-name');
   if (meHdr) meHdr.textContent = u.name;
-  const meChips = document.querySelectorAll('#me-screen .hdr-chip, .me-screen .hdr-chip');
+  const meChips = document.querySelectorAll('#screen-me .hdr-chip');
   if (meChips.length >= 3) {
     meChips[0].textContent = u.squad;
     meChips[1].textContent = u.pod || 'No Pod';
@@ -5325,6 +5339,13 @@ function rpUpdateHeaders() {
     `<span class="hdr-chip">${u.office}</span>` +
     `<span class="hdr-dot"></span>` +
     `<span class="hdr-chip">Squad</span>`;
+
+  /* Drawer header */
+  const drwName = document.querySelector('.drw-hdr-name');
+  const drwSquad = document.querySelector('.drw-hdr-squad');
+  if (drwName) drwName.textContent = u.name;
+  if (drwSquad) drwSquad.textContent =
+    [u.squad, u.pod, u.office].filter(Boolean).join(' · ');
 }
 
 /* ── SQUAD SCREEN ── */
