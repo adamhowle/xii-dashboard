@@ -5008,6 +5008,15 @@ function rpInitAuth() {
       }
       await rpLoadAll();
     },
+    error_callback: (err) => {
+      if (err.type === 'popup_failed_to_open') {
+        console.error('[RP Auth] Popup failed to open — may be blocked by browser');
+      } else if (err.type === 'popup_closed') {
+        console.warn('[RP Auth] Popup closed before completing sign-in');
+      } else {
+        console.error('[RP Auth] Token client error:', err);
+      }
+    },
   });
 }
 
@@ -6104,11 +6113,19 @@ function rpHideLoadingScreen() {
 }
 function rpShowLoginScreen() {
   const s = document.getElementById('rp-login-screen');
-  if (s) s.classList.add('visible');
+  if (s) {
+    s.classList.add('visible');
+  } else {
+    console.error('[RP] rpShowLoginScreen: #rp-login-screen not in DOM yet — timing issue');
+  }
 }
 function rpHideLoginScreen() {
   const s = document.getElementById('rp-login-screen');
-  if (s) s.classList.remove('visible');
+  if (s) {
+    s.classList.remove('visible');
+  } else {
+    console.error('[RP] rpHideLoginScreen: #rp-login-screen not in DOM yet — timing issue');
+  }
 }
 function rpShowErrorScreen(msg) {
   console.error('Error:', msg);
@@ -6132,9 +6149,13 @@ function rpBoot() {
       }
     },
   });
-  /* Auto-request token if user was previously signed in */
+  /* Show login screen first, then attempt silent token on next tick.
+     Deferring ensures #rp-login-screen is visible before the GIS popup
+     flow starts — avoids the 'element not in DOM' timing issue. */
   rpShowLoginScreen();
-  _tokenClient && _tokenClient.requestAccessToken({ prompt: '' });
+  setTimeout(() => {
+    _tokenClient && _tokenClient.requestAccessToken({ prompt: '' });
+  }, 0);
 }
 
 /* ── AUTO-BOOT: poll until GIS library is ready, then call rpBoot ── */
