@@ -91,25 +91,25 @@
    ═══════════════════════════════════════════════ */
 :root {
   /* Zone colors */
-  --rp-me:       #1B7A52;
+  --rp-me:       #3A6FA8;
   --rp-pod:      #59A210;
-  --rp-squad:    #1A3A5C;
-  --rp-office:   #FF6200;
+  --rp-squad:    #49517D;
+  --rp-office:   #EE8C66;
   --rp-region:   #2C2C2A;
 
   /* Zone color accents (for highlights, badges within zone) */
-  --rp-me-mid:   #2DC48E;
-  --rp-me-light: #EEF8F3;
-  --rp-me-border:#C0E4D4;
+  --rp-me-mid:   #A5C9FF;
+  --rp-me-light: #EDF4FF;
+  --rp-me-border:#B8D8FF;
 
   /* Earnings strip */
-  --rp-earn-bg:  #111110;
-  --rp-earn-val: #1B7A52;  /* Hulk green on dark — NOT #2DC48E */
+  --rp-earn-bg:  #1F2647;
+  --rp-earn-val: #A5C9FF;  /* Sky blue on dark navy */
 
   /* Semantic */
-  --rp-exceeds-bg:    #F0FAF5;
-  --rp-exceeds-val:   #1B7A52;
-  --rp-exceeds-pip:   #2DC48E;
+  --rp-exceeds-bg:    #EDF4FF;
+  --rp-exceeds-val:   #3A6FA8;
+  --rp-exceeds-pip:   #A5C9FF;
   --rp-behind-bg:     #FFF9F0;
   --rp-behind-val:    #A06020;
   --rp-behind-pip:    #F0A020;
@@ -118,7 +118,7 @@
   --rp-ink:      #111110;
   --rp-muted:    #888780;
   --rp-hint:     #B4B2A9;
-  --rp-steel:    #F4F4F2;
+  --rp-steel:    #FFFBF0;
   --rp-border:   #E0DDD6;
   --rp-border2:  #C0C0BC;
 
@@ -134,7 +134,7 @@
 
 body {
   font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
-  background: #111110;
+  background: #FFFBF0;
   margin: 0;
   padding: 0;
   min-height: 100svh;
@@ -147,7 +147,7 @@ body {
   flex-direction: column;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  background: #fff;
+  background: #FFFBF0;
 }
 .rp-screen-wrap.rp-active {
   display: flex;
@@ -181,7 +181,7 @@ body {
   justify-content: space-between;
   gap: 10px;
   padding: 13px 18px 11px;
-  background: #111110;
+  background: #1F2647;
   flex-shrink: 0;
 }
 .uni-hdr-logo { display: flex; align-items: center; flex-shrink: 0; }
@@ -190,7 +190,7 @@ body {
   font-weight: 700;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.85);
+  color: rgba(255,255,255,0.55);
   flex: 1;
   padding-left: 10px;
 }
@@ -207,14 +207,16 @@ body {
 .uni-hdr-burger:active { opacity: 1; }
 
 .sbar {
-  background: #111110;
-  padding: 13px 22px 0;
+  background: #1F2647;
+  padding: 10px 22px 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
+  font-size: 8px;
   font-weight: 700;
-  color: rgba(255,255,255,0.9);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
 }
 
 /* ═══════════════════════════════════════════════
@@ -222,7 +224,7 @@ body {
    Change background to zone color for each screen
    ═══════════════════════════════════════════════ */
 .hdr {
-  background: var(--rp-me);
+  background: #1F2647;
   padding: 6px 22px 14px;
   position: relative;
 }
@@ -279,7 +281,7 @@ body {
 
 /* Drawer header */
 .drawer-hdr {
-  background: #2C2C2A;
+  background: #1F2647;
   padding: 14px 18px 12px;
   flex-shrink: 0;
 }
@@ -364,7 +366,7 @@ body {
    ═══════════════════════════════════════════════ */
 /* Sub-screen header */
 .sub-hdr {
-  background: #2C2C2A;
+  background: #1F2647;
   padding: 13px 16px 12px;
   display: flex;
   align-items: center;
@@ -486,7 +488,7 @@ body {
 }
 .contact-edit-input:focus { outline: none; border-color: #888780; }
 .contact-edit-save {
-  background: #2C2C2A;
+  background: #1F2647;
   color: #fff;
   border: none;
   padding: 8px 16px;
@@ -659,7 +661,7 @@ body {
 .pay-custom-input:focus { outline: none; border-color: #A07800; }
 .pref-save-btn {
   width: 100%;
-  background: #2C2C2A;
+  background: #1F2647;
   color: #fff;
   border: none;
   padding: 11px;
@@ -723,7 +725,7 @@ body {
 .hdr-name {
   font-size: 22px;
   font-weight: 700;
-  color: #fff;
+  color: #A5C9FF;
   letter-spacing: -0.5px;
 }
 .hdr-meta {
@@ -735,8 +737,9 @@ body {
 .hdr-chip {
   font-size: 9px;
   font-weight: 600;
-  color: rgba(255,255,255,0.6);
-  letter-spacing: 0.3px;
+  color: rgba(255,255,255,0.55);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
 }
 .hdr-dot {
   width: 3px;
@@ -770,7 +773,7 @@ body {
 .tog.on {
   color: var(--rp-me);
   border-bottom-color: var(--rp-me);
-  background: #fff;
+  background: #FFFBF0;
 }
 
 /* ═══════════════════════════════════════════════
@@ -995,8 +998,8 @@ body {
    RANK BAR — always visible, below both tabs
    ═══════════════════════════════════════════════ */
 .rank-bar {
-  background: #fff;
-  border-top: 1px solid var(--rp-border);
+  background: #1F2647;
+  border-top: 1px solid rgba(255,255,255,0.08);
   padding: 11px 18px;
   display: flex;
   align-items: center;
@@ -1033,27 +1036,27 @@ body {
   font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--rp-muted);
+  color: rgba(255,255,255,0.4);
 }
 .prog-pct {
   font-size: 9px;
   font-weight: 700;
-  color: var(--rp-squad); /* uses squad navy for rank progress */
+  color: #A5C9FF;
 }
 .prog-track {
   height: 4px;
-  background: var(--rp-border);
+  background: rgba(255,255,255,0.08);
   border-radius: 2px;
   overflow: hidden;
 }
 .prog-fill {
   height: 100%;
   border-radius: 2px;
-  background: var(--rp-squad);
+  background: #A5C9FF;
 }
 .prog-req {
   font-size: 7px;
-  color: var(--rp-hint);
+  color: rgba(255,255,255,0.25);
   margin-top: 3px;
 }
 
@@ -1356,7 +1359,7 @@ body {
 }
 .pod-table thead tr {
   border-bottom: 1.5px solid var(--rp-border);
-  background: #FAFAF8;
+  background: #FFFBF0;
 }
 .pod-table th {
   font-size: 7px;
@@ -1452,7 +1455,7 @@ body {
 
 
 /* Pod screen nav + toggle overrides */
-.pod-screen .tog.on         { color: var(--rp-pod); border-bottom-color: var(--rp-pod); background: #fff; }
+.pod-screen .tog.on         { color: var(--rp-pod); border-bottom-color: var(--rp-pod); background: #FFFBF0; }
 .pod-screen .ni.on .ni-lbl  { color: var(--rp-squad); }
 .pod-screen .ni.on .ni-bar  { background: var(--rp-squad); }
 .pod-screen .ni.on svg path,
@@ -1531,10 +1534,10 @@ body {
 
 /* ── OFFICE SCREEN ────────────────────────────────── */
 :root {
-  --off-tint:       #FFE8D6;
-  --off-tint-bdr:   #FFCFAA;
-  --off-goal-hit:   #E85800;
-  --off-sq-name:    #8A3000;
+  --off-tint:       #EDF4FF;
+  --off-tint-bdr:   #B8D8FF;
+  --off-goal-hit:   #3A6FA8;
+  --off-sq-name:    #1F2647;
 }
 
 .off-squads-wrap { overflow-y: auto; }
@@ -1565,7 +1568,7 @@ body {
   display: flex; align-items: center; gap: 4px;
 }
 .off-row-tint  { background: var(--off-tint); }
-.off-row-white { background: #fff; }
+.off-row-white { background: #FFFBF0; }
 
 /* Your squad — same alternating bg, but orange left bar */
 .off-squad-hdr-you { border-left: 4px solid var(--rp-office); padding-left: 8px; }
@@ -1671,7 +1674,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: #111110;
+  background: #1F2647;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
@@ -2209,7 +2212,7 @@ function confirmPay() {
         <span></span><span></span><span></span>
       </button>
     </div>
-    <div class="hdr" style="background:var(--rp-pod);">
+    <div class="hdr">
       <div class="hdr-name" id="pod-hdr-name">Night Owls</div>
       <div class="hdr-meta" id="pod-hdr-meta">
         <span class="hdr-chip">G-Squad</span>
@@ -2222,7 +2225,7 @@ function confirmPay() {
 
     <!-- WTD / QTD TOGGLE — active color = pod green -->
     <div class="toggle-row" id="pod-toggle-row">
-      <div class="tog" id="pod-tog-wtd" onclick="podShowTab('wtd')" style="color:var(--rp-pod);border-bottom-color:var(--rp-pod);background:#fff;">WTD</div>
+      <div class="tog on" id="pod-tog-wtd" onclick="podShowTab('wtd')">WTD</div>
       <div class="tog" id="pod-tog-qtd" onclick="podShowTab('qtd')">QTD Status</div>
     </div>
 
@@ -2425,11 +2428,11 @@ function podShowTab(tab) {
 
   // WTD active style
   if (tab === 'wtd') {
-    togWtd.style.cssText = 'color:var(--rp-pod);border-bottom-color:var(--rp-pod);background:#fff;';
+    togWtd.style.cssText = '';
     togQtd.style.cssText = '';
     togQtd.classList.remove('on');
   } else {
-    togQtd.style.cssText = 'color:var(--rp-pod);border-bottom-color:var(--rp-pod);background:#fff;';
+    togQtd.style.cssText = '';
     togWtd.style.cssText = '';
     togWtd.classList.remove('on');
   }
@@ -2453,7 +2456,7 @@ function podShowTab(tab) {
         <span></span><span></span><span></span>
       </button>
     </div>
-    <div class="hdr" style="background:var(--rp-squad);">
+    <div class="hdr">
       <div class="hdr-name" id="sq-hdr-name">G-Squad</div>
       <div class="hdr-meta" id="sq-hdr-meta">
         <span class="hdr-chip">Newport Beach</span>
@@ -2463,14 +2466,14 @@ function podShowTab(tab) {
     </div>
 
     <div class="toggle-row">
-      <div class="tog" id="sq-tog-wtd" onclick="sqShowTab('wtd')" style="color:var(--rp-squad);border-bottom-color:var(--rp-squad);background:#fff;">WTD</div>
+      <div class="tog on" id="sq-tog-wtd" onclick="sqShowTab('wtd')">WTD</div>
       <div class="tog" id="sq-tog-qtd" onclick="sqShowTab('qtd')">QTD Status</div>
     </div>
 
     <!-- WTD PANEL -->
     <div id="sq-panel-wtd" class="panel visible">
 
-      <div class="ctx-label" style="background:#EEF4FA;color:#0E2440;border-color:#B8CCE0;">Actual installs · week to date · sorted by SRA</div>
+      <div class="ctx-label ctx-wtd">Actual installs · week to date · sorted by SRA</div>
 
       <div class="pod-table-wrap">
         <table class="pod-table">
@@ -2743,10 +2746,10 @@ function sqShowTab(tab) {
   document.getElementById('sq-panel-wtd').classList.toggle('visible', tab === 'wtd');
   document.getElementById('sq-panel-qtd').classList.toggle('visible', tab === 'qtd');
   if (tab === 'wtd') {
-    document.getElementById('sq-tog-wtd').style.cssText = 'color:var(--rp-squad);border-bottom-color:var(--rp-squad);background:#fff;';
+    document.getElementById('sq-tog-wtd').style.cssText = '';
     document.getElementById('sq-tog-qtd').style.cssText = '';
   } else {
-    document.getElementById('sq-tog-qtd').style.cssText = 'color:var(--rp-squad);border-bottom-color:var(--rp-squad);background:#fff;';
+    document.getElementById('sq-tog-qtd').style.cssText = '';
     document.getElementById('sq-tog-wtd').style.cssText = '';
   }
 }
@@ -2770,7 +2773,7 @@ sqRenderQtd();
         <span></span><span></span><span></span>
       </button>
     </div>
-    <div class="hdr" style="background:var(--rp-office);">
+    <div class="hdr">
       <div class="hdr-name" id="off-hdr-name">Newport Beach</div>
       <div class="hdr-meta" id="off-hdr-meta">
         <span class="hdr-chip">Office</span>
@@ -2780,13 +2783,13 @@ sqRenderQtd();
     </div>
 
     <div class="toggle-row">
-      <div class="tog" id="off-tog-wtd" onclick="offShowTab('wtd')" style="color:var(--rp-office);border-bottom-color:var(--rp-office);background:#fff;">WTD</div>
+      <div class="tog on" id="off-tog-wtd" onclick="offShowTab('wtd')">WTD</div>
       <div class="tog" id="off-tog-qtd" onclick="offShowTab('qtd')">QTD Status</div>
     </div>
 
     <!-- WTD PANEL -->
     <div id="off-panel-wtd" class="panel visible">
-      <div class="ctx-label" style="background:#FFF0E8;color:#8A3000;border-color:#FFB888;">Actual installs · week to date · squads by SRA</div>
+      <div class="ctx-label ctx-wtd">Actual installs · week to date · squads by SRA</div>
       <div class="off-squads-wrap">
         <div class="off-col-hdr">
           <div class="off-col-name">Name</div>
@@ -3071,10 +3074,10 @@ function offShowTab(tab) {
   document.getElementById('off-panel-wtd').classList.toggle('visible', tab === 'wtd');
   document.getElementById('off-panel-qtd').classList.toggle('visible', tab === 'qtd');
   if (tab === 'wtd') {
-    document.getElementById('off-tog-wtd').style.cssText = 'color:var(--rp-office);border-bottom-color:var(--rp-office);background:#fff;';
+    document.getElementById('off-tog-wtd').style.cssText = '';
     document.getElementById('off-tog-qtd').style.cssText = '';
   } else {
-    document.getElementById('off-tog-qtd').style.cssText = 'color:var(--rp-office);border-bottom-color:var(--rp-office);background:#fff;';
+    document.getElementById('off-tog-qtd').style.cssText = '';
     document.getElementById('off-tog-wtd').style.cssText = '';
   }
 }
@@ -3102,7 +3105,7 @@ offRenderQtd();
         <span></span><span></span><span></span>
       </button>
     </div>
-    <div class="hdr" style="background:#A07800;">
+    <div class="hdr">
       <div class="hdr-name" id="rnk-hdr-name">Status</div>
       <div class="hdr-meta" id="rnk-hdr-meta">
         <span class="hdr-chip">Newport Beach</span>
@@ -3263,8 +3266,8 @@ offRenderQtd();
 /* ── YOUR ROW PINNED HEADER ── */
 .rnk-you-pinned {
   display: none; /* shown when pinned */
-  background: var(--rp-squad);
-  border-bottom: 2px solid rgba(0,0,0,0.15);
+  background: #EDF4FF;
+  border-bottom: 2px solid rgba(165,201,255,0.3);
 }
 .rnk-you-pinned.visible { display: table-row; }
 
@@ -4593,7 +4596,7 @@ function _rpGoogleSignIn() {
 .drw-panel {
   width: 78%;
   max-width: 280px;
-  background: #fff;
+  background: #FFFBF0;
   display: flex;
   flex-direction: column;
   transform: translateX(-100%);
@@ -4603,7 +4606,7 @@ function _rpGoogleSignIn() {
 .drw-overlay.open .drw-panel { transform: translateX(0); }
 
 .drw-hdr {
-  background: #2C2C2A;
+  background: #1F2647;
   padding: 44px 18px 16px;
   flex-shrink: 0;
 }
@@ -4660,7 +4663,7 @@ function _rpGoogleSignIn() {
 }
 
 .sub-hdr {
-  background: #111110; padding: 50px 16px 14px;
+  background: #1F2647; padding: 50px 16px 14px;
   display: flex; align-items: center; gap: 10px; flex-shrink: 0;
 }
 .sub-hdr-back {
