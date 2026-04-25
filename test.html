@@ -4199,7 +4199,7 @@ function rpRenderGoalCells() {
 }
 </script>
 
-
+<script>
 /* ── SWIPE GESTURE — swipe up on Me = go to Pod, swipe up on Pod = go to Squad ── */
 (function() {
   var _startY = 0, _startX = 0;
@@ -4233,9 +4233,7 @@ function rpRenderGoalCells() {
   document.addEventListener('touchstart', onTouchStart, { passive: true });
   document.addEventListener('touchend',   onTouchEnd,   { passive: true });
 })();
-
-</body>
-</html>
+</script>
 " style="flex:1;border:none;width:100%;height:100%;" title="Recruit Intake Form"></iframe>
   </div>
 </div>
@@ -5710,7 +5708,7 @@ function rpRenderMe() {
   if (paceSub) paceSub.textContent = qtd.qtrStatus || '—';
 
   /* Goal cells */
-  rpRenderGoalCells();
+  if (typeof rpRenderGoalCells === "function") rpRenderGoalCells();
 
   /* ── Rank bar ── */
   const rawRank    = exp.currentRank || 'NO LEVEL';
@@ -6152,10 +6150,12 @@ function rpBoot() {
   /* Show login screen first, then attempt silent token on next tick.
      Deferring ensures #rp-login-screen is visible before the GIS popup
      flow starts — avoids the 'element not in DOM' timing issue. */
-  rpShowLoginScreen();
+  /* Defer both login screen show and token request until after current paint.
+     #rp-login-screen is lower in the DOM and may not be ready synchronously. */
   setTimeout(() => {
+    rpShowLoginScreen();
     _tokenClient && _tokenClient.requestAccessToken({ prompt: '' });
-  }, 0);
+  }, 50);
 }
 
 /* ── AUTO-BOOT: poll until GIS library is ready, then call rpBoot ── */
