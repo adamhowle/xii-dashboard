@@ -1732,6 +1732,101 @@ body {
   </div>
 </div>
 
+<script>
+/* ================================================
+   RALLY POINT — TAB SWITCHING
+   ================================================ */
+var RP_SCREENS = ['me','pod','squad','office','status'];
+
+function rpSwitch(target) {
+  /* Nav tabs always go directly to their screen.
+     Pod is only accessible via zoom strips from Me or Squad. */
+  var show = target;
+  RP_SCREENS.forEach(function(id) {
+    var wrap = document.getElementById('screen-' + id);
+    if (wrap) { wrap.style.display = 'none'; wrap.classList.remove('rp-active'); }
+  });
+  var wrap = document.getElementById('screen-' + show);
+  if (wrap) { wrap.style.display = 'flex'; wrap.classList.add('rp-active'); wrap.scrollTop = 0; }
+
+  /* Update .on class on nav items in the active screen */
+  if (wrap) {
+    wrap.querySelectorAll('.ni').forEach(function(ni) { ni.classList.remove('on'); });
+    var activeNi = wrap.querySelector('.ni[onclick*="' + show + '"]');
+    if (activeNi) activeNi.classList.add('on');
+  }
+
+  try {
+    if (show === 'me')     rpRenderMe();
+    if (show === 'pod')    rpRenderPod();
+    if (show === 'squad')  rpRenderSquad();
+    if (show === 'office') rpRenderOffice();
+    if (show === 'status') rpRenderRankings();
+  } catch(e) { console.error('rpSwitch render error [' + show + ']:', e); }
+  RP._screen = show;
+}
+
+
+/* Pod zoom-strip tap — go back to squad */
+function rpZoomOut() {
+  RP_SCREENS.forEach(function(id) {
+    var w = document.getElementById('screen-' + id);
+    if (w) { w.style.display = 'none'; w.classList.remove('rp-active'); }
+  });
+  var sq = document.getElementById('screen-squad');
+  if (sq) { sq.style.display = 'flex'; sq.classList.add('rp-active'); sq.scrollTop = 0; }
+  try { rpRenderSquad(); } catch(e) {}
+  RP._screen = 'squad';
+}
+
+/* Me zoom-strip tap — go to pod */
+function rpZoomToPod() {
+  RP_SCREENS.forEach(function(id) {
+    var w = document.getElementById('screen-' + id);
+    if (w) { w.style.display = 'none'; w.classList.remove('rp-active'); }
+  });
+  var pod = document.getElementById('screen-pod');
+  if (pod) { pod.style.display = 'flex'; pod.classList.add('rp-active'); pod.scrollTop = 0; }
+  try { rpRenderPod(); } catch(e) {}
+  RP._screen = 'pod';
+}
+
+
+/* ── QTD GOAL CELLS ── */
+function rpRenderGoalCells() {
+  var qtd = (RP.user && RP.qtdPoints && RP.qtdPoints[RP.user.id]) ? RP.qtdPoints[RP.user.id] : {};
+  var sraGoal = 0, icGoal = 0;
+  try {
+    sraGoal = parseInt(localStorage.getItem('rp_qtd_sra_goal') || '0') || 0;
+    icGoal  = parseInt(localStorage.getItem('rp_qtd_ic_goal')  || '0') || 0;
+  } catch(e) {}
+  var sraActual = qtd.sraQtr || 0;
+  var icActual  = qtd.icQtrPoints || 0;
+
+  function renderCell(valId, subId, barWrapId, fillId, pctId, actual, goal) {
+    var valEl  = document.getElementById(valId);
+    var subEl  = document.getElementById(subId);
+    var wrapEl = document.getElementById(barWrapId);
+    var fillEl = document.getElementById(fillId);
+    var pctEl  = document.getElementById(pctId);
+    if (!valEl) return;
+    if (!goal) {
+      valEl.textContent = '—'; valEl.style.fontSize = '28px';
+      if (subEl)  subEl.textContent  = 'Set in More';
+      if (wrapEl) wrapEl.style.display = 'none';
+    } else {
+      valEl.textContent = actual + ' / ' + goal; valEl.style.fontSize = '20px';
+      if (subEl)  subEl.textContent  = 'quarter goal';
+      var pct = Math.min(100, Math.round((actual / goal) * 100));
+      if (wrapEl) wrapEl.style.display = '';
+      if (fillEl) fillEl.style.width = pct + '%';
+      if (pctEl)  pctEl.textContent = pct + '%';
+    }
+  }
+  renderCell('me-qtd-goal-sra-val','me-qtd-goal-sra-sub','me-qtd-goal-sra-bar-wrap','me-qtd-goal-sra-fill','me-qtd-goal-sra-pct', sraActual, sraGoal);
+  renderCell('me-qtd-goal-ic-val', 'me-qtd-goal-ic-sub', 'me-qtd-goal-ic-bar-wrap', 'me-qtd-goal-ic-fill', 'me-qtd-goal-ic-pct',  icActual,  icGoal);
+}
+</script>
 <div id="screen-me" class="rp-screen-wrap rp-active" style="display:flex;">
 
   <!-- CONFETTI LAYER -->
@@ -4112,101 +4207,7 @@ function _rpGoogleSignIn() {
 }
 </script>
 
-<script>
-/* ================================================
-   RALLY POINT — TAB SWITCHING
-   ================================================ */
-var RP_SCREENS = ['me','pod','squad','office','status'];
 
-function rpSwitch(target) {
-  /* Nav tabs always go directly to their screen.
-     Pod is only accessible via zoom strips from Me or Squad. */
-  var show = target;
-  RP_SCREENS.forEach(function(id) {
-    var wrap = document.getElementById('screen-' + id);
-    if (wrap) { wrap.style.display = 'none'; wrap.classList.remove('rp-active'); }
-  });
-  var wrap = document.getElementById('screen-' + show);
-  if (wrap) { wrap.style.display = 'flex'; wrap.classList.add('rp-active'); wrap.scrollTop = 0; }
-
-  /* Update .on class on nav items in the active screen */
-  if (wrap) {
-    wrap.querySelectorAll('.ni').forEach(function(ni) { ni.classList.remove('on'); });
-    var activeNi = wrap.querySelector('.ni[onclick*="' + show + '"]');
-    if (activeNi) activeNi.classList.add('on');
-  }
-
-  try {
-    if (show === 'me')     rpRenderMe();
-    if (show === 'pod')    rpRenderPod();
-    if (show === 'squad')  rpRenderSquad();
-    if (show === 'office') rpRenderOffice();
-    if (show === 'status') rpRenderRankings();
-  } catch(e) { console.error('rpSwitch render error [' + show + ']:', e); }
-  RP._screen = show;
-}
-
-
-/* Pod zoom-strip tap — go back to squad */
-function rpZoomOut() {
-  RP_SCREENS.forEach(function(id) {
-    var w = document.getElementById('screen-' + id);
-    if (w) { w.style.display = 'none'; w.classList.remove('rp-active'); }
-  });
-  var sq = document.getElementById('screen-squad');
-  if (sq) { sq.style.display = 'flex'; sq.classList.add('rp-active'); sq.scrollTop = 0; }
-  try { rpRenderSquad(); } catch(e) {}
-  RP._screen = 'squad';
-}
-
-/* Me zoom-strip tap — go to pod */
-function rpZoomToPod() {
-  RP_SCREENS.forEach(function(id) {
-    var w = document.getElementById('screen-' + id);
-    if (w) { w.style.display = 'none'; w.classList.remove('rp-active'); }
-  });
-  var pod = document.getElementById('screen-pod');
-  if (pod) { pod.style.display = 'flex'; pod.classList.add('rp-active'); pod.scrollTop = 0; }
-  try { rpRenderPod(); } catch(e) {}
-  RP._screen = 'pod';
-}
-
-
-/* ── QTD GOAL CELLS ── */
-function rpRenderGoalCells() {
-  var qtd = (RP.user && RP.qtdPoints && RP.qtdPoints[RP.user.id]) ? RP.qtdPoints[RP.user.id] : {};
-  var sraGoal = 0, icGoal = 0;
-  try {
-    sraGoal = parseInt(localStorage.getItem('rp_qtd_sra_goal') || '0') || 0;
-    icGoal  = parseInt(localStorage.getItem('rp_qtd_ic_goal')  || '0') || 0;
-  } catch(e) {}
-  var sraActual = qtd.sraQtr || 0;
-  var icActual  = qtd.icQtrPoints || 0;
-
-  function renderCell(valId, subId, barWrapId, fillId, pctId, actual, goal) {
-    var valEl  = document.getElementById(valId);
-    var subEl  = document.getElementById(subId);
-    var wrapEl = document.getElementById(barWrapId);
-    var fillEl = document.getElementById(fillId);
-    var pctEl  = document.getElementById(pctId);
-    if (!valEl) return;
-    if (!goal) {
-      valEl.textContent = '—'; valEl.style.fontSize = '28px';
-      if (subEl)  subEl.textContent  = 'Set in More';
-      if (wrapEl) wrapEl.style.display = 'none';
-    } else {
-      valEl.textContent = actual + ' / ' + goal; valEl.style.fontSize = '20px';
-      if (subEl)  subEl.textContent  = 'quarter goal';
-      var pct = Math.min(100, Math.round((actual / goal) * 100));
-      if (wrapEl) wrapEl.style.display = '';
-      if (fillEl) fillEl.style.width = pct + '%';
-      if (pctEl)  pctEl.textContent = pct + '%';
-    }
-  }
-  renderCell('me-qtd-goal-sra-val','me-qtd-goal-sra-sub','me-qtd-goal-sra-bar-wrap','me-qtd-goal-sra-fill','me-qtd-goal-sra-pct', sraActual, sraGoal);
-  renderCell('me-qtd-goal-ic-val', 'me-qtd-goal-ic-sub', 'me-qtd-goal-ic-bar-wrap', 'me-qtd-goal-ic-fill', 'me-qtd-goal-ic-pct',  icActual,  icGoal);
-}
-</script>
 
 <script>
 /* ── SWIPE GESTURE — swipe up on Me = go to Pod, swipe up on Pod = go to Squad ── */
