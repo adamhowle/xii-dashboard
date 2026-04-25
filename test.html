@@ -6160,18 +6160,29 @@ function rpBoot() {
 
 /* ── AUTO-BOOT: poll until GIS library is ready, then call rpBoot ── */
 (function() {
-  function tryBoot() {
+  var _domReady = false;
+  var _gisReady = false;
+
+  function maybeboot() {
+    if (_domReady && _gisReady) rpBoot();
+  }
+
+  function pollGIS() {
     if (window.google && window.google.accounts && window.google.accounts.oauth2) {
-      rpBoot();
+      _gisReady = true;
+      maybeboot();
     } else {
-      setTimeout(tryBoot, 100);
+      setTimeout(pollGIS, 100);
     }
   }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', tryBoot);
+    document.addEventListener('DOMContentLoaded', function() { _domReady = true; maybeboot(); });
   } else {
-    tryBoot();
+    _domReady = true;
   }
+
+  pollGIS();
 })();
 
 /* Wire sign-out button in drawer */
