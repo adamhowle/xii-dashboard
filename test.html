@@ -1774,6 +1774,15 @@ body {
 }
 .rp-login-google-btn:hover { background: #f0f0f0; }
 .rp-login-google-icon { width: 18px; height: 18px; flex-shrink: 0; }
+.rp-login-phone-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 13px 20px;
+  background: #43E8BF; border: none; border-radius: 4px;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.3px;
+  color: #0A2420; cursor: pointer;
+}
+.rp-login-phone-btn:hover { background: #38d4ac; }
+.rp-login-divider { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.3); }
 .rp-login-sub { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.38); text-align: center; }
 </style>
 </head>
@@ -1799,6 +1808,32 @@ body {
       </svg>
       Sign in with Google
     </button>
+    <div class="rp-login-divider">or</div>
+    <!-- Phone sign-in -->
+    <div id="rp-phone-wrap" style="width:100%;">
+      <button class="rp-login-phone-btn" onclick="rpShowPhoneInput()" id="rp-phone-btn">
+        📱 Sign in with Phone
+      </button>
+      <!-- Phone input (hidden until button tapped) -->
+      <div id="rp-phone-input-wrap" style="display:none;margin-top:10px;">
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <input id="rp-phone-number" type="tel" inputmode="tel" placeholder="(555) 000-0000"
+            style="flex:1;padding:12px 14px;font-size:16px;border:none;border-radius:4px;background:#fff;color:#111110;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;outline:none;"
+            oninput="rpFormatPhone(this)">
+        </div>
+        <div id="rp-phone-code-wrap" style="display:none;margin-bottom:8px;">
+          <input id="rp-phone-code" type="tel" inputmode="numeric" placeholder="Enter 6-digit code"
+            style="width:100%;padding:12px 14px;font-size:16px;border:none;border-radius:4px;background:#fff;color:#111110;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;outline:none;box-sizing:border-box;">
+        </div>
+        <button id="rp-phone-submit" onclick="rpPhoneSubmit()"
+          style="width:100%;background:#43E8BF;border:none;border-radius:4px;padding:12px;font-size:13px;font-weight:700;color:#0A2420;cursor:pointer;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;">
+          Send Code
+        </button>
+        <div id="rp-phone-err" style="display:none;font-size:11px;color:#F05252;text-align:center;margin-top:6px;"></div>
+      </div>
+    </div>
+    <!-- Firebase reCAPTCHA container -->
+    <div id="rp-recaptcha"></div>
     <div class="rp-login-sub">Sunrun reps only</div>
     <div class="rp-login-sub" style="margin-top:8px;opacity:0.5;">v2.8</div>
   </div>
@@ -2147,9 +2182,9 @@ function rpRenderGoalCells() {
 
 
     <!-- CHAT ANNOUNCEMENT BANNER -->
-    <div id="me-chat-banner" onclick="drwOpen('chat')" style="display:none;margin:0 16px 12px;background:#0D2E28;border-left:3px solid #43E8BF;padding:11px 14px;cursor:pointer;">
-      <div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#43E8BF;margin-bottom:3px;">💬 TEAM CHAT</div>
-      <div id="me-chat-banner-text" style="font-size:13px;font-weight:600;color:#fff;line-height:1.35;"></div>
+    <div id="me-chat-banner" onclick="drwOpen('chat')" style="display:none;margin:12px 16px;background:#43E8BF;border-radius:12px;padding:13px 16px;cursor:pointer;">
+      <div style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(10,36,32,0.7);margin-bottom:4px;">💬 TEAM CHAT</div>
+      <div id="me-chat-banner-text" style="font-size:15px;font-weight:700;color:#0A2420;line-height:1.35;"></div>
     </div>
 
     <!-- ZOOM STRIP — pod view -->
@@ -4366,10 +4401,10 @@ function rnkTogglePin(e) {
      CHAT SUB-SCREEN
      ═══════════════════════════════════════════════════════════════ -->
 <div class="sub-screen" id="sub-chat">
-  <div class="sub-hdr" style="background:#0A2420;">
-    <button class="sub-hdr-back" onclick="chatBack()" aria-label="Back">‹</button>
-    <div class="sub-hdr-title" id="chat-hdr-title">Chat</div>
-    <div id="chat-pin-btn" onclick="chatShowPinModal()" style="display:none;margin-left:auto;background:none;border:1px solid rgba(67,232,191,0.4);color:#43E8BF;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:5px 10px;cursor:pointer;">📌 PIN</div>
+  <div class="sub-hdr" style="background:#43E8BF;">
+    <button class="sub-hdr-back" onclick="chatBack()" aria-label="Back" style="color:#0A2420;">‹</button>
+    <div class="sub-hdr-title" id="chat-hdr-title" style="color:#0A2420;">Chat</div>
+    <div id="chat-pin-btn" onclick="chatShowPinModal()" style="display:none;margin-left:auto;background:none;border:1px solid rgba(10,36,32,0.35);color:#0A2420;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:5px 10px;cursor:pointer;">📌 PIN</div>
   </div>
 
   <!-- ROOM LIST VIEW -->
@@ -4393,9 +4428,9 @@ function rnkTogglePin(e) {
   <div id="chat-msg-view" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
 
     <!-- Pinned announcement bar -->
-    <div id="chat-pinned-bar" style="display:none;background:#0A2420;border-bottom:1px solid rgba(67,232,191,0.2);padding:9px 16px;flex-shrink:0;">
-      <div style="font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#43E8BF;margin-bottom:2px;">📌 PINNED</div>
-      <div id="chat-pinned-text" style="font-size:12px;color:rgba(255,255,255,0.85);line-height:1.4;"></div>
+    <div id="chat-pinned-bar" style="display:none;background:#F0FDF9;border-bottom:1px solid rgba(67,232,191,0.3);border-left:3px solid #43E8BF;padding:9px 16px;flex-shrink:0;">
+      <div style="font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#0A7A5A;margin-bottom:2px;">📌 PINNED</div>
+      <div id="chat-pinned-text" style="font-size:13px;color:#111110;line-height:1.4;"></div>
     </div>
 
     <!-- Messages scroll area -->
@@ -4623,34 +4658,26 @@ function rnkTogglePin(e) {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .chat-msg-text { font-size: 15px; color: #222220; line-height: 1.45; word-break: break-word; }
-.chat-msg-actions { display: flex; gap: 8px; margin-top: 5px; align-items: center; }
-.chat-react-btn {
-  font-size: 11px; background: #F4F4F2; border: 1px solid #E0DDD6;
-  padding: 3px 8px; cursor: pointer; display: flex; align-items: center; gap: 3px;
-  color: #444441; -webkit-user-select: none;
+.chat-msg-actions { display: flex; gap: 4px; margin-top: 5px; align-items: center; flex-wrap: wrap; }
+.chat-react-row { display: flex; gap: 3px; flex-wrap: wrap; }
+.chat-react-pill {
+  font-size: 13px; background: #F4F4F2; border: 1px solid #E0DDD6;
+  padding: 2px 7px; cursor: pointer; display: inline-flex; align-items: center; gap: 2px;
+  color: #444441; -webkit-user-select: none; border-radius: 12px;
   transition: background 0.1s, border-color 0.1s;
+  -webkit-tap-highlight-color: transparent;
 }
-.chat-react-btn.active { background: #E8FDF7; border-color: #43E8BF; color: #0A7A5A; }
+.chat-react-pill span { font-size: 11px; font-weight: 700; color: #444441; }
+.chat-react-pill.active { background: #E8FDF7; border-color: #43E8BF; }
+.chat-react-pill.active span { color: #0A7A5A; }
 .chat-reply-action {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
-  color: #B4B2A9; cursor: pointer; padding: 3px 0;
-  -webkit-user-select: none;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
+  color: #B4B2A9; cursor: pointer; padding: 3px 6px;
+  -webkit-user-select: none; border-radius: 8px;
+  -webkit-tap-highlight-color: transparent;
 }
-.chat-reply-action:active { color: #43E8BF; }
+.chat-reply-action:active { color: #0A7A5A; background: #F0FDF9; }
 .chat-date-sep { text-align: center; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #B4B2A9; padding: 10px 0 4px; }
-
-/* Reaction picker popup */
-.chat-reaction-picker {
-  position: fixed; z-index: 1300;
-  background: #fff; border: 1px solid #E0DDD6;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-  display: flex; gap: 0; overflow: hidden;
-}
-.chat-reaction-picker-btn {
-  font-size: 22px; padding: 10px 12px; cursor: pointer; background: none; border: none;
-  transition: background 0.1s;
-}
-.chat-reaction-picker-btn:active { background: #F4F4F2; }
 
 /* Avatar in prefs */
 .pref-avatar-wrap { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
@@ -4927,6 +4954,9 @@ const RP_CONFIG = {
 const RP = {
   token:        null,   /* OAuth access token */
   user:         null,   /* logged-in rep's full Roster row */
+  _loginEmail:  null,
+  _loginPhone:  null,   /* set when signing in via phone */
+  _fbUser:      null,
   /* Raw sheet data — keyed by Employee ID where possible */
   roster:       {},     /* { [employeeId]: rosterRow } */
   rosterByEmail:{},     /* { [email]: rosterRow } — for login lookup */
@@ -5069,6 +5099,70 @@ function rpShowAuthError(msg) {
     errEl.style.cssText = 'font-size:11px;color:#F05252;text-align:center;margin-top:8px;padding:0 8px;line-height:1.4;';
     errEl.textContent = msg;
     sub.parentNode.insertBefore(errEl, sub.nextSibling);
+  }
+}
+
+/* ── Phone Sign-In ── */
+let _phoneConfirmation = null;
+let _recaptchaVerifier = null;
+
+function rpShowPhoneInput() {
+  document.getElementById('rp-phone-input-wrap').style.display = 'block';
+  document.getElementById('rp-phone-btn').style.display = 'none';
+  document.getElementById('rp-phone-number').focus();
+  if (!_recaptchaVerifier) {
+    _recaptchaVerifier = new firebase.auth.RecaptchaVerifier('rp-recaptcha', {
+      size: 'invisible', callback: () => {},
+    });
+  }
+}
+
+function rpFormatPhone(el) {
+  let v = el.value.replace(/\D/g,'');
+  if (v.length >= 6) v = '(' + v.slice(0,3) + ') ' + v.slice(3,6) + '-' + v.slice(6,10);
+  else if (v.length >= 3) v = '(' + v.slice(0,3) + ') ' + v.slice(3);
+  el.value = v;
+}
+
+async function rpPhoneSubmit() {
+  const btn   = document.getElementById('rp-phone-submit');
+  const errEl = document.getElementById('rp-phone-err');
+  errEl.style.display = 'none';
+
+  if (!_phoneConfirmation) {
+    /* Step 1: send SMS code */
+    const raw = document.getElementById('rp-phone-number').value.replace(/\D/g,'');
+    if (raw.length < 10) { errEl.textContent = 'Enter a valid 10-digit number.'; errEl.style.display='block'; return; }
+    btn.textContent = 'Sending…'; btn.disabled = true;
+    try {
+      _phoneConfirmation = await _fbAuth.signInWithPhoneNumber('+1' + raw, _recaptchaVerifier);
+      document.getElementById('rp-phone-code-wrap').style.display = 'block';
+      document.getElementById('rp-phone-number').disabled = true;
+      btn.textContent = 'Verify Code'; btn.disabled = false;
+      document.getElementById('rp-phone-code').focus();
+    } catch(err) {
+      errEl.textContent = err.message || 'Could not send code. Check the number and try again.';
+      errEl.style.display = 'block';
+      btn.textContent = 'Send Code'; btn.disabled = false;
+      _phoneConfirmation = null;
+    }
+  } else {
+    /* Step 2: confirm code */
+    const code = (document.getElementById('rp-phone-code').value || '').trim();
+    if (code.length < 6) { errEl.textContent = 'Enter the 6-digit code.'; errEl.style.display='block'; return; }
+    btn.textContent = 'Verifying…'; btn.disabled = true;
+    try {
+      const result = await _phoneConfirmation.confirm(code);
+      RP._fbUser     = result.user;
+      RP._loginPhone = result.user.phoneNumber;
+      console.log('[RP Phone Auth] Signed in:', RP._loginPhone);
+      /* GIS Sheets token will be requested; identity resolved by phone→Roster lookup */
+      _requestSheetsToken(false);
+    } catch(err) {
+      errEl.textContent = 'Incorrect code — please try again.';
+      errEl.style.display = 'block';
+      btn.textContent = 'Verify Code'; btn.disabled = false;
+    }
   }
 }
 
@@ -5260,17 +5354,35 @@ function rpParseExport(rows) {
    Logged-in Google email → Roster row → derive office/squad/pod
    ═══════════════════════════════════════════════════════════════════ */
 function rpResolveIdentity() {
-  /* Firebase Auth gives us the email after sign-in via RP._loginEmail */
-  const email = RP._loginEmail;
-  if (!email) { console.warn('No login email — cannot resolve identity'); return; }
-  const me = RP.rosterByEmail[email.toLowerCase()];
-  if (!me) { console.warn('User not found in Roster:', email); return; }
+  /* Firebase Auth gives us email (Google sign-in) or phone (phone sign-in) */
+  let me = null;
+
+  if (RP._loginEmail) {
+    me = RP.rosterByEmail[(RP._loginEmail || '').toLowerCase()];
+  }
+
+  /* Phone sign-in fallback: match by mobile number in Roster */
+  if (!me && RP._loginPhone) {
+    const digits = RP._loginPhone.replace(/\D/g,'').slice(-10); /* last 10 digits */
+    me = Object.values(RP.roster).find(r => {
+      const rDigits = (r.mobile || '').replace(/\D/g,'').slice(-10);
+      return rDigits === digits;
+    });
+    if (me) {
+      /* Synthesize email from roster for downstream use */
+      RP._loginEmail = me.email || null;
+    }
+  }
+
+  if (!me) {
+    console.warn('User not found in Roster. Email:', RP._loginEmail, 'Phone:', RP._loginPhone);
+    return;
+  }
+
   RP.user = me;
-  /* Update hardcoded test-data YOU references with real user data */
   if (typeof SQ_YOU !== 'undefined') window.SQ_YOU = me.name;
   if (typeof OFF_YOU_SQUAD !== 'undefined') window.OFF_YOU_SQUAD = me.squad;
 
-  /* Derived subsets — all filtering done once here */
   const allReps = Object.values(RP.roster);
   RP.officeRoster = allReps.filter(r => r.office === me.office);
   RP.squadRoster  = allReps.filter(r => r.squad  === me.squad);
@@ -6591,13 +6703,14 @@ function chatRenderMessages(docs) {
 
     /* Reactions */
     const reactions = d.reactions || {};
-    const reactHTML = CHAT_REACTIONS.map(emoji => {
-      const count = (reactions[emoji] || []).length;
-      const iMine = count > 0 && (reactions[emoji] || []).includes(myEmail);
-      return count > 0
-        ? `<button class="chat-react-btn ${iMine?'active':''}" onclick="chatToggleReaction('${msgId}','${emoji}')">${emoji} ${count}</button>`
-        : '';
-    }).join('');
+    const reactHTML = `<div class="chat-react-row">` +
+      CHAT_REACTIONS.map(emoji => {
+        const voters = reactions[emoji] || [];
+        const count  = voters.length;
+        const iMine  = voters.includes(myEmail);
+        return `<button class="chat-react-pill ${iMine?'active':''}" onclick="chatToggleReaction('${msgId}','${emoji}')">${emoji}${count > 0 ? ' <span>'+count+'</span>' : ''}</button>`;
+      }).join('') +
+    `</div>`;
 
     html += `
       <div class="chat-msg" id="msg-${msgId}">
@@ -6611,8 +6724,7 @@ function chatRenderMessages(docs) {
           <div class="chat-msg-text">${_esc(d.text||'').replace(/\n/g,'<br>')}</div>
           <div class="chat-msg-actions">
             ${reactHTML}
-            <span class="chat-reaction-add" onclick="chatShowReactionPicker('${msgId}',this)" style="font-size:14px;cursor:pointer;color:#B4B2A9;padding:2px 4px;">＋</span>
-            <span class="chat-reply-action" onclick="chatSetReply('${msgId}','${_esc(d.senderName||'')}','${_esc((d.text||'').substring(0,60))}')">Reply</span>
+            <span class="chat-reply-action" onclick="chatSetReply('${msgId}','${_esc(d.senderName||'')}','${_esc((d.text||'').substring(0,60))}')">↩ Reply</span>
           </div>
         </div>
       </div>`;
@@ -6634,38 +6746,6 @@ function _esc(str) {
 }
 
 /* ── Reactions ── */
-let _pickerMsgId = null;
-let _pickerEl    = null;
-
-function chatShowReactionPicker(msgId, triggerEl) {
-  /* Remove existing picker */
-  const old = document.getElementById('chat-rp');
-  if (old) { old.remove(); if (_pickerMsgId === msgId) { _pickerMsgId = null; return; } }
-
-  _pickerMsgId = msgId;
-  const picker = document.createElement('div');
-  picker.id = 'chat-rp';
-  picker.className = 'chat-reaction-picker';
-  CHAT_REACTIONS.forEach(emoji => {
-    const btn = document.createElement('button');
-    btn.className = 'chat-reaction-picker-btn';
-    btn.textContent = emoji;
-    btn.onclick = () => { chatToggleReaction(msgId, emoji); picker.remove(); _pickerMsgId = null; };
-    picker.appendChild(btn);
-  });
-
-  /* Position near trigger */
-  const rect = triggerEl.getBoundingClientRect();
-  picker.style.cssText = `bottom:${window.innerHeight - rect.top + 6}px;left:${Math.max(8, rect.left - 40)}px;`;
-  document.body.appendChild(picker);
-
-  /* Dismiss on outside tap */
-  setTimeout(() => {
-    document.addEventListener('pointerdown', function dismiss(e) {
-      if (!picker.contains(e.target)) { picker.remove(); _pickerMsgId = null; document.removeEventListener('pointerdown', dismiss); }
-    });
-  }, 0);
-}
 
 function chatToggleReaction(msgId, emoji) {
   if (!_chat.activeRoom || !RP._loginEmail) return;
@@ -6755,8 +6835,6 @@ function chatExitRoom() {
   if (rb) rb.style.display = 'none';
   const rl = document.getElementById('chat-room-list');
   if (rl) rl.style.display = 'block';
-  const old = document.getElementById('chat-rp');
-  if (old) old.remove();
 }
 
 /* ── Pin (admin) ── */
