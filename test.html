@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="rp-icon-180.png">
 <!--
   ═══════════════════════════════════════════════════════════════════
-  RALLY POINT — v2.9 — 2026-04-26
+  RALLY POINT — v2.10 — 2026-04-28
   Approved design · April 2026
   ───────────────────────────────────────────────────────────────────
   This file is the approved reference implementation of the Me screen.
@@ -4390,7 +4390,7 @@ function rnkTogglePin(e) {
 
     <!-- Room items rendered by JS -->
     <div id="chat-rooms-wrap">
-      <div style="padding:14px 18px 6px;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#888780;">YOUR ROOMS</div>
+      <div style="padding:14px 18px 6px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#888780;">YOUR ROOMS</div>
       <div id="chat-rooms-list"></div>
     </div>
   </div>
@@ -4606,6 +4606,7 @@ function rnkTogglePin(e) {
 .chat-room-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
 .chat-room-info { flex: 1; min-width: 0; }
 .chat-room-name { font-size: 18px; font-weight: 700; color: #111110; }
+#chat-hdr-title { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
 .chat-room-preview { font-size: 14px; color: #888780; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chat-room-badge { background: #43E8BF; color: #0A2420; font-size: 11px; font-weight: 800; min-width: 22px; height: 22px; border-radius: 11px; display: flex; align-items: center; justify-content: center; padding: 0 6px; flex-shrink: 0; }
 
@@ -4623,7 +4624,7 @@ function rnkTogglePin(e) {
 .chat-msg-body-wrap { flex: 1; min-width: 0; }
 .chat-msg-header { display: flex; align-items: baseline; gap: 9px; margin-bottom: 4px; }
 .chat-msg-name { font-size: 16px; font-weight: 700; color: #111110; }
-.chat-msg-name.is-me { color: #0A7A5A; }
+.chat-msg-name.is-me { color: #111110; }
 .chat-msg-time { font-size: 12px; color: #C8C5BF; }
 .chat-msg-reply-ref {
   background: #F4F4F2; border-left: 3px solid #43E8BF;
