@@ -1774,15 +1774,6 @@ body {
 }
 .rp-login-google-btn:hover { background: #f0f0f0; }
 .rp-login-google-icon { width: 18px; height: 18px; flex-shrink: 0; }
-.rp-login-phone-btn {
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  width: 100%; padding: 13px 20px;
-  background: #43E8BF; border: none; border-radius: 4px;
-  font-size: 13px; font-weight: 700; letter-spacing: 0.3px;
-  color: #0A2420; cursor: pointer;
-}
-.rp-login-phone-btn:hover { background: #38d4ac; }
-.rp-login-divider { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.3); }
 .rp-login-sub { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.38); text-align: center; }
 </style>
 </head>
@@ -1808,31 +1799,7 @@ body {
       </svg>
       Sign in with Google
     </button>
-    <div class="rp-login-divider">or</div>
-    <!-- Phone sign-in -->
-    <div id="rp-phone-wrap" style="width:100%;">
-      <button class="rp-login-phone-btn" onclick="rpShowPhoneInput()" id="rp-phone-btn">
-        📱 Sign in with Phone
-      </button>
-      <!-- Phone input (hidden until button tapped) -->
-      <div id="rp-phone-input-wrap" style="display:none;margin-top:10px;">
-        <div style="display:flex;gap:8px;margin-bottom:8px;">
-          <input id="rp-phone-number" type="tel" inputmode="tel" placeholder="(555) 000-0000"
-            style="flex:1;padding:12px 14px;font-size:16px;border:none;border-radius:4px;background:#fff;color:#111110;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;outline:none;"
-            oninput="rpFormatPhone(this)">
-        </div>
-        <div id="rp-phone-code-wrap" style="display:none;margin-bottom:8px;">
-          <input id="rp-phone-code" type="tel" inputmode="numeric" placeholder="Enter 6-digit code"
-            style="width:100%;padding:12px 14px;font-size:16px;border:none;border-radius:4px;background:#fff;color:#111110;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;outline:none;box-sizing:border-box;">
-        </div>
-        <button id="rp-phone-submit" onclick="rpPhoneSubmit()"
-          style="width:100%;background:#43E8BF;border:none;border-radius:4px;padding:12px;font-size:13px;font-weight:700;color:#0A2420;cursor:pointer;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;">
-          Send Code
-        </button>
-        <div id="rp-phone-err" style="display:none;font-size:11px;color:#F05252;text-align:center;margin-top:6px;"></div>
-      </div>
-    </div>
-    <!-- Firebase reCAPTCHA container -->
+    <!-- Firebase reCAPTCHA container (invisible) -->
     <div id="rp-recaptcha" style="position:fixed;bottom:0;left:0;visibility:hidden;pointer-events:none;"></div>
     <div class="rp-login-sub">Sunrun reps only</div>
     <div class="rp-login-sub" style="margin-top:8px;opacity:0.5;">v2.9</div>
@@ -4636,73 +4603,79 @@ function rnkTogglePin(e) {
   cursor: pointer; transition: background 0.1s; -webkit-user-select: none;
 }
 .chat-room-item:active { background: #F7F6F3; }
-.chat-room-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.chat-room-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
 .chat-room-info { flex: 1; min-width: 0; }
-.chat-room-name { font-size: 16px; font-weight: 700; color: #111110; }
-.chat-room-preview { font-size: 13px; color: #888780; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.chat-room-badge { background: #43E8BF; color: #0A2420; font-size: 10px; font-weight: 800; min-width: 20px; height: 20px; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 0 5px; flex-shrink: 0; }
+.chat-room-name { font-size: 18px; font-weight: 700; color: #111110; }
+.chat-room-preview { font-size: 14px; color: #888780; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-room-badge { background: #43E8BF; color: #0A2420; font-size: 11px; font-weight: 800; min-width: 22px; height: 22px; border-radius: 11px; display: flex; align-items: center; justify-content: center; padding: 0 6px; flex-shrink: 0; }
 
 /* ── CHAT MESSAGES — Slack/Pronto style ── */
-.chat-msg-group { display: flex; gap: 11px; padding: 7px 14px 2px; }
-.chat-msg-group.consecutive { padding-top: 1px; }
+.chat-msg-group { display: flex; gap: 12px; padding: 8px 16px 3px; }
+.chat-msg-group.consecutive { padding-top: 2px; }
 .chat-avatar {
-  width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+  width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
   background: #1F2647; display: flex; align-items: center; justify-content: center;
-  font-size: 14px; font-weight: 700; color: #A5C9FF; margin-top: 1px;
-  overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  font-size: 16px; font-weight: 700; color: #A5C9FF; margin-top: 1px;
+  overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.18);
 }
 .chat-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.chat-avatar-spacer { width: 38px; flex-shrink: 0; }
+.chat-avatar-spacer { width: 42px; flex-shrink: 0; }
 .chat-msg-body-wrap { flex: 1; min-width: 0; }
-.chat-msg-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; }
-.chat-msg-name { font-size: 14px; font-weight: 700; color: #111110; }
+.chat-msg-header { display: flex; align-items: baseline; gap: 9px; margin-bottom: 4px; }
+.chat-msg-name { font-size: 16px; font-weight: 700; color: #111110; }
 .chat-msg-name.is-me { color: #0A7A5A; }
-.chat-msg-time { font-size: 11px; color: #C8C5BF; }
+.chat-msg-time { font-size: 12px; color: #C8C5BF; }
 .chat-msg-reply-ref {
   background: #F4F4F2; border-left: 3px solid #43E8BF;
-  padding: 5px 10px; margin-bottom: 5px; font-size: 12px; color: #888780;
+  padding: 6px 11px; margin-bottom: 6px; font-size: 13px; color: #888780;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  border-radius: 0 6px 6px 0;
+  border-radius: 0 8px 8px 0;
 }
-.chat-msg-text { font-size: 15px; color: #1A1918; line-height: 1.52; word-break: break-word; }
-.chat-msg-footer { display: flex; align-items: center; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
-.chat-react-existing { display: flex; gap: 4px; flex-wrap: wrap; }
+.chat-msg-text { font-size: 17px; color: #1A1918; line-height: 1.55; word-break: break-word; }
+.chat-msg-footer { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.chat-react-existing { display: flex; gap: 5px; flex-wrap: wrap; }
 .chat-react-pill {
-  font-size: 14px; background: #F4F4F2; border: 1.5px solid #E8E5E0;
-  padding: 3px 9px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;
-  border-radius: 14px; -webkit-user-select: none;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  font-size: 15px; background: #F4F4F2; border: 1.5px solid #E8E5E0;
+  padding: 4px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+  border-radius: 16px; -webkit-user-select: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   -webkit-tap-highlight-color: transparent;
   transition: background 0.1s, border-color 0.12s;
 }
-.chat-react-pill span { font-size: 12px; font-weight: 700; color: #666; }
+.chat-react-pill span { font-size: 13px; font-weight: 700; color: #555; }
 .chat-react-pill.active { background: #E8FDF7; border-color: #43E8BF; }
 .chat-react-pill.active span { color: #0A7A5A; }
+
+/* + reaction trigger — small circle bubble */
 .chat-more-btn {
-  font-size: 18px; color: #C8C5BF; cursor: pointer; padding: 1px 5px;
-  border-radius: 8px; -webkit-user-select: none; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #ECEAE6; border: 1.5px solid #E0DDD6;
+  font-size: 17px; font-weight: 400; color: #888780; line-height: 1;
+  cursor: pointer; -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
+  transition: background 0.1s, border-color 0.12s;
 }
-.chat-more-btn:active { background: #F0EEE8; color: #888780; }
+.chat-more-btn:active { background: #D8D5D0; border-color: #B4B2A9; color: #444441; }
 
 /* Message action sheet */
 .chat-action-sheet { position: fixed; inset: 0; z-index: 1300; background: rgba(0,0,0,0.45); display: flex; flex-direction: column; justify-content: flex-end; }
 .chat-action-sheet-inner { background: #F7F6F3; border-radius: 18px 18px 0 0; padding-bottom: max(20px,env(safe-area-inset-bottom)); overflow: hidden; }
-.chat-action-sheet-emoji { display: flex; justify-content: space-around; align-items: center; padding: 16px 12px 12px; background: #fff; border-bottom: 1px solid #F0EEE8; }
-.chat-action-sheet-emoji button { font-size: 26px; background: none; border: none; cursor: pointer; padding: 6px 8px; border-radius: 50%; -webkit-tap-highlight-color: transparent; }
+.chat-action-sheet-emoji { display: flex; justify-content: space-around; align-items: center; padding: 18px 12px 14px; background: #fff; border-bottom: 1px solid #F0EEE8; }
+.chat-action-sheet-emoji button { font-size: 30px; background: none; border: none; cursor: pointer; padding: 6px 8px; border-radius: 50%; -webkit-tap-highlight-color: transparent; }
 .chat-action-sheet-emoji button:active { background: #F0EEE8; }
-.chat-action-row { display: flex; align-items: center; gap: 14px; padding: 15px 20px; border-bottom: 1px solid #F0EEE8; cursor: pointer; background: #fff; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+.chat-action-row { display: flex; align-items: center; gap: 15px; padding: 17px 22px; border-bottom: 1px solid #F0EEE8; cursor: pointer; background: #fff; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .chat-action-row:last-child { border-bottom: none; }
 .chat-action-row:active { background: #F7F6F3; }
-.chat-action-icon { font-size: 18px; width: 26px; text-align: center; }
-.chat-action-label { font-size: 16px; color: #111110; }
+.chat-action-icon { font-size: 20px; width: 28px; text-align: center; }
+.chat-action-label { font-size: 17px; color: #111110; }
 .chat-action-label.danger { color: #C0392B; }
-.chat-action-cancel { background: #fff; margin: 8px 12px 0; border-radius: 14px; text-align: center; padding: 16px; font-size: 16px; font-weight: 700; color: #444441; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.chat-action-cancel { background: #fff; margin: 8px 12px 0; border-radius: 14px; text-align: center; padding: 17px; font-size: 17px; font-weight: 700; color: #444441; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .chat-action-cancel:active { background: #F0EEE8; }
 
 /* Date separator — pill style */
-.chat-date-sep { display: flex; align-items: center; justify-content: center; padding: 14px 0 6px; }
-.chat-date-sep-inner { font-size: 11px; font-weight: 600; color: #888780; background: #ECEAE6; border-radius: 10px; padding: 3px 11px; }
+.chat-date-sep { display: flex; align-items: center; justify-content: center; padding: 16px 0 8px; }
+.chat-date-sep-inner { font-size: 12px; font-weight: 600; color: #888780; background: #ECEAE6; border-radius: 12px; padding: 4px 13px; }
 
 /* Avatar in prefs */
 .pref-avatar-wrap { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
@@ -6754,7 +6727,7 @@ function chatRenderMessages(docs) {
 
     /* Avatar or spacer */
     const avatarHTML = !isSame
-      ? chatAvatarHTML(d.senderName, sEmail, 38)
+      ? chatAvatarHTML(d.senderName, sEmail, 42)
       : `<div class="chat-avatar-spacer"></div>`;
 
     /* Reply reference */
@@ -6784,7 +6757,7 @@ function chatRenderMessages(docs) {
           <div class="chat-msg-text">${_esc(d.text||'').replace(/\n/g,'<br>')}</div>
           <div class="chat-msg-footer">
             ${activeReacts ? `<div class="chat-react-existing">${activeReacts}</div>` : ''}
-            <span class="chat-more-btn" onclick="chatShowActionSheet('${msgId}','${_esc(d.senderName||'')}','${_esc((d.text||'').substring(0,60))}','${sEmail}')">···</span>
+            <span class="chat-more-btn" onclick="chatShowActionSheet('${msgId}','${_esc(d.senderName||'')}','${_esc((d.text||'').substring(0,60))}','${sEmail}')">+</span>
           </div>
         </div>
       </div>`;
