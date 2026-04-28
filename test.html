@@ -2146,6 +2146,12 @@ function rpRenderGoalCells() {
     </div>
 
 
+    <!-- CHAT ANNOUNCEMENT BANNER -->
+    <div id="me-chat-banner" onclick="drwOpen('chat')" style="display:none;margin:0 16px 12px;background:#1F2647;border-left:3px solid #A5C9FF;padding:11px 14px;cursor:pointer;">
+      <div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(165,201,255,0.6);margin-bottom:3px;">💬 TEAM CHAT</div>
+      <div id="me-chat-banner-text" style="font-size:13px;font-weight:600;color:#fff;line-height:1.35;"></div>
+    </div>
+
     <!-- ZOOM STRIP — pod view -->
     <div class="zoom-strip" onclick="rpZoomToPod()">
       <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M6 10V2M6 2L2 6M6 2l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -3839,6 +3845,14 @@ function rnkTogglePin(e) {
 
     <!-- Main items -->
     <div class="drw-list">
+      <div class="drw-item" onclick="drwOpen('chat')">
+        <div class="drw-item-icon">💬</div>
+        <div class="drw-item-text">
+          <div class="drw-item-label">Chat</div>
+          <div class="drw-item-sub" id="drw-chat-sub">Team rooms</div>
+        </div>
+        <div class="drw-item-arrow">›</div>
+      </div>
       <div class="drw-item" onclick="drwOpen('onboarding')">
         <div class="drw-item-icon">📋</div>
         <div class="drw-item-text">
@@ -4336,6 +4350,91 @@ function rnkTogglePin(e) {
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════════════
+     CHAT SUB-SCREEN
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="sub-screen" id="sub-chat">
+  <div class="sub-hdr">
+    <button class="sub-hdr-back" onclick="chatBack()" aria-label="Back">‹</button>
+    <div class="sub-hdr-title" id="chat-hdr-title">Chat</div>
+    <div id="chat-pin-btn" onclick="chatShowPinModal()" style="display:none;margin-left:auto;background:none;border:1px solid rgba(165,201,255,0.35);color:rgba(165,201,255,0.8);font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:5px 10px;cursor:pointer;">📌 PIN</div>
+  </div>
+
+  <!-- ROOM LIST VIEW -->
+  <div id="chat-room-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+
+    <!-- Coming Soon (Riverside) -->
+    <div id="chat-coming-soon" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:48px 32px;text-align:center;gap:10px;">
+      <div style="font-size:36px;opacity:0.3;">💬</div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#888780;">Chat · Coming Soon</div>
+      <div style="font-size:13px;color:#B4B2A9;line-height:1.5;">Team chat for your office<br>is on its way.</div>
+    </div>
+
+    <!-- Room items rendered by JS -->
+    <div id="chat-rooms-wrap">
+      <div style="padding:14px 18px 6px;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#888780;">YOUR ROOMS</div>
+      <div id="chat-rooms-list"></div>
+    </div>
+  </div>
+
+  <!-- MESSAGE VIEW (hidden until room selected) -->
+  <div id="chat-msg-view" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+
+    <!-- Pinned announcement bar -->
+    <div id="chat-pinned-bar" style="display:none;background:#1F2647;border-bottom:1px solid rgba(165,201,255,0.2);padding:9px 16px;flex-shrink:0;">
+      <div style="font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(165,201,255,0.5);margin-bottom:2px;">📌 PINNED</div>
+      <div id="chat-pinned-text" style="font-size:12px;color:rgba(255,255,255,0.85);line-height:1.4;"></div>
+    </div>
+
+    <!-- Messages scroll area -->
+    <div id="chat-messages" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 0 8px;"></div>
+
+    <!-- Input bar -->
+    <div style="flex-shrink:0;background:#fff;border-top:1px solid #E0DDD6;padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));display:flex;align-items:flex-end;gap:8px;">
+      <textarea id="chat-input" placeholder="Message…" rows="1"
+        style="flex:1;border:1px solid #E0DDD6;background:#F7F6F3;padding:9px 12px;font-size:14px;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:#111110;resize:none;max-height:96px;line-height:1.4;outline:none;-webkit-appearance:none;border-radius:0;"
+        oninput="chatInputGrow(this)"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend();}">
+      </textarea>
+      <button onclick="chatSend()" style="background:#1F2647;border:none;color:#fff;padding:9px 16px;font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;flex-shrink:0;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;align-self:flex-end;">Send</button>
+    </div>
+  </div>
+
+  <!-- Sub-screen nav -->
+  <div class="sub-screen-nav">
+    <div class="ni" onclick="drwCloseSub_toScreen('me')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8.5" r="3.5" stroke="#888780" stroke-width="1.5"/><path d="M4 20c0-3.866 3.134-7 7-7h.5c3.866 0 7 3.134 7 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="ni-lbl">Me</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('squad')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="7" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><circle cx="15" cy="9" r="2.5" stroke="#888780" stroke-width="1.5"/><path d="M2 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/><path d="M15 14.5c2.5 0 5 1.5 5 4.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="ni-lbl">Squad</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('office')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="10" width="18" height="11" rx="1" stroke="#888780" stroke-width="1.5"/><rect x="9.5" y="15" width="5" height="6" rx="0.5" stroke="#888780" stroke-width="1.3"/></svg>
+      <span class="ni-lbl">Office</span>
+    </div>
+    <div class="ni" onclick="drwCloseSub_toScreen('status')">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M11 2l2.5 6.5H20l-5.5 4 2 6.5L11 15.5l-5.5 3.5 2-6.5L2 8.5h6.5z" stroke="#888780" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <span class="ni-lbl">Status</span>
+    </div>
+  </div>
+</div>
+
+<!-- PIN MESSAGE MODAL -->
+<div id="chat-pin-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1200;align-items:flex-end;">
+  <div style="background:#FFFBF0;width:100%;padding:24px 20px 40px;border-top:1px solid #E0DDD6;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#49517D;margin-bottom:12px;">📌 Pin Announcement</div>
+    <textarea id="chat-pin-input" rows="3" placeholder="Type the announcement to pin…"
+      style="width:100%;border:1.5px solid #E0DDD6;background:#fff;padding:10px 12px;font-size:14px;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:#111110;resize:none;outline:none;margin-bottom:12px;-webkit-appearance:none;border-radius:0;"></textarea>
+    <div style="display:flex;gap:10px;">
+      <button onclick="chatPinSave()" style="flex:1;background:#1F2647;color:#fff;border:none;padding:12px;font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;">Save Pin</button>
+      <button onclick="chatPinClear()" style="flex:1;background:none;color:#C0392B;border:1px solid rgba(192,57,43,0.3);padding:12px;font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;">Clear Pin</button>
+      <button onclick="document.getElementById('chat-pin-modal').style.display='none';" style="background:none;border:1px solid #E0DDD6;color:#888780;padding:12px 16px;font-size:12px;cursor:pointer;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- DRAWER + SUB-SCREEN STYLES (fixed overlay) -->
 <style>
 .drw-overlay {
@@ -4471,6 +4570,39 @@ function rnkTogglePin(e) {
 .form-placeholder-icon { font-size: 40px; opacity: 0.3; }
 .form-placeholder-lbl { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #888780; }
 .form-placeholder-sub { font-size: 12px; color: #B4B2A9; }
+
+/* ── CHAT ROOM LIST ── */
+.chat-room-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px; border-bottom: 1px solid #F0EEE8;
+  cursor: pointer; transition: background 0.1s; -webkit-user-select: none;
+}
+.chat-room-item:active { background: #F7F6F3; }
+.chat-room-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.chat-room-name { font-size: 15px; font-weight: 600; color: #111110; flex: 1; }
+.chat-room-preview { font-size: 11px; color: #888780; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+.chat-room-badge {
+  background: #1F2647; color: #A5C9FF;
+  font-size: 10px; font-weight: 700; min-width: 18px; height: 18px;
+  border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  padding: 0 5px; flex-shrink: 0;
+}
+
+/* ── CHAT MESSAGES ── */
+.chat-msg { padding: 6px 16px; }
+.chat-msg-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+.chat-msg-name { font-size: 13px; font-weight: 700; color: #111110; }
+.chat-msg-time { font-size: 10px; color: #B4B2A9; }
+.chat-msg-body { font-size: 14px; color: #333330; line-height: 1.45; }
+.chat-msg-mine .chat-msg-name { color: #1F2647; }
+.chat-msg + .chat-msg { margin-top: 2px; }
+.chat-msg-mine .chat-msg-body { color: #1F2647; }
+.chat-date-sep {
+  text-align: center; font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: #B4B2A9; padding: 10px 0 4px;
+}
 </style>
 
 <!-- DRAWER + SUB-SCREEN JAVASCRIPT -->
@@ -5174,6 +5306,8 @@ function rpRenderAll() {
   rpRenderStatus();
   rpRenderOffice();
   rpHideLoadingScreen();
+  /* Init chat after identity is resolved */
+  if (typeof chatInit === 'function') chatInit();
 }
 
 /* Update all screen headers with real user context */
@@ -6169,6 +6303,393 @@ _fbAuth.onAuthStateChanged(async (fbUser) => {
   };
 })();
 
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   RALLY POINT — CHAT MODULE
+   Firestore-backed real-time team chat.
+   ═══════════════════════════════════════════════════════════════════
+
+   ROOM MEMBERSHIP RULES
+   ─────────────────────
+   OC General  : office === 'Orange County' (all roles)
+   Squad room  : squad matches (all roles)
+   Leaders     : role is Director | Market Leader | Squad Leader | PerformancePro
+   Riverside   : sees "Coming Soon" — no rooms
+
+   ADMIN LIST (can pin announcements, manage rooms)
+   ─────────────────────────────────────────────────
+   To add/remove admins: edit the RP_CHAT_ADMINS array below.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const RP_CHAT_ADMINS = [
+  'adam.howle@sunrun.com',
+  /* Market Leaders */
+  'kendl.hansen@sunrun.com',
+  'erik.oh@sunrun.com',
+  'john.woodfield@sunrun.com',
+  'majhor.cheel@sunrun.com',
+  'chase.hermansen@sunrun.com',
+  'jaxon.junior@sunrun.com',
+];
+
+const RP_LEADER_ROLES = ['Director','Market Leader','Squad Leader','PerformancePro'];
+
+/* Room color dots */
+const ROOM_COLORS = {
+  'oc-general': '#EE8C66',   /* office orange */
+  'leaders':    '#F0C030',   /* gold */
+  '_squad':     '#49517D',   /* squad navy — default for squad rooms */
+};
+
+/* ── Chat state ── */
+const _chat = {
+  rooms:       [],      /* [{id, name, color, firestorePath}] */
+  activeRoom:  null,
+  unsubMsg:    null,    /* Firestore message listener unsub fn */
+  unsubPin:    null,    /* Firestore pin listener unsub fn */
+  isAdmin:     false,
+  msgCache:    {},      /* roomId → last doc snapshot for unread tracking */
+};
+
+/* ─────────────────────────────────────────────
+   INIT — called after RP.user is resolved
+   ───────────────────────────────────────────── */
+function chatInit() {
+  if (!RP.user) return;
+
+  const user   = RP.user;
+  const office = (user.office || '').trim();
+  const squad  = (user.squad  || '').trim();
+  const role   = (user.role   || '').trim();
+  const email  = (RP._loginEmail || '').toLowerCase();
+
+  _chat.isAdmin = RP_CHAT_ADMINS.includes(email);
+
+  /* Riverside — no OC rooms */
+  if (office === 'Riverside') {
+    _chat.rooms = [];
+    chatUpdateDrawerSub('Coming soon for your office');
+    return;
+  }
+
+  const rooms = [];
+
+  /* OC General — everyone in OC */
+  if (office === 'Orange County') {
+    rooms.push({ id: 'oc-general', name: 'OC General', color: ROOM_COLORS['oc-general'] });
+  }
+
+  /* Squad room */
+  if (squad) {
+    rooms.push({ id: 'squad-' + squad.toLowerCase().replace(/[^a-z0-9]/g,'_'),
+                 name: squad, color: ROOM_COLORS['_squad'] });
+  }
+
+  /* Leaders room */
+  if (RP_LEADER_ROLES.includes(role) || _chat.isAdmin) {
+    rooms.push({ id: 'leaders', name: 'Leaders', color: ROOM_COLORS['leaders'] });
+  }
+
+  _chat.rooms = rooms;
+  chatUpdateDrawerSub(rooms.length + ' room' + (rooms.length !== 1 ? 's' : ''));
+  chatLoadPinnedBanner();
+}
+
+function chatUpdateDrawerSub(text) {
+  const el = document.getElementById('drw-chat-sub');
+  if (el) el.textContent = text;
+}
+
+/* ─────────────────────────────────────────────
+   OPEN CHAT — show room list
+   ───────────────────────────────────────────── */
+function chatOpen() {
+  /* Reset to room list view */
+  chatExitRoom();
+
+  const hdr = document.getElementById('chat-hdr-title');
+  if (hdr) hdr.textContent = 'Chat';
+
+  const pinBtn = document.getElementById('chat-pin-btn');
+  if (pinBtn) pinBtn.style.display = 'none';
+
+  /* Riverside */
+  if (_chat.rooms.length === 0) {
+    document.getElementById('chat-rooms-wrap').style.display  = 'none';
+    document.getElementById('chat-coming-soon').style.display = 'flex';
+    return;
+  }
+
+  document.getElementById('chat-coming-soon').style.display = 'none';
+  document.getElementById('chat-rooms-wrap').style.display  = 'block';
+  chatRenderRoomList();
+}
+
+function chatRenderRoomList() {
+  const list = document.getElementById('chat-rooms-list');
+  if (!list) return;
+  list.innerHTML = _chat.rooms.map(r => `
+    <div class="chat-room-item" onclick="chatEnterRoom('${r.id}')">
+      <div class="chat-room-dot" style="background:${r.color};"></div>
+      <div style="flex:1;min-width:0;">
+        <div class="chat-room-name">${r.name}</div>
+        <div class="chat-room-preview" id="room-preview-${r.id}">Tap to open</div>
+      </div>
+      <div class="chat-room-badge" id="room-badge-${r.id}" style="display:none;">0</div>
+      <div style="font-size:14px;color:#C8C5BF;">›</div>
+    </div>
+  `).join('');
+
+  /* Load last message preview for each room */
+  _chat.rooms.forEach(r => chatLoadPreview(r));
+}
+
+function chatLoadPreview(room) {
+  _fbDB.collection('rooms').doc(room.id).collection('messages')
+    .orderBy('ts','desc').limit(1)
+    .get().then(snap => {
+      if (snap.empty) return;
+      const d   = snap.docs[0].data();
+      const el  = document.getElementById('room-preview-' + room.id);
+      if (el) el.textContent = (d.senderName || '?') + ': ' + (d.text || '');
+    }).catch(() => {});
+}
+
+/* ─────────────────────────────────────────────
+   ENTER A ROOM
+   ───────────────────────────────────────────── */
+function chatEnterRoom(roomId) {
+  const room = _chat.rooms.find(r => r.id === roomId);
+  if (!room) return;
+
+  _chat.activeRoom = room;
+
+  /* Update header */
+  const hdr = document.getElementById('chat-hdr-title');
+  if (hdr) hdr.textContent = room.name;
+
+  /* Show/hide pin button */
+  const pinBtn = document.getElementById('chat-pin-btn');
+  if (pinBtn) pinBtn.style.display = _chat.isAdmin ? 'block' : 'none';
+
+  /* Switch views */
+  document.getElementById('chat-room-list').style.display = 'none';
+  const mv = document.getElementById('chat-msg-view');
+  mv.style.display = 'flex';
+
+  /* Clear messages */
+  document.getElementById('chat-messages').innerHTML =
+    '<div style="text-align:center;padding:24px;font-size:11px;color:#B4B2A9;">Loading…</div>';
+
+  /* Subscribe to pinned message */
+  if (_chat.unsubPin) { _chat.unsubPin(); _chat.unsubPin = null; }
+  _chat.unsubPin = _fbDB.collection('rooms').doc(roomId)
+    .onSnapshot(snap => {
+      const data   = snap.data() || {};
+      const pinBar = document.getElementById('chat-pinned-bar');
+      const pinTxt = document.getElementById('chat-pinned-text');
+      if (data.pinned) {
+        pinTxt.textContent = data.pinned;
+        pinBar.style.display = 'block';
+      } else {
+        pinBar.style.display = 'none';
+      }
+    }, () => {});
+
+  /* Subscribe to messages */
+  if (_chat.unsubMsg) { _chat.unsubMsg(); _chat.unsubMsg = null; }
+  _chat.unsubMsg = _fbDB.collection('rooms').doc(roomId)
+    .collection('messages')
+    .orderBy('ts','asc')
+    .limitToLast(100)
+    .onSnapshot(snap => {
+      chatRenderMessages(snap.docs);
+    }, err => {
+      console.error('[Chat] Message listener error:', err);
+    });
+}
+
+/* ─────────────────────────────────────────────
+   RENDER MESSAGES
+   ───────────────────────────────────────────── */
+function chatRenderMessages(docs) {
+  const container = document.getElementById('chat-messages');
+  if (!container) return;
+
+  const myName = RP.user ? RP.user.name : '';
+  let html     = '';
+  let lastDate = '';
+
+  docs.forEach(doc => {
+    const d    = doc.data();
+    const ts   = d.ts ? d.ts.toDate() : new Date();
+    const date = ts.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+    const time = ts.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+    const mine = d.senderName === myName;
+
+    if (date !== lastDate) {
+      html += `<div class="chat-date-sep">${date}</div>`;
+      lastDate = date;
+    }
+
+    html += `
+      <div class="chat-msg ${mine ? 'chat-msg-mine' : ''}">
+        <div class="chat-msg-header">
+          <span class="chat-msg-name">${_esc(d.senderName || '?')}</span>
+          <span class="chat-msg-time">${time}</span>
+        </div>
+        <div class="chat-msg-body">${_esc(d.text || '').replace(/\n/g,'<br>')}</div>
+      </div>`;
+  });
+
+  if (!html) {
+    html = '<div style="text-align:center;padding:32px;font-size:12px;color:#B4B2A9;">No messages yet.<br>Say something! 👋</div>';
+  }
+
+  container.innerHTML = html;
+  container.scrollTop = container.scrollHeight;
+}
+
+function _esc(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ─────────────────────────────────────────────
+   SEND MESSAGE
+   ───────────────────────────────────────────── */
+function chatSend() {
+  const input = document.getElementById('chat-input');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text || !_chat.activeRoom || !RP.user) return;
+
+  input.value = '';
+  input.style.height = '';
+
+  _fbDB.collection('rooms').doc(_chat.activeRoom.id)
+    .collection('messages')
+    .add({
+      text:       text,
+      senderName: RP.user.name,
+      senderEmail:RP._loginEmail || '',
+      ts:         firebase.firestore.FieldValue.serverTimestamp(),
+    })
+    .catch(err => console.error('[Chat] Send failed:', err));
+}
+
+function chatInputGrow(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 96) + 'px';
+}
+
+/* ─────────────────────────────────────────────
+   NAVIGATION
+   ───────────────────────────────────────────── */
+function chatBack() {
+  if (_chat.activeRoom) {
+    chatExitRoom();
+    document.getElementById('chat-hdr-title').textContent = 'Chat';
+    document.getElementById('chat-pin-btn').style.display = 'none';
+  } else {
+    drwCloseSub('chat');
+  }
+}
+
+function chatExitRoom() {
+  if (_chat.unsubMsg) { _chat.unsubMsg(); _chat.unsubMsg = null; }
+  if (_chat.unsubPin) { _chat.unsubPin(); _chat.unsubPin = null; }
+  _chat.activeRoom = null;
+  const mv = document.getElementById('chat-msg-view');
+  if (mv) mv.style.display = 'none';
+  const rl = document.getElementById('chat-room-list');
+  if (rl) rl.style.display = 'block';
+}
+
+/* ─────────────────────────────────────────────
+   PIN ANNOUNCEMENT (admin only)
+   ───────────────────────────────────────────── */
+function chatShowPinModal() {
+  if (!_chat.isAdmin || !_chat.activeRoom) return;
+  /* Pre-fill with current pinned text */
+  _fbDB.collection('rooms').doc(_chat.activeRoom.id).get().then(snap => {
+    const pinInput = document.getElementById('chat-pin-input');
+    if (pinInput) pinInput.value = (snap.data() || {}).pinned || '';
+  });
+  document.getElementById('chat-pin-modal').style.display = 'flex';
+}
+
+function chatPinSave() {
+  if (!_chat.isAdmin || !_chat.activeRoom) return;
+  const text = (document.getElementById('chat-pin-input').value || '').trim();
+  if (!text) return;
+  _fbDB.collection('rooms').doc(_chat.activeRoom.id)
+    .set({ pinned: text }, { merge: true })
+    .then(() => {
+      document.getElementById('chat-pin-modal').style.display = 'none';
+      chatLoadPinnedBanner();
+    })
+    .catch(err => console.error('[Chat] Pin save failed:', err));
+}
+
+function chatPinClear() {
+  if (!_chat.isAdmin || !_chat.activeRoom) return;
+  _fbDB.collection('rooms').doc(_chat.activeRoom.id)
+    .set({ pinned: '' }, { merge: true })
+    .then(() => { document.getElementById('chat-pin-modal').style.display = 'none'; })
+    .catch(err => console.error('[Chat] Pin clear failed:', err));
+}
+
+/* ─────────────────────────────────────────────
+   ME SCREEN BANNER — reads oc-general pinned msg
+   ───────────────────────────────────────────── */
+function chatLoadPinnedBanner() {
+  /* Use oc-general pinned message for the Me screen banner */
+  const bannerRoom = 'oc-general';
+  _fbDB.collection('rooms').doc(bannerRoom)
+    .get().then(snap => {
+      const pinned = (snap.data() || {}).pinned || '';
+      const banner = document.getElementById('me-chat-banner');
+      const text   = document.getElementById('me-chat-banner-text');
+      if (!banner) return;
+      if (pinned) {
+        text.textContent = pinned;
+        banner.style.display = 'block';
+      } else {
+        banner.style.display = 'none';
+      }
+    }).catch(() => {});
+}
+
+/* ─────────────────────────────────────────────
+   HOOK INTO drwOpen
+   ───────────────────────────────────────────── */
+const _origDrwOpen = window.drwOpen;
+window.drwOpen = function(name) {
+  if (name === 'chat') {
+    document.getElementById('drw-overlay').classList.remove('open');
+    setTimeout(() => {
+      document.getElementById('sub-chat').classList.add('open');
+      chatOpen();
+    }, 120);
+    return;
+  }
+  _origDrwOpen(name);
+};
+
+/* Close chat sub-screen via drwCloseSub */
+const _origDrwCloseSub = window.drwCloseSub;
+window.drwCloseSub = function(name) {
+  if (name === 'chat') {
+    chatExitRoom();
+    document.getElementById('sub-chat').classList.remove('open');
+    return;
+  }
+  _origDrwCloseSub(name);
+};
+
+/* chatInit is called from rpRenderAll after roster is resolved */
 </script>
 
 <script>
