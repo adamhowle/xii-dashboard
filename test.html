@@ -4631,61 +4631,82 @@ function rnkTogglePin(e) {
 
 /* ── CHAT ROOM LIST ── */
 .chat-room-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 18px; border-bottom: 1px solid #F0EEE8;
+  display: flex; align-items: center; gap: 13px;
+  padding: 15px 18px; border-bottom: 1px solid #F0EEE8;
   cursor: pointer; transition: background 0.1s; -webkit-user-select: none;
 }
 .chat-room-item:active { background: #F7F6F3; }
 .chat-room-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.chat-room-name { font-size: 15px; font-weight: 600; color: #111110; flex: 1; }
-.chat-room-preview { font-size: 11px; color: #888780; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
-.chat-room-badge { background: #43E8BF; color: #0A2420; font-size: 10px; font-weight: 800; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 5px; flex-shrink: 0; }
+.chat-room-info { flex: 1; min-width: 0; }
+.chat-room-name { font-size: 16px; font-weight: 700; color: #111110; }
+.chat-room-preview { font-size: 13px; color: #888780; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-room-badge { background: #43E8BF; color: #0A2420; font-size: 10px; font-weight: 800; min-width: 20px; height: 20px; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 0 5px; flex-shrink: 0; }
 
-/* ── CHAT MESSAGES ── */
-.chat-msg { display: flex; gap: 9px; padding: 5px 14px; }
-.chat-msg:active { background: #F7F6F3; }
+/* ── CHAT MESSAGES — Slack/Pronto style ── */
+.chat-msg-group { display: flex; gap: 11px; padding: 7px 14px 2px; }
+.chat-msg-group.consecutive { padding-top: 1px; }
 .chat-avatar {
-  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
   background: #1F2647; display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; color: #A5C9FF; margin-top: 2px;
-  overflow: hidden;
+  font-size: 14px; font-weight: 700; color: #A5C9FF; margin-top: 1px;
+  overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.15);
 }
 .chat-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.chat-avatar-spacer { width: 38px; flex-shrink: 0; }
 .chat-msg-body-wrap { flex: 1; min-width: 0; }
-.chat-msg-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
-.chat-msg-name { font-size: 13px; font-weight: 700; color: #111110; }
+.chat-msg-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; }
+.chat-msg-name { font-size: 14px; font-weight: 700; color: #111110; }
 .chat-msg-name.is-me { color: #0A7A5A; }
-.chat-msg-time { font-size: 10px; color: #B4B2A9; }
+.chat-msg-time { font-size: 11px; color: #C8C5BF; }
 .chat-msg-reply-ref {
-  background: #F0F0EC; border-left: 3px solid #43E8BF;
-  padding: 5px 9px; margin-bottom: 4px; font-size: 11px; color: #888780;
+  background: #F4F4F2; border-left: 3px solid #43E8BF;
+  padding: 5px 10px; margin-bottom: 5px; font-size: 12px; color: #888780;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  border-radius: 0 6px 6px 0;
 }
-.chat-msg-text { font-size: 15px; color: #222220; line-height: 1.45; word-break: break-word; }
-.chat-msg-actions { display: flex; gap: 4px; margin-top: 5px; align-items: center; flex-wrap: wrap; }
-.chat-react-row { display: flex; gap: 3px; flex-wrap: wrap; }
+.chat-msg-text { font-size: 15px; color: #1A1918; line-height: 1.52; word-break: break-word; }
+.chat-msg-footer { display: flex; align-items: center; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
+.chat-react-existing { display: flex; gap: 4px; flex-wrap: wrap; }
 .chat-react-pill {
-  font-size: 13px; background: #F4F4F2; border: 1px solid #E0DDD6;
-  padding: 2px 7px; cursor: pointer; display: inline-flex; align-items: center; gap: 2px;
-  color: #444441; -webkit-user-select: none; border-radius: 12px;
-  transition: background 0.1s, border-color 0.1s;
+  font-size: 14px; background: #F4F4F2; border: 1.5px solid #E8E5E0;
+  padding: 3px 9px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;
+  border-radius: 14px; -webkit-user-select: none;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
   -webkit-tap-highlight-color: transparent;
+  transition: background 0.1s, border-color 0.12s;
 }
-.chat-react-pill span { font-size: 11px; font-weight: 700; color: #444441; }
+.chat-react-pill span { font-size: 12px; font-weight: 700; color: #666; }
 .chat-react-pill.active { background: #E8FDF7; border-color: #43E8BF; }
 .chat-react-pill.active span { color: #0A7A5A; }
-.chat-reply-action {
-  font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
-  color: #B4B2A9; cursor: pointer; padding: 3px 6px;
-  -webkit-user-select: none; border-radius: 8px;
+.chat-more-btn {
+  font-size: 18px; color: #C8C5BF; cursor: pointer; padding: 1px 5px;
+  border-radius: 8px; -webkit-user-select: none; line-height: 1;
   -webkit-tap-highlight-color: transparent;
 }
-.chat-reply-action:active { color: #0A7A5A; background: #F0FDF9; }
-.chat-date-sep { text-align: center; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #B4B2A9; padding: 10px 0 4px; }
+.chat-more-btn:active { background: #F0EEE8; color: #888780; }
+
+/* Message action sheet */
+.chat-action-sheet { position: fixed; inset: 0; z-index: 1300; background: rgba(0,0,0,0.45); display: flex; flex-direction: column; justify-content: flex-end; }
+.chat-action-sheet-inner { background: #F7F6F3; border-radius: 18px 18px 0 0; padding-bottom: max(20px,env(safe-area-inset-bottom)); overflow: hidden; }
+.chat-action-sheet-emoji { display: flex; justify-content: space-around; align-items: center; padding: 16px 12px 12px; background: #fff; border-bottom: 1px solid #F0EEE8; }
+.chat-action-sheet-emoji button { font-size: 26px; background: none; border: none; cursor: pointer; padding: 6px 8px; border-radius: 50%; -webkit-tap-highlight-color: transparent; }
+.chat-action-sheet-emoji button:active { background: #F0EEE8; }
+.chat-action-row { display: flex; align-items: center; gap: 14px; padding: 15px 20px; border-bottom: 1px solid #F0EEE8; cursor: pointer; background: #fff; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+.chat-action-row:last-child { border-bottom: none; }
+.chat-action-row:active { background: #F7F6F3; }
+.chat-action-icon { font-size: 18px; width: 26px; text-align: center; }
+.chat-action-label { font-size: 16px; color: #111110; }
+.chat-action-label.danger { color: #C0392B; }
+.chat-action-cancel { background: #fff; margin: 8px 12px 0; border-radius: 14px; text-align: center; padding: 16px; font-size: 16px; font-weight: 700; color: #444441; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.chat-action-cancel:active { background: #F0EEE8; }
+
+/* Date separator — pill style */
+.chat-date-sep { display: flex; align-items: center; justify-content: center; padding: 14px 0 6px; }
+.chat-date-sep-inner { font-size: 11px; font-weight: 600; color: #888780; background: #ECEAE6; border-radius: 10px; padding: 3px 11px; }
 
 /* Avatar in prefs */
 .pref-avatar-wrap { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
-.pref-avatar-preview { width: 52px; height: 52px; border-radius: 50%; background: #1F2647; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: #A5C9FF; overflow: hidden; flex-shrink: 0; }
+.pref-avatar-preview { width: 52px; height: 52px; border-radius: 50%; background: #1F2647; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: #A5C9FF; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
 .pref-avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
 </style>
 
@@ -6649,11 +6670,11 @@ function chatRenderRoomList() {
   list.innerHTML = _chat.rooms.map(r => `
     <div class="chat-room-item" onclick="chatEnterRoom('${r.id}')">
       <div class="chat-room-dot" style="background:${r.color};"></div>
-      <div style="flex:1;min-width:0;">
+      <div class="chat-room-info">
         <div class="chat-room-name">${r.name}</div>
         <div class="chat-room-preview" id="room-preview-${r.id}">Tap to open</div>
       </div>
-      <div style="font-size:14px;color:#C8C5BF;">›</div>
+      <div style="font-size:16px;color:#C8C5BF;">›</div>
     </div>
   `).join('');
   _chat.rooms.forEach(r => chatLoadPreview(r));
@@ -6723,47 +6744,47 @@ function chatRenderMessages(docs) {
     const time   = ts.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
     const isMe   = d.senderName === myName;
     const sEmail = (d.senderEmail || '').toLowerCase();
-    const showHdr= d.senderName !== lastSender;
+    const isSame = d.senderName === lastSender;
 
+    /* Date separator — pill style */
     if (date !== lastDate) {
-      html += `<div class="chat-date-sep">${date}</div>`;
+      html += `<div class="chat-date-sep"><div class="chat-date-sep-inner">${date}</div></div>`;
       lastDate = date; lastSender = '';
     }
 
-    /* Avatar (only on first message in a run) */
-    const avatarHTML = showHdr
-      ? chatAvatarHTML(d.senderName, sEmail)
-      : `<div style="width:34px;flex-shrink:0;"></div>`;
+    /* Avatar or spacer */
+    const avatarHTML = !isSame
+      ? chatAvatarHTML(d.senderName, sEmail, 38)
+      : `<div class="chat-avatar-spacer"></div>`;
 
     /* Reply reference */
     const replyHTML = d.replyToText
       ? `<div class="chat-msg-reply-ref">↩ <b>${_esc(d.replyToName||'')}</b>: ${_esc(d.replyToText||'')}</div>`
       : '';
 
-    /* Reactions */
+    /* Active reactions only */
     const reactions = d.reactions || {};
-    const reactHTML = `<div class="chat-react-row">` +
-      CHAT_REACTIONS.map(emoji => {
+    const activeReacts = CHAT_REACTIONS
+      .filter(e => (reactions[e] || []).length > 0)
+      .map(emoji => {
         const voters = reactions[emoji] || [];
-        const count  = voters.length;
         const iMine  = voters.includes(myEmail);
-        return `<button class="chat-react-pill ${iMine?'active':''}" onclick="chatToggleReaction('${msgId}','${emoji}')">${emoji}${count > 0 ? ' <span>'+count+'</span>' : ''}</button>`;
-      }).join('') +
-    `</div>`;
+        return `<button class="chat-react-pill ${iMine?'active':''}" onclick="chatToggleReaction('${msgId}','${emoji}')">${emoji} <span>${voters.length}</span></button>`;
+      }).join('');
 
     html += `
-      <div class="chat-msg" id="msg-${msgId}">
+      <div class="chat-msg-group${isSame?' consecutive':''}" id="msg-${msgId}">
         ${avatarHTML}
         <div class="chat-msg-body-wrap">
-          ${showHdr ? `<div class="chat-msg-header">
-            <span class="chat-msg-name ${isMe?'is-me':''}">${_esc(d.senderName||'?')}</span>
+          ${!isSame ? `<div class="chat-msg-header">
+            <span class="chat-msg-name${isMe?' is-me':''}">${_esc(d.senderName||'?')}</span>
             <span class="chat-msg-time">${time}</span>
           </div>` : ''}
           ${replyHTML}
           <div class="chat-msg-text">${_esc(d.text||'').replace(/\n/g,'<br>')}</div>
-          <div class="chat-msg-actions">
-            ${reactHTML}
-            <span class="chat-reply-action" onclick="chatSetReply('${msgId}','${_esc(d.senderName||'')}','${_esc((d.text||'').substring(0,60))}')">↩ Reply</span>
+          <div class="chat-msg-footer">
+            ${activeReacts ? `<div class="chat-react-existing">${activeReacts}</div>` : ''}
+            <span class="chat-more-btn" onclick="chatShowActionSheet('${msgId}','${_esc(d.senderName||'')}','${_esc((d.text||'').substring(0,60))}','${sEmail}')">···</span>
           </div>
         </div>
       </div>`;
@@ -6772,10 +6793,10 @@ function chatRenderMessages(docs) {
   });
 
   if (!html) {
-    html = '<div style="text-align:center;padding:32px;font-size:12px;color:#B4B2A9;">No messages yet.<br>Say something! 👋</div>';
+    html = '<div style="text-align:center;padding:40px 32px;font-size:14px;color:#B4B2A9;line-height:1.6;">No messages yet.<br>Be the first to say something 👋</div>';
   }
 
-  const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
+  const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 80;
   container.innerHTML = html;
   if (wasAtBottom) container.scrollTop = container.scrollHeight;
 }
@@ -6784,7 +6805,65 @@ function _esc(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-/* ── Reactions ── */
+/* ── Message action sheet (replaces always-visible reaction row) ── */
+let _actionMsgId = null;
+
+function chatShowActionSheet(msgId, senderName, text, senderEmail) {
+  _actionMsgId = msgId;
+  const isOwn = senderName === (RP.user ? RP.user.name : '');
+
+  const sheet = document.createElement('div');
+  sheet.className = 'chat-action-sheet';
+  sheet.id = 'chat-action-sheet';
+
+  sheet.innerHTML = `
+    <div class="chat-action-sheet-inner">
+      <div class="chat-action-sheet-emoji">
+        ${CHAT_REACTIONS.map(e => `<button onclick="chatReactFromSheet('${msgId}','${e}')">${e}</button>`).join('')}
+      </div>
+      <div class="chat-action-row" onclick="chatReplyFromSheet('${msgId}','${_esc(senderName)}','${_esc(text)}')">
+        <div class="chat-action-icon">↩</div>
+        <div class="chat-action-label">Reply</div>
+      </div>
+      ${isOwn ? `<div class="chat-action-row" onclick="chatDeleteMsg('${msgId}')">
+        <div class="chat-action-icon">🗑️</div>
+        <div class="chat-action-label danger">Delete</div>
+      </div>` : ''}
+    </div>
+    <div class="chat-action-cancel" onclick="chatCloseActionSheet()">Cancel</div>
+  `;
+
+  sheet.addEventListener('click', e => {
+    if (e.target === sheet) chatCloseActionSheet();
+  });
+
+  document.body.appendChild(sheet);
+}
+
+function chatCloseActionSheet() {
+  const s = document.getElementById('chat-action-sheet');
+  if (s) s.remove();
+  _actionMsgId = null;
+}
+
+function chatReactFromSheet(msgId, emoji) {
+  chatCloseActionSheet();
+  chatToggleReaction(msgId, emoji);
+}
+
+function chatReplyFromSheet(msgId, senderName, text) {
+  chatCloseActionSheet();
+  chatSetReply(msgId, senderName, text);
+}
+
+function chatDeleteMsg(msgId) {
+  chatCloseActionSheet();
+  if (!_chat.activeRoom) return;
+  _fbDB.collection('rooms').doc(_chat.activeRoom.id)
+    .collection('messages').doc(msgId)
+    .delete()
+    .catch(err => console.error('[Chat] Delete failed:', err));
+}
 
 function chatToggleReaction(msgId, emoji) {
   if (!_chat.activeRoom || !RP._loginEmail) return;
