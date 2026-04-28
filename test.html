@@ -94,6 +94,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<!-- ── GIS — used only for Sheets API OAuth token (not for sign-in) ── -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -4755,10 +4757,17 @@ const RP = {
 };
 
 /* ═══════════════════════════════════════════════════════════════════
-   AUTH — Firebase + Google Sign-In
-   Firebase owns session persistence (no manual localStorage token cache).
-   GoogleAuthProvider with the Sheets scope gives us an OAuth access
-   token we can use directly against the Sheets REST API — no GIS needed.
+   AUTH — Firebase (identity) + GIS (Sheets OAuth token)
+   ───────────────────────────────────────────────────────────────────
+   Firebase handles sign-in, session persistence, and user identity.
+   GIS token client handles the Sheets API OAuth token separately —
+   this is necessary because signInWithPopup on mobile Safari does not
+   reliably return credentialFromResult().accessToken.
+
+   Flow:
+     1. Firebase signInWithPopup  → we know who the user is
+     2. GIS requestAccessToken    → we get a Sheets API token
+     3. rpLoadAll()               → data loads as before
    ═══════════════════════════════════════════════════════════════════ */
 
 /* ── Firebase init ── */
@@ -4775,29 +4784,79 @@ const _fbApp  = firebase.initializeApp(RP_FIREBASE_CONFIG);
 const _fbAuth = firebase.auth();
 const _fbDB   = firebase.firestore();
 
-/* GoogleAuthProvider — request Sheets scope so we get an access token */
+/* GoogleAuthProvider — identity only, no extra scopes needed here */
 const _googleProvider = new firebase.auth.GoogleAuthProvider();
-_googleProvider.addScope('https://www.googleapis.com/auth/spreadsheets.readonly');
+_googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+/* GIS token client — Sheets API access only, initialised once GIS loads */
+let _tokenClient = null;
+let _gisReady    = false;
+
+function _initGIS() {
+  if (!window.google || !window.google.accounts) return;
+  _tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: RP_CONFIG.CLIENT_ID,
+    scope:     'https://www.googleapis.com/auth/spreadsheets.readonly',
+    callback:  async (resp) => {
+      if (resp.error) {
+        console.error('[RP GIS] Token error:', resp.error);
+        rpShowAuthError('Could not get data access. Please try signing in again.');
+        return;
+      }
+      RP.token = resp.access_token;
+      console.log('[RP Auth] Sheets token obtained via GIS');
+      await rpLoadAll();
+    },
+    error_callback: (err) => {
+      console.error('[RP GIS] Token client error:', err);
+      rpShowAuthError('Could not get data access. Please try signing in again.');
+    },
+  });
+  _gisReady = true;
+  console.log('[RP GIS] Token client ready');
+}
+
+/* Request a Sheets token via GIS (called after Firebase confirms identity) */
+function _requestSheetsToken(forceConsent) {
+  if (!_gisReady || !_tokenClient) {
+    /* GIS not loaded yet — poll briefly then retry */
+    setTimeout(() => {
+      _initGIS();
+      if (_gisReady) {
+        _tokenClient.requestAccessToken({ prompt: forceConsent ? 'consent' : '' });
+      } else {
+        rpShowAuthError('Auth service not ready. Please reload and try again.');
+      }
+    }, 500);
+    return;
+  }
+  _tokenClient.requestAccessToken({ prompt: forceConsent ? 'consent' : '' });
+}
 
 /* ── Sign-in — called by the login button ── */
 async function rpSignIn() {
+  /* Clear any previous error */
+  const prev = document.getElementById('rp-auth-err');
+  if (prev) prev.remove();
+
   try {
+    /* Step 1: Firebase sign-in for identity */
     const result   = await _fbAuth.signInWithPopup(_googleProvider);
-    const cred     = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
-    RP.token       = cred.accessToken;   /* OAuth token good for Sheets API */
     RP._loginEmail = result.user.email;
     RP._fbUser     = result.user;
-    console.log('[RP Auth] Signed in:', RP._loginEmail);
-    await rpLoadAll();
+    console.log('[RP Auth] Firebase sign-in OK:', RP._loginEmail);
+
+    /* Step 2: GIS token for Sheets — silent first, consent if needed */
+    _requestSheetsToken(false);
+
   } catch(err) {
     if (err.code === 'auth/popup-closed-by-user') {
       console.warn('[RP Auth] Popup closed before completing sign-in');
     } else if (err.code === 'auth/popup-blocked') {
-      console.error('[RP Auth] Popup blocked by browser');
       rpShowAuthError('Pop-up blocked. Please allow pop-ups for this site and try again.');
     } else {
       console.error('[RP Auth] Sign-in error:', err);
-      rpShowAuthError(err.message);
+      rpShowAuthError('Sign-in failed. Please try again.');
     }
   }
 }
@@ -4805,10 +4864,13 @@ async function rpSignIn() {
 /* ── Sign-out ── */
 async function rpSignOut() {
   try { await _fbAuth.signOut(); } catch(e) { console.warn('[RP Auth] Sign-out error:', e); }
-  RP.token      = null;
-  RP.user       = null;
+  if (RP.token) {
+    try { google.accounts.oauth2.revoke(RP.token); } catch(e) {}
+  }
+  RP.token       = null;
+  RP.user        = null;
   RP._loginEmail = null;
-  RP._fbUser    = null;
+  RP._fbUser     = null;
   rpShowLoginScreen();
 }
 
@@ -6025,13 +6087,27 @@ function rpShowErrorScreen(msg) {
    login screen entirely. Tokens last ~3600s; we treat anything with
    >5min remaining as still valid.
    ═══════════════════════════════════════════════════════════════════ */
+/* ── GIS auto-init once the library loads ── */
+(function() {
+  function pollGIS() {
+    if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+      _initGIS();
+    } else {
+      setTimeout(pollGIS, 100);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', pollGIS);
+  } else {
+    pollGIS();
+  }
+})();
+
 /* ═══════════════════════════════════════════════════════════════════
    BOOT — Firebase onAuthStateChanged
-   Firebase restores the session automatically on reload. When a user
-   is already signed in we get their cached credential immediately.
-   For a returning user we call getIdToken() which also silently
-   refreshes the Firebase session, then use the GoogleAuthProvider
-   credential to get a fresh Sheets API access token.
+   Firebase restores the session automatically on reload.
+   When a user is already signed in we know their identity immediately.
+   We then request a fresh Sheets token silently via GIS.
    ═══════════════════════════════════════════════════════════════════ */
 _fbAuth.onAuthStateChanged(async (fbUser) => {
   if (!fbUser) {
@@ -6040,44 +6116,15 @@ _fbAuth.onAuthStateChanged(async (fbUser) => {
     return;
   }
 
-  /* User is signed in (fresh login or restored session) */
+  /* User is signed in (fresh login handled by rpSignIn, or restored session) */
   RP._loginEmail = fbUser.email;
   RP._fbUser     = fbUser;
   console.log('[RP Boot] Firebase session restored for', fbUser.email);
 
-  /* Get a fresh OAuth access token for Sheets API.
-     getIdToken() refreshes the Firebase credential; then we call
-     GoogleAuthProvider.credential() with the id token to get the
-     OAuth access token we need for Sheets REST calls. */
-  try {
-    const idToken   = await fbUser.getIdToken(/* forceRefresh= */ false);
-    const oauthCred = firebase.auth.GoogleAuthProvider.credential(idToken);
-    /* Re-sign in silently to get an access token */
-    const result    = await _fbAuth.signInWithCredential(oauthCred);
-    const cred      = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
-    if (cred && cred.accessToken) {
-      RP.token = cred.accessToken;
-    } else {
-      /* Fallback: the access token may be null on silent restore.
-         Prompt user to sign in again so we get a fresh token. */
-      console.warn('[RP Boot] No access token on restore — prompting re-sign-in');
-      await _fbAuth.signOut();
-      rpShowLoginScreen();
-      return;
-    }
-  } catch(err) {
-    console.warn('[RP Boot] Could not refresh token:', err.message);
-    /* Token refresh failed — clear and show login */
-    await _fbAuth.signOut();
-    rpShowLoginScreen();
-    return;
-  }
-
-  /* Load all sheet data */
-  rpLoadAll().catch((err) => {
-    console.error('[RP Boot] Data load failed:', err);
-    rpShowLoginScreen();
-  });
+  /* Request a Sheets token silently (no consent prompt for returning users).
+     GIS may not be ready yet if this fires before the GIS script loads —
+     _requestSheetsToken handles that with a short poll. */
+  _requestSheetsToken(false);
 });
 
 /* ═══════════════════════════════════════════════════════════════════
