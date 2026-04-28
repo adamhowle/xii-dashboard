@@ -3937,6 +3937,10 @@ function rnkTogglePin(e) {
         <div class="drw-item-icon">❓</div>
         <div class="drw-footer-label">Help &amp; Feedback</div>
       </div>
+      <div class="drw-footer-item" onclick="drwSignIn()" id="drw-signin-row" style="display:none;">
+        <div class="drw-item-icon">🔑</div>
+        <div class="drw-footer-label" style="color:#43E8BF;">Sign In</div>
+      </div>
       <div class="drw-footer-item drw-signout" onclick="drwSignOut()">
         <div class="drw-item-icon">🚪</div>
         <div class="drw-footer-label" id="drw-signout-btn" data-confirm="0">Sign Out</div>
@@ -4895,7 +4899,11 @@ function drwCloseSub_toScreen(screenTarget) {
   rpSwitch(screenTarget);
 }
 
-function drwSignOut() {
+/* Backdoor sign-in from drawer — shown when data hasn't loaded */
+function drwSignIn() {
+  document.getElementById('drw-overlay').classList.remove('open');
+  rpShowLoginScreen();
+}
   /* iOS Safari blocks confirm()/alert() — use inline confirmation */
   const btn = document.getElementById('drw-signout-btn');
   if (!btn) return;
@@ -6354,6 +6362,9 @@ function rpShowLoadingScreen() {
 function rpHideLoadingScreen() {
   console.log('Data loaded.');
   rpHideLoginScreen();
+  /* Hide backdoor sign-in — data loaded successfully */
+  const sr = document.getElementById('drw-signin-row');
+  if (sr) sr.style.display = 'none';
   /* Notify PWA nudge and other listeners that data is ready */
   window.dispatchEvent(new Event('rp:dataLoaded'));
 }
@@ -6364,6 +6375,9 @@ function rpShowLoginScreen() {
   } else {
     console.error('[RP] rpShowLoginScreen: #rp-login-screen not in DOM yet — timing issue');
   }
+  /* Show backdoor sign-in in drawer while data isn't loaded */
+  const sr = document.getElementById('drw-signin-row');
+  if (sr) sr.style.display = 'flex';
 }
 function rpHideLoginScreen() {
   const s = document.getElementById('rp-login-screen');
@@ -6418,13 +6432,17 @@ function rpShowErrorScreen(msg) {
 
 /* ═══════════════════════════════════════════════════════════════════
    BOOT — Firebase onAuthStateChanged
-   Wrapped in DOMContentLoaded so the login screen is guaranteed to
-   exist before we try to show or hide it.
+   Always show the login screen first. Hide it only when data loads.
+   This prevents the "blank wireframe" state when silent token fails.
    ═══════════════════════════════════════════════════════════════════ */
 function _rpBoot() {
+  /* Always show login screen immediately on load — rpHideLoginScreen()
+     is called inside rpHideLoadingScreen() only after data is ready */
+  rpShowLoginScreen();
+
   _fbAuth.onAuthStateChanged(async (fbUser) => {
     if (!fbUser) {
-      rpShowLoginScreen();
+      /* Confirmed not signed in — login screen already showing */
       return;
     }
 
@@ -6433,7 +6451,8 @@ function _rpBoot() {
     RP._fbUser     = fbUser;
     console.log('[RP Boot] Firebase session for', fbUser.email || fbUser.phoneNumber);
 
-    /* Request Sheets token silently via GIS */
+    /* Request Sheets token — if silent grant fails, login screen stays
+       visible and user can tap Sign In to try again explicitly */
     _requestSheetsToken(false);
   });
 }
