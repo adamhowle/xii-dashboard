@@ -1833,7 +1833,7 @@ body {
       </div>
     </div>
     <!-- Firebase reCAPTCHA container -->
-    <div id="rp-recaptcha"></div>
+    <div id="rp-recaptcha" style="position:fixed;bottom:0;left:0;visibility:hidden;pointer-events:none;"></div>
     <div class="rp-login-sub">Sunrun reps only</div>
     <div class="rp-login-sub" style="margin-top:8px;opacity:0.5;">v2.8</div>
   </div>
@@ -5007,6 +5007,21 @@ _googleProvider.setCustomParameters({ prompt: 'select_account' });
 let _tokenClient = null;
 let _gisReady    = false;
 
+/* reCAPTCHA — initialize invisible verifier as soon as DOM is ready */
+let _recaptchaVerifier = null;
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    _recaptchaVerifier = new firebase.auth.RecaptchaVerifier('rp-recaptcha', {
+      size: 'invisible',
+      callback: () => {},
+    });
+    /* Pre-render so it stays hidden and doesn't flash */
+    _recaptchaVerifier.render().catch(() => {});
+  } catch(e) {
+    console.warn('[RP] reCAPTCHA init failed:', e);
+  }
+});
+
 function _initGIS() {
   if (!window.google || !window.google.accounts) return;
   _tokenClient = google.accounts.oauth2.initTokenClient({
@@ -5110,10 +5125,9 @@ function rpShowPhoneInput() {
   document.getElementById('rp-phone-input-wrap').style.display = 'block';
   document.getElementById('rp-phone-btn').style.display = 'none';
   document.getElementById('rp-phone-number').focus();
-  if (!_recaptchaVerifier) {
-    _recaptchaVerifier = new firebase.auth.RecaptchaVerifier('rp-recaptcha', {
-      size: 'invisible', callback: () => {},
-    });
+  /* reCAPTCHA already initialized on DOM ready — render if not yet done */
+  if (_recaptchaVerifier && !_recaptchaVerifier._rendered) {
+    _recaptchaVerifier.render().then(() => { _recaptchaVerifier._rendered = true; }).catch(() => {});
   }
 }
 
