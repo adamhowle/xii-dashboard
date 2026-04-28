@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="rp-icon-180.png">
 <!--
   ═══════════════════════════════════════════════════════════════════
-  RALLY POINT — v2.12 — 2026-04-26
+  RALLY POINT — v2.13 — 2026-04-26
   Approved design · April 2026
   ───────────────────────────────────────────────────────────────────
   This file is the approved reference implementation of the Me screen.
@@ -1802,7 +1802,7 @@ body {
     <!-- Firebase reCAPTCHA container (invisible) -->
     <div id="rp-recaptcha" style="position:fixed;bottom:0;left:0;visibility:hidden;pointer-events:none;"></div>
     <div class="rp-login-sub">Sunrun reps only</div>
-    <div class="rp-login-sub" style="margin-top:8px;opacity:0.5;">v2.9</div>
+    <div class="rp-login-sub" style="margin-top:8px;opacity:0.5;">v2.13</div>
   </div>
 </div>
 
@@ -3899,7 +3899,7 @@ function rnkTogglePin(e) {
 
     <!-- Footer -->
     <div class="drw-footer">
-      <div style="padding:8px 20px 4px;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--rp-muted);text-align:center;">Rally Point v2.9</div>
+      <div style="padding:8px 20px 4px;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--rp-muted);text-align:center;">Rally Point v2.13</div>
       <div class="drw-footer-item" onclick="drwOpen('help')">
         <div class="drw-item-icon">❓</div>
         <div class="drw-footer-label">Help &amp; Feedback</div>
@@ -4345,7 +4345,7 @@ function rnkTogglePin(e) {
     </div>
     <div class="pref-card">
       <div class="pref-card-label">App Version</div>
-      <div style="font-size:12px;color:#888780;">Rally Point v2.9 · April 2026</div>
+      <div style="font-size:12px;color:#888780;">Rally Point v2.13 · April 2026</div>
     </div>
   </div>
   <div class="sub-screen-nav">
@@ -4372,9 +4372,20 @@ function rnkTogglePin(e) {
      CHAT SUB-SCREEN
      ═══════════════════════════════════════════════════════════════ -->
 <div class="sub-screen" id="sub-chat">
-  <div class="sub-hdr" style="background:#43E8BF;">
-    <button class="sub-hdr-back" onclick="chatBack()" aria-label="Back" style="color:#0A2420;">‹</button>
-    <div class="sub-hdr-title" id="chat-hdr-title" style="color:#0A2420;">Chat</div>
+  <!-- Navy universal header -->
+  <div class="uni-hdr">
+    <div class="uni-hdr-logo"><svg height="13" viewBox="0 0 2429 653" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="RunX"><path d="M2428.75 9H2339.41L2115.35 273.323L2070.65 326.028L1801.9 643H1891.24L2085.65 413.72C2101.21 395.375 2129.49 395.375 2145.06 413.72L2339.46 643H2428.8L2181.97 351.87C2169.31 336.933 2169.31 315.067 2181.97 300.187L2428.75 9Z" fill="#fff"/><path d="M2059.64 203.238L1894.93 9H1805.59L2059.64 308.649C2085.42 278.264 2085.42 233.68 2059.64 203.238Z" fill="#fff"/><path d="M0 9.09279H314.247C446.473 9.09279 539.753 57.0938 539.753 163.041C539.753 250.894 470.029 315.192 339.619 320.618V319.711C375.842 301.599 403.916 265.376 403.916 217.375C403.916 156.707 360.452 122.28 297.062 122.28H134.058V643.014H0.0369037V9.09279H0ZM166.633 347.785V346.878H328.729C492.64 346.878 535.215 417.509 535.215 507.178V643.014H401.194V539.771C401.194 437.436 338.711 382.194 166.633 347.785ZM604.05 444.695V9.09279H738.072V431.102C738.072 491.77 764.331 534.345 826.814 534.345C893.834 534.345 989.818 489.974 1074.95 409.379L1207.17 284.414H1208.08V518.974C1208.08 605.013 1156.47 652.107 1074.95 652.107V429.324C974.429 585.087 900.168 652.107 790.591 652.107C671.052 652.107 604.032 577.846 604.032 444.714L604.05 444.695ZM1456.24 117.762C1389.22 117.762 1293.23 162.133 1208.1 242.728L1075.88 368.601H1074.97V133.133C1074.97 47.0936 1126.58 0 1208.1 0V222.783C1308.6 67.057 1382.86 0.0370379 1492.44 0.0370379C1611.98 0.0370379 1679 74.2979 1679 207.43V643.033H1544.98V221.005C1544.98 160.337 1518.72 117.762 1456.24 117.762Z" fill="#fff"/></svg></div>
+    <div class="uni-hdr-title">Rally Point</div>
+    <button class="uni-hdr-burger" onclick="openDrawer(event)" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <!-- Teal room band -->
+  <div id="chat-room-band" style="background:#43E8BF;padding:10px 16px 11px;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+    <button id="chat-back-btn" onclick="chatBack()" aria-label="Back" style="background:none;border:none;cursor:pointer;color:#0A2420;font-size:24px;font-weight:300;line-height:1;padding:0;flex-shrink:0;display:none;">‹</button>
+    <div id="chat-hdr-title" style="font-size:22px;font-weight:700;color:#0A2420;letter-spacing:-0.3px;flex:1;">Chat</div>
+    <div id="chat-pin-btn" onclick="chatShowPinModal()" style="display:none;background:none;border:1px solid rgba(10,36,32,0.35);color:#0A2420;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:5px 10px;cursor:pointer;">📌 PIN</div>
+  </div>
     <div id="chat-pin-btn" onclick="chatShowPinModal()" style="display:none;margin-left:auto;background:none;border:1px solid rgba(10,36,32,0.35);color:#0A2420;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:5px 10px;cursor:pointer;">📌 PIN</div>
   </div>
 
@@ -4390,7 +4401,7 @@ function rnkTogglePin(e) {
 
     <!-- Room items rendered by JS -->
     <div id="chat-rooms-wrap" style="background:#fff;">
-      <div style="padding:14px 18px 6px;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#888780;">YOUR ROOMS</div>
+      <div style="padding:14px 18px 6px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#888780;">YOUR ROOMS</div>
       <div id="chat-rooms-list"></div>
     </div>
   </div>
@@ -4405,7 +4416,7 @@ function rnkTogglePin(e) {
     </div>
 
     <!-- Messages scroll area -->
-    <div id="chat-messages" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 0 8px;"></div>
+    <div id="chat-messages" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 0 8px;background:#fff;"></div>
 
     <!-- Reply context bar (shown when replying) -->
     <div id="chat-reply-bar" style="display:none;background:#F0FAF7;border-top:2px solid #43E8BF;padding:8px 14px;flex-shrink:0;position:relative;">
@@ -4415,13 +4426,15 @@ function rnkTogglePin(e) {
     </div>
 
     <!-- Input bar -->
-    <div style="flex-shrink:0;background:#fff;border-top:1px solid #E0DDD6;padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));display:flex;align-items:flex-end;gap:8px;">
+    <div style="flex-shrink:0;background:#fff;border-top:1px solid #E0DDD6;padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));display:flex;align-items:flex-end;gap:7px;">
+      <button onclick="chatAttachFile()" style="width:34px;height:34px;border-radius:50%;border:1.5px solid #D0CEC8;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;font-size:17px;padding:0;line-height:1;">📎</button>
+      <button onclick="chatAttachPhoto()" style="width:34px;height:34px;border-radius:50%;border:1.5px solid #D0CEC8;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;font-size:17px;padding:0;line-height:1;">📷</button>
       <textarea id="chat-input" placeholder="Message…" rows="1"
-        style="flex:1;border:1px solid #E0DDD6;background:#F7F6F3;padding:9px 12px;font-size:16px;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:#111110;resize:none;max-height:96px;line-height:1.4;outline:none;-webkit-appearance:none;border-radius:0;"
+        style="flex:1;border:1px solid #E0DDD6;background:#F7F6F3;padding:9px 14px;font-size:17px;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:#111110;resize:none;max-height:96px;line-height:1.4;outline:none;-webkit-appearance:none;border-radius:20px;"
         oninput="chatInputGrow(this)"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend();}">
       </textarea>
-      <button onclick="chatSend()" style="background:#43E8BF;border:none;color:#0A2420;padding:9px 16px;font-size:12px;font-weight:800;letter-spacing:0.5px;cursor:pointer;flex-shrink:0;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;align-self:flex-end;">Send</button>
+      <button onclick="chatSend()" style="background:#43E8BF;border:none;color:#0A2420;padding:9px 16px;font-size:12px;font-weight:800;letter-spacing:0.5px;cursor:pointer;flex-shrink:0;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;align-self:flex-end;border-radius:20px;">Send</button>
     </div>
   </div>
 
@@ -6676,6 +6689,7 @@ function chatEnterRoom(roomId) {
   _chat.replyTo    = null;
 
   document.getElementById('chat-hdr-title').textContent = room.name;
+  document.getElementById('chat-back-btn').style.display = 'block';
   document.getElementById('chat-pin-btn').style.display = _chat.isAdmin ? 'block' : 'none';
   document.getElementById('chat-room-list').style.display = 'none';
   document.getElementById('chat-reply-bar').style.display = 'none';
@@ -6914,6 +6928,7 @@ function chatBack() {
     chatExitRoom();
     document.getElementById('chat-hdr-title').textContent = 'Chat';
     document.getElementById('chat-pin-btn').style.display = 'none';
+    document.getElementById('chat-back-btn').style.display = 'none';
   } else {
     drwCloseSub('chat');
   }
