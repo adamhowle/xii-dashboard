@@ -6418,27 +6418,31 @@ function rpShowErrorScreen(msg) {
 
 /* ═══════════════════════════════════════════════════════════════════
    BOOT — Firebase onAuthStateChanged
-   Firebase restores the session automatically on reload.
-   When a user is already signed in we know their identity immediately.
-   We then request a fresh Sheets token silently via GIS.
+   Wrapped in DOMContentLoaded so the login screen is guaranteed to
+   exist before we try to show or hide it.
    ═══════════════════════════════════════════════════════════════════ */
-_fbAuth.onAuthStateChanged(async (fbUser) => {
-  if (!fbUser) {
-    /* Not signed in — show login screen */
-    rpShowLoginScreen();
-    return;
-  }
+function _rpBoot() {
+  _fbAuth.onAuthStateChanged(async (fbUser) => {
+    if (!fbUser) {
+      rpShowLoginScreen();
+      return;
+    }
 
-  /* User is signed in (fresh login handled by rpSignIn, or restored session) */
-  RP._loginEmail = fbUser.email;
-  RP._fbUser     = fbUser;
-  console.log('[RP Boot] Firebase session restored for', fbUser.email);
+    /* Session restored or fresh sign-in */
+    RP._loginEmail = fbUser.email || null;
+    RP._fbUser     = fbUser;
+    console.log('[RP Boot] Firebase session for', fbUser.email || fbUser.phoneNumber);
 
-  /* Request a Sheets token silently (no consent prompt for returning users).
-     GIS may not be ready yet if this fires before the GIS script loads —
-     _requestSheetsToken handles that with a short poll. */
-  _requestSheetsToken(false);
-});
+    /* Request Sheets token silently via GIS */
+    _requestSheetsToken(false);
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _rpBoot);
+} else {
+  _rpBoot();
+}
 
 /* ═══════════════════════════════════════════════════════════════════
    PWA — Service Worker registration + Install prompt
