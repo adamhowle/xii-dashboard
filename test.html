@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="rp-icon-180.png">
 <!--
   ═══════════════════════════════════════════════════════════════════
-  RALLY POINT — v2.21 — 2026-04-28
+  RALLY POINT — v2.22 — 2026-04-28
   Approved design · April 2026
   ───────────────────────────────────────────────────────────────────
   This file is the approved reference implementation of the Me screen.
@@ -1803,7 +1803,7 @@ body {
     <!-- Firebase reCAPTCHA container (invisible) -->
     <div id="rp-recaptcha" style="position:fixed;bottom:0;left:0;visibility:hidden;pointer-events:none;"></div>
     <div class="rp-login-sub">Sunrun reps only</div>
-    <div class="rp-login-sub" style="margin-top:8px;opacity:0.5;">v2.21</div>
+    <div class="rp-login-sub" style="margin-top:8px;opacity:0.5;">v2.22</div>
   </div>
 </div>
 
@@ -3900,7 +3900,7 @@ function rnkTogglePin(e) {
 
     <!-- Footer -->
     <div class="drw-footer">
-      <div style="padding:8px 20px 4px;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--rp-muted);text-align:center;">Rally Point v2.21</div>
+      <div style="padding:8px 20px 4px;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--rp-muted);text-align:center;">Rally Point v2.22</div>
       <div class="drw-footer-item" onclick="drwOpen('help')">
         <div class="drw-item-icon">❓</div>
         <div class="drw-footer-label">Help &amp; Feedback</div>
@@ -4346,7 +4346,7 @@ function rnkTogglePin(e) {
     </div>
     <div class="pref-card">
       <div class="pref-card-label">App Version</div>
-      <div style="font-size:12px;color:#888780;">Rally Point v2.21 · April 2026</div>
+      <div style="font-size:12px;color:#888780;">Rally Point v2.22 · April 2026</div>
     </div>
   </div>
   <div class="sub-screen-nav">
@@ -5261,6 +5261,7 @@ function _initGIS() {
     callback:  async (resp) => {
       if (resp.error) {
         console.error('[RP GIS] Token error:', resp.error);
+        /* access_denied or other hard errors — ask user to sign in again */
         rpShowAuthError('Could not get data access. Please try signing in again.');
         return;
       }
@@ -5269,13 +5270,20 @@ function _initGIS() {
       await rpLoadAll();
     },
     error_callback: (err) => {
-      /* popup_closed fires during silent token grant (invisible popup) — not a real error.
-         Only surface an error if the user explicitly tried to sign in and got blocked. */
-      if (err && err.type === 'popup_closed') {
-        console.warn('[RP GIS] Silent token popup closed — will retry on explicit sign-in');
+      const type = (err && err.type) || '';
+      if (type === 'popup_closed' || type === 'popup_failed_to_open') {
+        /* On mobile Safari, GIS popups are blocked. Re-request with
+           prompt:'consent' which triggers a redirect-style flow instead. */
+        console.warn('[RP GIS] Popup blocked/closed — retrying with consent prompt');
+        try {
+          _tokenClient.requestAccessToken({ prompt: 'consent' });
+        } catch(e) {
+          console.error('[RP GIS] Consent retry failed:', e);
+          rpShowAuthError('Could not get data access. Please try signing in again.');
+        }
         return;
       }
-      console.error('[RP GIS] Token client error:', err);
+      console.error('[RP GIS] Token client error:', type, err);
       rpShowAuthError('Could not get data access. Please try signing in again.');
     },
   });
@@ -5286,7 +5294,6 @@ function _initGIS() {
 /* Request a Sheets token via GIS (called after Firebase confirms identity) */
 function _requestSheetsToken(forceConsent) {
   if (!_gisReady || !_tokenClient) {
-    /* GIS not loaded yet — poll up to 10 times (5 seconds) before giving up */
     let attempts = 0;
     const maxAttempts = 10;
     function poll() {
@@ -5294,11 +5301,13 @@ function _requestSheetsToken(forceConsent) {
       _initGIS();
       if (_gisReady && _tokenClient) {
         console.log('[RP GIS] Token client ready after', attempts, 'attempt(s)');
-        _tokenClient.requestAccessToken({ prompt: forceConsent ? 'consent' : '' });
+        /* On mobile use prompt:'none' first for silent grant — no popup needed
+           if user has previously consented. Falls back via error_callback. */
+        _tokenClient.requestAccessToken({ prompt: forceConsent ? 'consent' : (_isMobile ? '' : '') });
       } else if (attempts < maxAttempts) {
         setTimeout(poll, 500);
       } else {
-        console.error('[RP GIS] Token client never became ready after', maxAttempts, 'attempts');
+        console.error('[RP GIS] Token client never became ready');
         rpShowAuthError('Auth service not ready. Please reload and try again.');
       }
     }
