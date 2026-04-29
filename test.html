@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="rp-icon-180.png">
 <!--
   ═══════════════════════════════════════════════════════════════════
-  RALLY POINT — v2.18 — 2026-04-28
+  RALLY POINT — v2.20 — 2026-04-28
   Approved design · April 2026
   ───────────────────────────────────────────────────────────────────
   This file is the approved reference implementation of the Me screen.
@@ -1803,7 +1803,7 @@ body {
     <!-- Firebase reCAPTCHA container (invisible) -->
     <div id="rp-recaptcha" style="position:fixed;bottom:0;left:0;visibility:hidden;pointer-events:none;"></div>
     <div class="rp-login-sub">Sunrun reps only</div>
-    <div class="rp-login-sub" style="margin-top:8px;opacity:0.5;">v2.18</div>
+    <div class="rp-login-sub" style="margin-top:8px;opacity:0.5;">v2.20</div>
   </div>
 </div>
 
@@ -3900,7 +3900,7 @@ function rnkTogglePin(e) {
 
     <!-- Footer -->
     <div class="drw-footer">
-      <div style="padding:8px 20px 4px;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--rp-muted);text-align:center;">Rally Point v2.18</div>
+      <div style="padding:8px 20px 4px;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--rp-muted);text-align:center;">Rally Point v2.20</div>
       <div class="drw-footer-item" onclick="drwOpen('help')">
         <div class="drw-item-icon">❓</div>
         <div class="drw-footer-label">Help &amp; Feedback</div>
@@ -4346,7 +4346,7 @@ function rnkTogglePin(e) {
     </div>
     <div class="pref-card">
       <div class="pref-card-label">App Version</div>
-      <div style="font-size:12px;color:#888780;">Rally Point v2.18 · April 2026</div>
+      <div style="font-size:12px;color:#888780;">Rally Point v2.20 · April 2026</div>
     </div>
   </div>
   <div class="sub-screen-nav">
@@ -4385,6 +4385,7 @@ function rnkTogglePin(e) {
   <div id="chat-room-band" style="background:#43E8BF;padding:10px 16px 11px;display:flex;align-items:center;gap:10px;flex-shrink:0;">
     <button id="chat-back-btn" onclick="chatBack()" aria-label="Back" style="background:none;border:none;cursor:pointer;color:#0A2420;font-size:24px;font-weight:300;line-height:1;padding:0;flex-shrink:0;display:none;">‹</button>
     <div id="chat-hdr-title" style="font-size:26px;font-weight:800;color:#0A2420;letter-spacing:-0.4px;flex:1;">Chat</div>
+    <button id="chat-compose-btn" onclick="chatShowComposeSheet()" aria-label="New chat" style="background:none;border:1px solid rgba(10,36,32,0.3);color:#0A2420;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;flex-shrink:0;border-radius:50%;">✏️</button>
     <div id="chat-pin-btn" onclick="chatShowPinModal()" style="display:none;background:none;border:1px solid rgba(10,36,32,0.35);color:#0A2420;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:5px 10px;cursor:pointer;">📌 PIN</div>
   </div>
 
@@ -4402,6 +4403,16 @@ function rnkTogglePin(e) {
     <div id="chat-rooms-wrap" style="background:#fff;">
       <div style="padding:18px 18px 8px;font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#49517D;">YOUR ROOMS</div>
       <div id="chat-rooms-list"></div>
+      <!-- DIRECT section -->
+      <div id="chat-direct-section" style="display:none;">
+        <div style="padding:18px 18px 8px;font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#49517D;border-top:1px solid #F0EEE8;">DIRECT</div>
+        <div id="chat-direct-list"></div>
+      </div>
+      <!-- GROUPS section -->
+      <div id="chat-groups-section" style="display:none;">
+        <div style="padding:18px 18px 8px;font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#49517D;border-top:1px solid #F0EEE8;">GROUPS</div>
+        <div id="chat-groups-list"></div>
+      </div>
     </div>
   </div>
 
@@ -4463,6 +4474,62 @@ function rnkTogglePin(e) {
       <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="#888780" stroke-width="1.5"/><path d="M11 3c0 0-4 3.5-4 8s4 8 4 8" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/><path d="M11 3c0 0 4 3.5 4 8s-4 8-4 8" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/><path d="M3 11h16" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
       <span class="ni-lbl">Region</span>
     </div>
+  </div>
+</div>
+
+<!-- COMPOSE SHEET — Direct or Group -->
+<div id="chat-compose-sheet" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1400;align-items:flex-end;">
+  <div style="background:#FFFBF0;width:100%;border-radius:18px 18px 0 0;overflow:hidden;padding-bottom:max(20px,env(safe-area-inset-bottom));">
+    <div style="background:#43E8BF;padding:14px 18px 12px;display:flex;align-items:center;gap:10px;">
+      <div style="font-size:17px;font-weight:800;color:#0A2420;flex:1;">New Chat</div>
+      <button onclick="chatCloseComposeSheet()" style="background:none;border:none;font-size:22px;color:#0A2420;cursor:pointer;padding:0;line-height:1;">×</button>
+    </div>
+    <div style="padding:8px 0;">
+      <div onclick="chatStartCompose('direct')" style="display:flex;align-items:center;gap:15px;padding:18px 20px;border-bottom:1px solid #F0EEE8;cursor:pointer;-webkit-tap-highlight-color:transparent;" ontouchstart="this.style.background='#F7F6F3'" ontouchend="this.style.background=''">
+        <div style="font-size:26px;width:44px;height:44px;background:#EDF4FF;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">💬</div>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:#111110;">Direct Message</div>
+          <div style="font-size:13px;color:#888780;margin-top:2px;">Message one person</div>
+        </div>
+        <div style="font-size:16px;color:#C8C5BF;margin-left:auto;">›</div>
+      </div>
+      <div onclick="chatStartCompose('group')" style="display:flex;align-items:center;gap:15px;padding:18px 20px;cursor:pointer;-webkit-tap-highlight-color:transparent;" ontouchstart="this.style.background='#F7F6F3'" ontouchend="this.style.background=''">
+        <div style="font-size:26px;width:44px;height:44px;background:#EDF4FF;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">👥</div>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:#111110;">Group Chat</div>
+          <div style="font-size:13px;color:#888780;margin-top:2px;">Name it, add members</div>
+        </div>
+        <div style="font-size:16px;color:#C8C5BF;margin-left:auto;">›</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NEW CHAT MODAL — people picker -->
+<div id="chat-new-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1450;flex-direction:column;">
+  <div style="background:#FFFBF0;flex:1;display:flex;flex-direction:column;margin-top:max(56px,env(safe-area-inset-top));border-radius:18px 18px 0 0;overflow:hidden;">
+    <!-- Modal header -->
+    <div style="background:#43E8BF;padding:14px 18px 12px;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <button onclick="chatCloseNewModal()" style="background:none;border:none;font-size:22px;color:#0A2420;cursor:pointer;padding:0 6px 0 0;line-height:1;">‹</button>
+      <div id="chat-new-modal-title" style="font-size:17px;font-weight:800;color:#0A2420;flex:1;">Direct Message</div>
+      <button id="chat-new-create-btn" onclick="chatCreateRoom()" style="background:rgba(10,36,32,0.15);border:none;color:#0A2420;padding:7px 14px;font-size:12px;font-weight:800;letter-spacing:0.5px;cursor:pointer;border-radius:20px;display:none;">Create</button>
+    </div>
+    <!-- Group name input (group only) -->
+    <div id="chat-new-name-wrap" style="display:none;padding:14px 18px;border-bottom:1px solid #E0DDD6;flex-shrink:0;">
+      <input id="chat-new-name-input" type="text" placeholder="Group name…" maxlength="40"
+        style="width:100%;border:1.5px solid #E0DDD6;background:#fff;padding:10px 14px;font-size:16px;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:#111110;outline:none;-webkit-appearance:none;border-radius:10px;"
+        oninput="chatNewGroupNameChange(this)">
+    </div>
+    <!-- Selected members chips (group only) -->
+    <div id="chat-new-chips" style="display:none;padding:10px 18px 4px;flex-shrink:0;flex-wrap:wrap;gap:6px;"></div>
+    <!-- Search -->
+    <div style="padding:10px 18px;border-bottom:1px solid #E0DDD6;flex-shrink:0;">
+      <input id="chat-new-search" type="text" placeholder="Search people…"
+        style="width:100%;border:1.5px solid #E0DDD6;background:#F7F6F3;padding:9px 14px;font-size:15px;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:#111110;outline:none;-webkit-appearance:none;border-radius:20px;"
+        oninput="chatNewSearchFilter(this.value)">
+    </div>
+    <!-- People list -->
+    <div id="chat-new-people-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
   </div>
 </div>
 
@@ -4753,6 +4820,44 @@ function rnkTogglePin(e) {
 }
 .chat-msg-file-meta {
   font-size: 11px; color: #888780; margin-top: 2px;
+}
+
+/* ── New Chat — member chips & people picker ── */
+.chat-member-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #43E8BF; color: #0A2420;
+  padding: 5px 10px 5px 12px; border-radius: 20px;
+  font-size: 13px; font-weight: 700; margin: 3px;
+  flex-shrink: 0;
+}
+.chat-member-chip button {
+  background: none; border: none; color: #0A2420; font-size: 16px;
+  cursor: pointer; padding: 0; line-height: 1; opacity: 0.6;
+}
+.chat-people-row {
+  display: flex; align-items: center; gap: 13px;
+  padding: 13px 18px; border-bottom: 1px solid #F0EEE8;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: background 0.1s;
+}
+.chat-people-row:active { background: #F7F6F3; }
+.chat-people-avatar {
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+  background: #1F2647; display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; color: #A5C9FF; overflow: hidden;
+}
+.chat-people-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.chat-people-name { font-size: 16px; font-weight: 600; color: #111110; flex: 1; }
+.chat-people-sub  { font-size: 12px; color: #888780; margin-top: 1px; }
+.chat-people-check {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 2px solid #D0CEC8; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.chat-people-check.selected {
+  background: #43E8BF; border-color: #43E8BF; color: #0A2420;
+  font-size: 13px; font-weight: 800;
 }
 .chat-react-existing { display: flex; gap: 5px; flex-wrap: wrap; }
 .chat-react-pill {
@@ -5196,21 +5301,27 @@ function _requestSheetsToken(forceConsent) {
 }
 
 /* ── Sign-in — called by the login button ── */
+const _isMobile = /iphone|ipad|ipod|android/i.test(navigator.userAgent);
+
 async function rpSignIn() {
   /* Clear any previous error */
   const prev = document.getElementById('rp-auth-err');
   if (prev) prev.remove();
 
   try {
-    /* Step 1: Firebase sign-in for identity */
-    const result   = await _fbAuth.signInWithPopup(_googleProvider);
-    RP._loginEmail = result.user.email;
-    RP._fbUser     = result.user;
-    console.log('[RP Auth] Firebase sign-in OK:', RP._loginEmail);
-
-    /* Step 2: GIS token for Sheets — silent first, consent if needed */
-    _requestSheetsToken(false);
-
+    if (_isMobile) {
+      /* Mobile: use redirect — avoids sessionStorage partitioning bug
+         in iOS in-app browsers (Messages, Mail, etc.) */
+      await _fbAuth.signInWithRedirect(_googleProvider);
+      /* Page will reload — getRedirectResult handled in _rpBoot */
+    } else {
+      /* Desktop: popup is fine */
+      const result   = await _fbAuth.signInWithPopup(_googleProvider);
+      RP._loginEmail = result.user.email;
+      RP._fbUser     = result.user;
+      console.log('[RP Auth] Firebase sign-in OK:', RP._loginEmail);
+      _requestSheetsToken(false);
+    }
   } catch(err) {
     if (err.code === 'auth/popup-closed-by-user') {
       console.warn('[RP Auth] Popup closed before completing sign-in');
@@ -6564,6 +6675,22 @@ function _rpBoot() {
      is called inside rpHideLoadingScreen() only after data is ready */
   rpShowLoginScreen();
 
+  /* Handle redirect result on mobile — fires when page reloads after
+     signInWithRedirect completes */
+  _fbAuth.getRedirectResult().then(result => {
+    if (result && result.user) {
+      RP._loginEmail = result.user.email;
+      RP._fbUser     = result.user;
+      console.log('[RP Auth] Redirect sign-in OK:', RP._loginEmail);
+      _requestSheetsToken(false);
+    }
+  }).catch(err => {
+    if (err.code !== 'auth/no-auth-event') {
+      console.error('[RP Auth] Redirect result error:', err);
+      rpShowAuthError('Sign-in failed. Please try again.');
+    }
+  });
+
   _fbAuth.onAuthStateChanged(async (fbUser) => {
     if (!fbUser) {
       /* Confirmed not signed in — login screen already showing */
@@ -6669,14 +6796,15 @@ const ROOM_COLORS = {
 };
 
 const _chat = {
-  rooms:      [],
-  activeRoom: null,
-  unsubMsg:   null,
-  unsubPin:   null,
-  isAdmin:    false,
-  replyTo:    null,   /* { msgId, senderName, text } */
-  avatarCache:{},     /* email → dataURL */
-  myAvatar:   null,
+  rooms:       [],
+  customRooms: [],
+  activeRoom:  null,
+  unsubMsg:    null,
+  unsubPin:    null,
+  isAdmin:     false,
+  replyTo:     null,
+  avatarCache: {},
+  myAvatar:    null,
 };
 
 /* ── Avatar helpers ── */
@@ -6742,6 +6870,7 @@ function chatInit() {
   _chat.rooms = rooms;
   chatUpdateDrawerSub(rooms.length + ' room' + (rooms.length !== 1 ? 's' : ''));
   chatLoadPinnedBanner();
+  chatLoadCustomRooms();
 }
 
 function chatUpdateDrawerSub(text) {
@@ -6832,7 +6961,8 @@ function chatMarkRead(roomId) {
 
 /* ── Enter room ── */
 function chatEnterRoom(roomId) {
-  const room = _chat.rooms.find(r => r.id === roomId);
+  const room = _chat.rooms.find(r => r.id === roomId)
+            || (_chat.customRooms || []).find(r => r.id === roomId);
   if (!room) return;
   _chat.activeRoom = room;
   _chat.replyTo    = null;
@@ -7560,6 +7690,306 @@ window.drwCloseSub = function(name) {
 };
 
 /* chatInit called from rpRenderAll */
+
+/* ═══════════════════════════════════════════════════════════════════
+   CHAT — DIRECT & GROUP ROOMS
+   ═══════════════════════════════════════════════════════════════════
+   Direct room ID: dm_{sortedEmail1}_{sortedEmail2}  (deterministic)
+   Group room ID:  group_{timestamp}_{creatorEmail}
+   Both stored in Firestore rooms collection with:
+     type: 'direct' | 'group'
+     members: [email, email, ...]
+     name: string (for groups; for direct = other person's name)
+     createdBy: email
+     createdAt: timestamp
+   User's memberships live in userRooms/{email}/rooms/{roomId}
+   so we can query "rooms I belong to" without scanning all rooms.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const _compose = {
+  mode:     null,   /* 'direct' | 'group' */
+  selected: [],     /* array of { email, name } */
+  allPeople:[],     /* office roster for picker */
+};
+
+/* ── Compose sheet ── */
+function chatShowComposeSheet() {
+  const s = document.getElementById('chat-compose-sheet');
+  if (s) s.style.display = 'flex';
+}
+function chatCloseComposeSheet() {
+  const s = document.getElementById('chat-compose-sheet');
+  if (s) s.style.display = 'none';
+}
+
+function chatStartCompose(mode) {
+  chatCloseComposeSheet();
+  _compose.mode     = mode;
+  _compose.selected = [];
+
+  /* Build people list from office roster, excluding self */
+  const myEmail = (RP._loginEmail || '').toLowerCase();
+  const myOffice = RP.user ? RP.user.office : '';
+  _compose.allPeople = RP.officeRoster
+    ? RP.officeRoster
+        .filter(r => {
+          const rEmail = (r.email || '').toLowerCase();
+          return rEmail && rEmail !== myEmail;
+        })
+        .map(r => ({ email: (r.email||'').toLowerCase(), name: r.name, squad: r.squad || '' }))
+        .sort((a,b) => a.name.localeCompare(b.name))
+    : [];
+
+  /* Set up modal */
+  const title = document.getElementById('chat-new-modal-title');
+  const nameWrap = document.getElementById('chat-new-name-wrap');
+  const chipsWrap = document.getElementById('chat-new-chips');
+  const createBtn = document.getElementById('chat-new-create-btn');
+  const searchEl = document.getElementById('chat-new-search');
+
+  if (title)    title.textContent    = mode === 'direct' ? 'Direct Message' : 'New Group';
+  if (nameWrap) nameWrap.style.display  = mode === 'group' ? 'block' : 'none';
+  if (chipsWrap)chipsWrap.style.display = mode === 'group' ? 'flex'  : 'none';
+  if (createBtn)createBtn.style.display = 'none'; /* shown after selection */
+  if (searchEl) searchEl.value = '';
+
+  chatNewRenderPeople('');
+
+  const modal = document.getElementById('chat-new-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function chatCloseNewModal() {
+  const modal = document.getElementById('chat-new-modal');
+  if (modal) modal.style.display = 'none';
+  _compose.selected = [];
+}
+
+/* ── People list render ── */
+function chatNewRenderPeople(query) {
+  const list = document.getElementById('chat-new-people-list');
+  if (!list) return;
+  const q = (query || '').toLowerCase();
+  const filtered = _compose.allPeople.filter(p =>
+    !q || p.name.toLowerCase().includes(q) || p.squad.toLowerCase().includes(q)
+  );
+
+  if (!filtered.length) {
+    list.innerHTML = '<div style="text-align:center;padding:32px;font-size:14px;color:#B4B2A9;">No one found</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(p => {
+    const isSelected = _compose.selected.some(s => s.email === p.email);
+    const initials = chatGetInitials(p.name);
+    const cached = _chat.avatarCache[p.email];
+    const avatarInner = cached
+      ? `<img src="${cached}" alt="">`
+      : initials;
+    return `<div class="chat-people-row" onclick="chatNewTogglePerson('${p.email}','${_esc(p.name)}')">
+      <div class="chat-people-avatar">${avatarInner}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="chat-people-name">${_esc(p.name)}</div>
+        ${p.squad ? `<div class="chat-people-sub">${_esc(p.squad)}</div>` : ''}
+      </div>
+      <div class="chat-people-check${isSelected?' selected':''}">${isSelected?'✓':''}</div>
+    </div>`;
+  }).join('');
+}
+
+function chatNewSearchFilter(val) {
+  chatNewRenderPeople(val);
+}
+
+/* ── Toggle person selection ── */
+function chatNewTogglePerson(email, name) {
+  const idx = _compose.selected.findIndex(s => s.email === email);
+  if (_compose.mode === 'direct') {
+    /* Direct — single select, create immediately */
+    chatOpenOrCreateDirect(email, name);
+    chatCloseNewModal();
+    return;
+  }
+  /* Group — multi-select */
+  if (idx >= 0) {
+    _compose.selected.splice(idx, 1);
+  } else {
+    _compose.selected.push({ email, name });
+  }
+  chatNewRenderChips();
+  chatNewRenderPeople(document.getElementById('chat-new-search')?.value || '');
+  chatNewUpdateCreateBtn();
+}
+
+function chatNewRenderChips() {
+  const wrap = document.getElementById('chat-new-chips');
+  if (!wrap) return;
+  wrap.innerHTML = _compose.selected.map(s =>
+    `<div class="chat-member-chip">${_esc(s.name)}
+      <button onclick="chatNewRemovePerson('${s.email}')">×</button>
+    </div>`
+  ).join('');
+}
+
+function chatNewRemovePerson(email) {
+  _compose.selected = _compose.selected.filter(s => s.email !== email);
+  chatNewRenderChips();
+  chatNewRenderPeople(document.getElementById('chat-new-search')?.value || '');
+  chatNewUpdateCreateBtn();
+}
+
+function chatNewGroupNameChange(el) {
+  chatNewUpdateCreateBtn();
+}
+
+function chatNewUpdateCreateBtn() {
+  const btn = document.getElementById('chat-new-create-btn');
+  if (!btn) return;
+  const nameEl = document.getElementById('chat-new-name-input');
+  const hasName = !nameEl || nameEl.value.trim().length > 0;
+  const hasMembers = _compose.selected.length > 0;
+  btn.style.display = (hasMembers && hasName) ? 'block' : 'none';
+}
+
+/* ── Create room ── */
+async function chatCreateRoom() {
+  if (_compose.mode !== 'group') return;
+  const nameEl = document.getElementById('chat-new-name-input');
+  const groupName = nameEl ? nameEl.value.trim() : '';
+  if (!groupName || _compose.selected.length === 0) return;
+
+  const myEmail = (RP._loginEmail || '').toLowerCase();
+  const myName  = RP.user ? RP.user.name : myEmail;
+  const roomId  = 'group_' + Date.now() + '_' + myEmail.replace(/[^a-z0-9]/g,'_');
+  const members = [myEmail, ..._compose.selected.map(s => s.email)];
+
+  const roomDoc = {
+    type:      'group',
+    name:      groupName,
+    members,
+    createdBy: myEmail,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    color:     '#49517D',
+  };
+
+  try {
+    await _fbDB.collection('rooms').doc(roomId).set(roomDoc);
+    /* Write membership records for all members */
+    const batch = _fbDB.batch();
+    members.forEach(email => {
+      batch.set(
+        _fbDB.collection('userRooms').doc(email).collection('rooms').doc(roomId),
+        { roomId, type: 'group', name: groupName, joinedAt: firebase.firestore.FieldValue.serverTimestamp() }
+      );
+    });
+    await batch.commit();
+
+    chatCloseNewModal();
+    /* Add to local rooms and open */
+    const newRoom = { id: roomId, name: groupName, color: '#49517D', type: 'group' };
+    _chat.customRooms = _chat.customRooms || [];
+    _chat.customRooms.push(newRoom);
+    chatRenderCustomRooms();
+    chatEnterRoom(roomId);
+  } catch(err) {
+    console.error('[Chat] Create group failed:', err);
+    alert('Could not create group. Please try again.');
+  }
+}
+
+/* ── Open or create direct room ── */
+async function chatOpenOrCreateDirect(otherEmail, otherName) {
+  const myEmail = (RP._loginEmail || '').toLowerCase();
+  /* Deterministic ID — always same room for same two people */
+  const sorted  = [myEmail, otherEmail].sort();
+  const roomId  = 'dm_' + sorted[0].replace(/[^a-z0-9]/g,'_') + '__' + sorted[1].replace(/[^a-z0-9]/g,'_');
+
+  /* Check if room already exists */
+  const snap = await _fbDB.collection('rooms').doc(roomId).get();
+  if (!snap.exists) {
+    const myName = RP.user ? RP.user.name : myEmail;
+    await _fbDB.collection('rooms').doc(roomId).set({
+      type:      'direct',
+      name:      otherName,
+      members:   [myEmail, otherEmail],
+      createdBy: myEmail,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      color:     '#3A6FA8',
+    });
+    /* Membership records */
+    const batch = _fbDB.batch();
+    batch.set(_fbDB.collection('userRooms').doc(myEmail).collection('rooms').doc(roomId),
+      { roomId, type: 'direct', name: otherName, joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    batch.set(_fbDB.collection('userRooms').doc(otherEmail).collection('rooms').doc(roomId),
+      { roomId, type: 'direct', name: myName, joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    await batch.commit();
+  }
+
+  /* Add to local list if not already there, then open */
+  _chat.customRooms = _chat.customRooms || [];
+  const existing = _chat.customRooms.find(r => r.id === roomId);
+  if (!existing) {
+    _chat.customRooms.push({ id: roomId, name: otherName, color: '#3A6FA8', type: 'direct' });
+    chatRenderCustomRooms();
+  }
+  chatEnterRoom(roomId);
+}
+
+/* ── Load user's custom rooms (direct + group) from Firestore ── */
+function chatLoadCustomRooms() {
+  const myEmail = (RP._loginEmail || '').toLowerCase();
+  if (!myEmail) return;
+  _fbDB.collection('userRooms').doc(myEmail).collection('rooms')
+    .orderBy('joinedAt', 'asc')
+    .onSnapshot(snap => {
+      _chat.customRooms = snap.docs.map(d => {
+        const data = d.data();
+        return {
+          id:    data.roomId,
+          name:  data.name,
+          type:  data.type,
+          color: data.type === 'direct' ? '#3A6FA8' : '#49517D',
+        };
+      });
+      chatRenderCustomRooms();
+    }, err => console.error('[Chat] Load custom rooms error:', err));
+}
+
+/* ── Render direct + group sections in room list ── */
+function chatRenderCustomRooms() {
+  const rooms = _chat.customRooms || [];
+  const directs = rooms.filter(r => r.type === 'direct');
+  const groups  = rooms.filter(r => r.type === 'group');
+
+  const directSection = document.getElementById('chat-direct-section');
+  const groupsSection = document.getElementById('chat-groups-section');
+  const directList    = document.getElementById('chat-direct-list');
+  const groupsList    = document.getElementById('chat-groups-list');
+
+  if (directSection) directSection.style.display = directs.length ? 'block' : 'none';
+  if (groupsSection) groupsSection.style.display  = groups.length  ? 'block' : 'none';
+
+  if (directList) {
+    directList.innerHTML = directs.map(r => chatRoomItemHTML(r)).join('');
+    directs.forEach(r => { chatLoadPreview(r); chatLoadUnreadBadge(r); });
+  }
+  if (groupsList) {
+    groupsList.innerHTML = groups.map(r => chatRoomItemHTML(r)).join('');
+    groups.forEach(r => { chatLoadPreview(r); chatLoadUnreadBadge(r); });
+  }
+}
+
+function chatRoomItemHTML(r) {
+  return `<div class="chat-room-item" onclick="chatEnterRoom('${r.id}')">
+    <div class="chat-room-dot" style="background:${r.color};"></div>
+    <div class="chat-room-info">
+      <div class="chat-room-name">${_esc(r.name)}</div>
+      <div class="chat-room-preview" id="room-preview-${r.id}">Tap to open</div>
+    </div>
+    <div id="room-badge-${r.id}" class="chat-room-badge" style="display:none;"></div>
+    <div style="font-size:16px;color:#C8C5BF;margin-left:4px;">›</div>
+  </div>`;
+}
 </script>
 
 <script>
