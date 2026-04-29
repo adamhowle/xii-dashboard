@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="rp-icon-180.png">
 <!--
   ═══════════════════════════════════════════════════════════════════
-  RALLY POINT — v2.20 — 2026-04-28
+  RALLY POINT — v2.21 — 2026-04-28
   Approved design · April 2026
   ───────────────────────────────────────────────────────────────────
   This file is the approved reference implementation of the Me screen.
@@ -1803,7 +1803,7 @@ body {
     <!-- Firebase reCAPTCHA container (invisible) -->
     <div id="rp-recaptcha" style="position:fixed;bottom:0;left:0;visibility:hidden;pointer-events:none;"></div>
     <div class="rp-login-sub">Sunrun reps only</div>
-    <div class="rp-login-sub" style="margin-top:8px;opacity:0.5;">v2.20</div>
+    <div class="rp-login-sub" style="margin-top:8px;opacity:0.5;">v2.21</div>
   </div>
 </div>
 
@@ -3900,7 +3900,7 @@ function rnkTogglePin(e) {
 
     <!-- Footer -->
     <div class="drw-footer">
-      <div style="padding:8px 20px 4px;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--rp-muted);text-align:center;">Rally Point v2.20</div>
+      <div style="padding:8px 20px 4px;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--rp-muted);text-align:center;">Rally Point v2.21</div>
       <div class="drw-footer-item" onclick="drwOpen('help')">
         <div class="drw-item-icon">❓</div>
         <div class="drw-footer-label">Help &amp; Feedback</div>
@@ -4346,7 +4346,7 @@ function rnkTogglePin(e) {
     </div>
     <div class="pref-card">
       <div class="pref-card-label">App Version</div>
-      <div style="font-size:12px;color:#888780;">Rally Point v2.20 · April 2026</div>
+      <div style="font-size:12px;color:#888780;">Rally Point v2.21 · April 2026</div>
     </div>
   </div>
   <div class="sub-screen-nav">
@@ -5286,15 +5286,23 @@ function _initGIS() {
 /* Request a Sheets token via GIS (called after Firebase confirms identity) */
 function _requestSheetsToken(forceConsent) {
   if (!_gisReady || !_tokenClient) {
-    /* GIS not loaded yet — poll briefly then retry */
-    setTimeout(() => {
+    /* GIS not loaded yet — poll up to 10 times (5 seconds) before giving up */
+    let attempts = 0;
+    const maxAttempts = 10;
+    function poll() {
+      attempts++;
       _initGIS();
-      if (_gisReady) {
+      if (_gisReady && _tokenClient) {
+        console.log('[RP GIS] Token client ready after', attempts, 'attempt(s)');
         _tokenClient.requestAccessToken({ prompt: forceConsent ? 'consent' : '' });
+      } else if (attempts < maxAttempts) {
+        setTimeout(poll, 500);
       } else {
+        console.error('[RP GIS] Token client never became ready after', maxAttempts, 'attempts');
         rpShowAuthError('Auth service not ready. Please reload and try again.');
       }
-    }, 500);
+    }
+    setTimeout(poll, 500);
     return;
   }
   _tokenClient.requestAccessToken({ prompt: forceConsent ? 'consent' : '' });
@@ -6671,39 +6679,38 @@ function rpShowErrorScreen(msg) {
    This prevents the "blank wireframe" state when silent token fails.
    ═══════════════════════════════════════════════════════════════════ */
 function _rpBoot() {
-  /* Always show login screen immediately on load — rpHideLoginScreen()
-     is called inside rpHideLoadingScreen() only after data is ready */
   rpShowLoginScreen();
 
   /* Handle redirect result on mobile — fires when page reloads after
-     signInWithRedirect completes */
+     signInWithRedirect completes. We set a flag so onAuthStateChanged
+     doesn't double-fire _requestSheetsToken. */
+  let _redirectHandled = false;
+
   _fbAuth.getRedirectResult().then(result => {
     if (result && result.user) {
+      _redirectHandled = true;
       RP._loginEmail = result.user.email;
       RP._fbUser     = result.user;
       console.log('[RP Auth] Redirect sign-in OK:', RP._loginEmail);
       _requestSheetsToken(false);
     }
   }).catch(err => {
-    if (err.code !== 'auth/no-auth-event') {
-      console.error('[RP Auth] Redirect result error:', err);
+    if (err.code && err.code !== 'auth/no-auth-event') {
+      console.error('[RP Auth] Redirect result error:', err.code, err.message);
       rpShowAuthError('Sign-in failed. Please try again.');
     }
   });
 
   _fbAuth.onAuthStateChanged(async (fbUser) => {
-    if (!fbUser) {
-      /* Confirmed not signed in — login screen already showing */
+    if (!fbUser) return;
+    if (_redirectHandled) {
+      /* Already handled by getRedirectResult above — skip to avoid double request */
+      _redirectHandled = false;
       return;
     }
-
-    /* Session restored or fresh sign-in */
     RP._loginEmail = fbUser.email || null;
     RP._fbUser     = fbUser;
     console.log('[RP Boot] Firebase session for', fbUser.email || fbUser.phoneNumber);
-
-    /* Request Sheets token — if silent grant fails, login screen stays
-       visible and user can tap Sign In to try again explicitly */
     _requestSheetsToken(false);
   });
 }
