@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="rp-icon-180.png">
 <!--
   ═══════════════════════════════════════════════════════════════════
-  RALLY POINT — v2.14 — 2026-04-26
+  RALLY POINT — v2.15 — 2026-04-28
   Approved design · April 2026
   ───────────────────────────────────────────────────────────────────
   This file is the approved reference implementation of the Me screen.
@@ -1802,7 +1802,7 @@ body {
     <!-- Firebase reCAPTCHA container (invisible) -->
     <div id="rp-recaptcha" style="position:fixed;bottom:0;left:0;visibility:hidden;pointer-events:none;"></div>
     <div class="rp-login-sub">Sunrun reps only</div>
-    <div class="rp-login-sub" style="margin-top:8px;opacity:0.5;">v2.14</div>
+    <div class="rp-login-sub" style="margin-top:8px;opacity:0.5;">v2.15</div>
   </div>
 </div>
 
@@ -3899,7 +3899,7 @@ function rnkTogglePin(e) {
 
     <!-- Footer -->
     <div class="drw-footer">
-      <div style="padding:8px 20px 4px;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--rp-muted);text-align:center;">Rally Point v2.14</div>
+      <div style="padding:8px 20px 4px;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--rp-muted);text-align:center;">Rally Point v2.15</div>
       <div class="drw-footer-item" onclick="drwOpen('help')">
         <div class="drw-item-icon">❓</div>
         <div class="drw-footer-label">Help &amp; Feedback</div>
@@ -4345,7 +4345,7 @@ function rnkTogglePin(e) {
     </div>
     <div class="pref-card">
       <div class="pref-card-label">App Version</div>
-      <div style="font-size:12px;color:#888780;">Rally Point v2.14 · April 2026</div>
+      <div style="font-size:12px;color:#888780;">Rally Point v2.15 · April 2026</div>
     </div>
   </div>
   <div class="sub-screen-nav">
@@ -4383,7 +4383,7 @@ function rnkTogglePin(e) {
   <!-- Teal room band -->
   <div id="chat-room-band" style="background:#43E8BF;padding:10px 16px 11px;display:flex;align-items:center;gap:10px;flex-shrink:0;">
     <button id="chat-back-btn" onclick="chatBack()" aria-label="Back" style="background:none;border:none;cursor:pointer;color:#0A2420;font-size:24px;font-weight:300;line-height:1;padding:0;flex-shrink:0;display:none;">‹</button>
-    <div id="chat-hdr-title" style="font-size:22px;font-weight:700;color:#0A2420;letter-spacing:-0.3px;flex:1;">Chat</div>
+    <div id="chat-hdr-title" style="font-size:26px;font-weight:800;color:#0A2420;letter-spacing:-0.4px;flex:1;">Chat</div>
     <div id="chat-pin-btn" onclick="chatShowPinModal()" style="display:none;background:none;border:1px solid rgba(10,36,32,0.35);color:#0A2420;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:5px 10px;cursor:pointer;">📌 PIN</div>
   </div>
 
@@ -4399,7 +4399,7 @@ function rnkTogglePin(e) {
 
     <!-- Room items rendered by JS -->
     <div id="chat-rooms-wrap" style="background:#fff;">
-      <div style="padding:14px 18px 6px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#888780;">YOUR ROOMS</div>
+      <div style="padding:18px 18px 8px;font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#49517D;">YOUR ROOMS</div>
       <div id="chat-rooms-list"></div>
     </div>
   </div>
@@ -4613,14 +4613,14 @@ function rnkTogglePin(e) {
 
 /* ── CHAT ROOM LIST ── */
 .chat-room-item {
-  display: flex; align-items: center; gap: 13px;
-  padding: 15px 18px; border-bottom: 1px solid #F0EEE8;
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 18px; border-bottom: 1px solid #F0EEE8;
   cursor: pointer; transition: background 0.1s; -webkit-user-select: none;
 }
 .chat-room-item:active { background: #F7F6F3; }
-.chat-room-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.chat-room-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
 .chat-room-info { flex: 1; min-width: 0; }
-.chat-room-name { font-size: 18px; font-weight: 700; color: #111110; }
+.chat-room-name { font-size: 20px; font-weight: 700; color: #111110; letter-spacing: -0.2px; }
 .chat-room-preview { font-size: 14px; color: #888780; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chat-room-badge { background: #43E8BF; color: #0A2420; font-size: 11px; font-weight: 800; min-width: 22px; height: 22px; border-radius: 11px; display: flex; align-items: center; justify-content: center; padding: 0 6px; flex-shrink: 0; }
 
@@ -4646,8 +4646,51 @@ function rnkTogglePin(e) {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   border-radius: 0 8px 8px 0;
 }
-.chat-msg-text { font-size: 17px; color: #1A1918; line-height: 1.55; word-break: break-word; }
+.chat-msg-text { font-size: 19px; color: #1A1918; line-height: 1.5; word-break: break-word; }
 .chat-msg-footer { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+
+/* Read receipts row */
+.chat-read-row {
+  display: flex; align-items: center; justify-content: flex-end;
+  gap: 5px; padding: 2px 16px 6px; min-height: 20px;
+}
+.chat-read-avatars { display: flex; gap: -3px; }
+.chat-read-avatar {
+  width: 18px; height: 18px; border-radius: 50%; overflow: hidden;
+  border: 1.5px solid #fff; margin-left: -4px; flex-shrink: 0;
+  background: #1F2647; display: flex; align-items: center; justify-content: center;
+  font-size: 7px; font-weight: 700; color: #A5C9FF;
+}
+.chat-read-avatar:first-child { margin-left: 0; }
+.chat-read-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.chat-read-label {
+  font-size: 11px; font-weight: 500; color: #B4B2A9; font-style: italic;
+}
+
+/* Inline message edit mode */
+.chat-msg-edit-wrap { display: none; margin-top: 4px; }
+.chat-msg-edit-wrap.active { display: block; }
+.chat-msg-edit-textarea {
+  width: 100%; border: 1.5px solid #43E8BF; background: #F0FDF9;
+  padding: 9px 12px; font-size: 19px;
+  font-family: -apple-system,'Helvetica Neue',Arial,sans-serif;
+  color: #111110; resize: none; outline: none; -webkit-appearance: none;
+  border-radius: 10px; line-height: 1.5; margin-bottom: 7px;
+  max-height: 160px; overflow-y: auto;
+}
+.chat-msg-edit-actions { display: flex; gap: 8px; }
+.chat-msg-edit-save {
+  flex: 1; background: #43E8BF; border: none; color: #0A2420;
+  padding: 9px; font-size: 12px; font-weight: 800; letter-spacing: 0.5px;
+  cursor: pointer; border-radius: 8px;
+  font-family: -apple-system,'Helvetica Neue',Arial,sans-serif;
+}
+.chat-msg-edit-cancel {
+  flex: 1; background: #F4F4F2; border: 1px solid #E0DDD6; color: #444441;
+  padding: 9px; font-size: 12px; font-weight: 700;
+  cursor: pointer; border-radius: 8px;
+  font-family: -apple-system,'Helvetica Neue',Arial,sans-serif;
+}
 .chat-react-existing { display: flex; gap: 5px; flex-wrap: wrap; }
 .chat-react-pill {
   font-size: 15px; background: #F4F4F2; border: 1.5px solid #E8E5E0;
@@ -6662,10 +6705,14 @@ function chatRenderRoomList() {
         <div class="chat-room-name">${r.name}</div>
         <div class="chat-room-preview" id="room-preview-${r.id}">Tap to open</div>
       </div>
-      <div style="font-size:16px;color:#C8C5BF;">›</div>
+      <div id="room-badge-${r.id}" class="chat-room-badge" style="display:none;"></div>
+      <div style="font-size:16px;color:#C8C5BF;margin-left:4px;">›</div>
     </div>
   `).join('');
-  _chat.rooms.forEach(r => chatLoadPreview(r));
+  _chat.rooms.forEach(r => {
+    chatLoadPreview(r);
+    chatLoadUnreadBadge(r);
+  });
 }
 
 function chatLoadPreview(room) {
@@ -6677,6 +6724,40 @@ function chatLoadPreview(room) {
       const el = document.getElementById('room-preview-' + room.id);
       if (el) el.textContent = (d.senderName || '?') + ': ' + (d.text || '');
     }).catch(() => {});
+}
+
+/* ── Unread badge: count messages newer than lastRead timestamp ── */
+function chatLoadUnreadBadge(room) {
+  const email = (RP._loginEmail || '').toLowerCase();
+  if (!email) return;
+  _fbDB.collection('userRoomState').doc(email + '_' + room.id).get()
+    .then(snap => {
+      const lastRead = (snap.data() || {}).lastRead || null;
+      let q = _fbDB.collection('rooms').doc(room.id).collection('messages');
+      if (lastRead) q = q.where('ts', '>', lastRead);
+      /* Only count messages not sent by me */
+      return q.get().then(msgs => {
+        const myName = RP.user ? RP.user.name : '';
+        const count  = msgs.docs.filter(d => d.data().senderName !== myName).length;
+        const badge  = document.getElementById('room-badge-' + room.id);
+        if (!badge) return;
+        if (count > 0) {
+          badge.textContent = count > 99 ? '99+' : count;
+          badge.style.display = 'flex';
+        } else {
+          badge.style.display = 'none';
+        }
+      });
+    }).catch(() => {});
+}
+
+/* ── Mark room as read: write current server time to userRoomState ── */
+function chatMarkRead(roomId) {
+  const email = (RP._loginEmail || '').toLowerCase();
+  if (!email || !roomId) return;
+  _fbDB.collection('userRoomState').doc(email + '_' + roomId)
+    .set({ lastRead: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
+    .catch(() => {});
 }
 
 /* ── Enter room ── */
@@ -6694,6 +6775,9 @@ function chatEnterRoom(roomId) {
   document.getElementById('chat-msg-view').style.display  = 'flex';
   document.getElementById('chat-messages').innerHTML =
     '<div style="text-align:center;padding:24px;font-size:11px;color:#B4B2A9;">Loading…</div>';
+
+  /* Mark room as read immediately on enter */
+  chatMarkRead(roomId);
 
   /* Pin listener */
   if (_chat.unsubPin) { _chat.unsubPin(); _chat.unsubPin = null; }
@@ -6725,7 +6809,7 @@ function chatRenderMessages(docs) {
   let lastDate  = '';
   let lastSender= '';
 
-  docs.forEach(doc => {
+  docs.forEach((doc, idx) => {
     const d      = doc.data();
     const msgId  = doc.id;
     const ts     = d.ts ? d.ts.toDate() : new Date();
@@ -6734,6 +6818,7 @@ function chatRenderMessages(docs) {
     const isMe   = d.senderName === myName;
     const sEmail = (d.senderEmail || '').toLowerCase();
     const isSame = d.senderName === lastSender;
+    const isLast = idx === docs.length - 1;
 
     /* Date separator — pill style */
     if (date !== lastDate) {
@@ -6761,6 +6846,49 @@ function chatRenderMessages(docs) {
         return `<button class="chat-react-pill ${iMine?'active':''}" onclick="chatToggleReaction('${msgId}','${emoji}')">${emoji} <span>${voters.length}</span></button>`;
       }).join('');
 
+    /* Seen-by — readers array stored on message, excludes sender */
+    const readers  = d.readers || {};
+    const seenList = Object.entries(readers)
+      .filter(([email]) => email !== sEmail)
+      .map(([email, info]) => ({ email, name: info.name || email }));
+    let readRow = '';
+    if (seenList.length > 0) {
+      const avatarBubbles = seenList.slice(0,5).map(r => {
+        const cached = _chat.avatarCache[r.email];
+        if (cached) return `<div class="chat-read-avatar"><img src="${cached}" alt=""></div>`;
+        /* fire async load */
+        if (cached === undefined) {
+          _chat.avatarCache[r.email] = null;
+          _fbDB.collection('users').doc(r.email).get().then(snap => {
+            _chat.avatarCache[r.email] = (snap.data()||{}).avatar || '';
+          }).catch(()=>{});
+        }
+        const initials = chatGetInitials(r.name);
+        return `<div class="chat-read-avatar">${initials}</div>`;
+      }).join('');
+      const label = seenList.length === 1 ? 'Seen by 1' : `Seen by ${seenList.length}`;
+      /* Only show on last message or on my messages */
+      readRow = `<div class="chat-read-row" id="read-row-${msgId}">
+        <div class="chat-read-avatars">${avatarBubbles}</div>
+        <span class="chat-read-label">${label}</span>
+      </div>`;
+    } else if (isMe && isLast) {
+      /* Last message by me with no readers yet = Delivered */
+      readRow = `<div class="chat-read-row" id="read-row-${msgId}">
+        <span class="chat-read-label">Delivered</span>
+      </div>`;
+    }
+
+    /* Edit wrap (hidden by default, shown when editing own message) */
+    const editWrap = isMe ? `
+      <div class="chat-msg-edit-wrap" id="edit-wrap-${msgId}">
+        <textarea class="chat-msg-edit-textarea" id="edit-ta-${msgId}">${_esc(d.text||'')}</textarea>
+        <div class="chat-msg-edit-actions">
+          <button class="chat-msg-edit-save" onclick="chatEditSave('${msgId}')">Save</button>
+          <button class="chat-msg-edit-cancel" onclick="chatEditCancel('${msgId}')">Cancel</button>
+        </div>
+      </div>` : '';
+
     html += `
       <div class="chat-msg-group${isSame?' consecutive':''}" id="msg-${msgId}">
         ${avatarHTML}
@@ -6770,13 +6898,15 @@ function chatRenderMessages(docs) {
             <span class="chat-msg-time">${time}</span>
           </div>` : ''}
           ${replyHTML}
-          <div class="chat-msg-text">${_esc(d.text||'').replace(/\n/g,'<br>')}</div>
+          <div class="chat-msg-text" id="msg-text-${msgId}">${_esc(d.text||'').replace(/\n/g,'<br>')}</div>
+          ${editWrap}
           <div class="chat-msg-footer">
             ${activeReacts ? `<div class="chat-react-existing">${activeReacts}</div>` : ''}
             <span class="chat-more-btn" onclick="chatShowActionSheet('${msgId}','${_esc(d.senderName||'')}','${_esc((d.text||'').substring(0,60))}','${sEmail}')">+</span>
           </div>
         </div>
-      </div>`;
+      </div>
+      ${readRow}`;
 
     lastSender = d.senderName;
   });
@@ -6788,6 +6918,25 @@ function chatRenderMessages(docs) {
   const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 80;
   container.innerHTML = html;
   if (wasAtBottom) container.scrollTop = container.scrollHeight;
+
+  /* Mark room read whenever messages render while we're inside the room */
+  if (_chat.activeRoom) chatMarkRead(_chat.activeRoom.id);
+
+  /* Write our presence as a reader on the last message */
+  if (docs.length > 0 && RP.user && RP._loginEmail) {
+    const lastDoc = docs[docs.length - 1];
+    const lastMsg = lastDoc.data();
+    const myEmailLc = (RP._loginEmail || '').toLowerCase();
+    /* Only mark other people's messages as seen */
+    if (lastMsg.senderName !== myName) {
+      const readerKey = `readers.${myEmailLc.replace(/\./g,'_DOT_')}`;
+      _fbDB.collection('rooms').doc(_chat.activeRoom.id)
+        .collection('messages').doc(lastDoc.id)
+        .update({
+          [`readers.${myEmailLc.replace(/\./g,'_DOT_')}`]: { name: myName, ts: firebase.firestore.FieldValue.serverTimestamp() }
+        }).catch(() => {});
+    }
+  }
 }
 
 function _esc(str) {
@@ -6814,6 +6963,10 @@ function chatShowActionSheet(msgId, senderName, text, senderEmail) {
         <div class="chat-action-icon">↩</div>
         <div class="chat-action-label">Reply</div>
       </div>
+      ${isOwn ? `<div class="chat-action-row" onclick="chatEditStart('${msgId}')">
+        <div class="chat-action-icon">✏️</div>
+        <div class="chat-action-label">Edit</div>
+      </div>` : ''}
       ${isOwn ? `<div class="chat-action-row" onclick="chatDeleteMsg('${msgId}')">
         <div class="chat-action-icon">🗑️</div>
         <div class="chat-action-label danger">Delete</div>
@@ -6852,6 +7005,41 @@ function chatDeleteMsg(msgId) {
     .collection('messages').doc(msgId)
     .delete()
     .catch(err => console.error('[Chat] Delete failed:', err));
+}
+
+/* ── Edit own message ── */
+function chatEditStart(msgId) {
+  chatCloseActionSheet();
+  const textEl = document.getElementById('msg-text-' + msgId);
+  const editWrap = document.getElementById('edit-wrap-' + msgId);
+  const ta = document.getElementById('edit-ta-' + msgId);
+  if (!textEl || !editWrap || !ta) return;
+  /* Get raw text (strip HTML entities back) */
+  ta.value = textEl.textContent;
+  textEl.style.display = 'none';
+  editWrap.classList.add('active');
+  ta.focus();
+  ta.setSelectionRange(ta.value.length, ta.value.length);
+}
+
+function chatEditCancel(msgId) {
+  const textEl = document.getElementById('msg-text-' + msgId);
+  const editWrap = document.getElementById('edit-wrap-' + msgId);
+  if (!textEl || !editWrap) return;
+  textEl.style.display = '';
+  editWrap.classList.remove('active');
+}
+
+function chatEditSave(msgId) {
+  const ta = document.getElementById('edit-ta-' + msgId);
+  if (!ta || !_chat.activeRoom) return;
+  const newText = ta.value.trim();
+  if (!newText) return;
+  _fbDB.collection('rooms').doc(_chat.activeRoom.id)
+    .collection('messages').doc(msgId)
+    .update({ text: newText, editedAt: firebase.firestore.FieldValue.serverTimestamp() })
+    .then(() => { chatEditCancel(msgId); })
+    .catch(err => console.error('[Chat] Edit failed:', err));
 }
 
 function chatToggleReaction(msgId, emoji) {
