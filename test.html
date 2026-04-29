@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="rp-icon-180.png">
 <!--
   ═══════════════════════════════════════════════════════════════════
-  RALLY POINT — v2.22 — 2026-04-28
+  RALLY POINT — v2.23 — 2026-04-28
   Approved design · April 2026
   ───────────────────────────────────────────────────────────────────
   This file is the approved reference implementation of the Me screen.
@@ -1803,7 +1803,7 @@ body {
     <!-- Firebase reCAPTCHA container (invisible) -->
     <div id="rp-recaptcha" style="position:fixed;bottom:0;left:0;visibility:hidden;pointer-events:none;"></div>
     <div class="rp-login-sub">Sunrun reps only</div>
-    <div class="rp-login-sub" style="margin-top:8px;opacity:0.5;">v2.22</div>
+    <div class="rp-login-sub" style="margin-top:8px;opacity:0.5;">v2.23</div>
   </div>
 </div>
 
@@ -3900,7 +3900,7 @@ function rnkTogglePin(e) {
 
     <!-- Footer -->
     <div class="drw-footer">
-      <div style="padding:8px 20px 4px;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--rp-muted);text-align:center;">Rally Point v2.22</div>
+      <div style="padding:8px 20px 4px;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--rp-muted);text-align:center;">Rally Point v2.23</div>
       <div class="drw-footer-item" onclick="drwOpen('help')">
         <div class="drw-item-icon">❓</div>
         <div class="drw-footer-label">Help &amp; Feedback</div>
@@ -4346,7 +4346,7 @@ function rnkTogglePin(e) {
     </div>
     <div class="pref-card">
       <div class="pref-card-label">App Version</div>
-      <div style="font-size:12px;color:#888780;">Rally Point v2.22 · April 2026</div>
+      <div style="font-size:12px;color:#888780;">Rally Point v2.23 · April 2026</div>
     </div>
   </div>
   <div class="sub-screen-nav">
@@ -5255,14 +5255,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function _initGIS() {
   if (!window.google || !window.google.accounts) return;
+  if (_gisReady) return; /* already initialized */
   _tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: RP_CONFIG.CLIENT_ID,
     scope:     'https://www.googleapis.com/auth/spreadsheets.readonly',
     callback:  async (resp) => {
       if (resp.error) {
         console.error('[RP GIS] Token error:', resp.error);
-        /* access_denied or other hard errors — ask user to sign in again */
-        rpShowAuthError('Could not get data access. Please try signing in again.');
+        /* Token failed — but don't kick user to login screen.
+           If we have a user already, show a subtle retry banner instead. */
+        if (RP.user) {
+          rpShowDataError('Data refresh failed. Tap to retry.', () => _requestSheetsToken(false));
+        } else {
+          rpShowAuthError('Could not get data access. Please try signing in again.');
+        }
         return;
       }
       RP.token = resp.access_token;
@@ -5272,46 +5278,41 @@ function _initGIS() {
     error_callback: (err) => {
       const type = (err && err.type) || '';
       if (type === 'popup_closed' || type === 'popup_failed_to_open') {
-        /* On mobile Safari, GIS popups are blocked. Re-request with
-           prompt:'consent' which triggers a redirect-style flow instead. */
-        console.warn('[RP GIS] Popup blocked/closed — retrying with consent prompt');
-        try {
-          _tokenClient.requestAccessToken({ prompt: 'consent' });
-        } catch(e) {
+        /* Popup blocked on mobile — retry with consent which uses redirect flow */
+        console.warn('[RP GIS] Popup blocked — retrying with consent');
+        try { _tokenClient.requestAccessToken({ prompt: 'consent' }); } catch(e) {
           console.error('[RP GIS] Consent retry failed:', e);
-          rpShowAuthError('Could not get data access. Please try signing in again.');
         }
         return;
       }
       console.error('[RP GIS] Token client error:', type, err);
-      rpShowAuthError('Could not get data access. Please try signing in again.');
+      if (!RP.user) {
+        rpShowAuthError('Could not get data access. Please try signing in again.');
+      }
     },
   });
   _gisReady = true;
   console.log('[RP GIS] Token client ready');
 }
 
-/* Request a Sheets token via GIS (called after Firebase confirms identity) */
+/* Request a Sheets token — patient polling, never shows login screen on failure
+   if Firebase already has a valid session */
 function _requestSheetsToken(forceConsent) {
   if (!_gisReady || !_tokenClient) {
     let attempts = 0;
-    const maxAttempts = 10;
     function poll() {
       attempts++;
       _initGIS();
       if (_gisReady && _tokenClient) {
-        console.log('[RP GIS] Token client ready after', attempts, 'attempt(s)');
-        /* On mobile use prompt:'none' first for silent grant — no popup needed
-           if user has previously consented. Falls back via error_callback. */
-        _tokenClient.requestAccessToken({ prompt: forceConsent ? 'consent' : (_isMobile ? '' : '') });
-      } else if (attempts < maxAttempts) {
+        _tokenClient.requestAccessToken({ prompt: forceConsent ? 'consent' : '' });
+      } else if (attempts < 12) {
         setTimeout(poll, 500);
       } else {
         console.error('[RP GIS] Token client never became ready');
-        rpShowAuthError('Auth service not ready. Please reload and try again.');
+        if (!RP.user) rpShowAuthError('Auth service not ready. Please reload and try again.');
       }
     }
-    setTimeout(poll, 500);
+    setTimeout(poll, 400);
     return;
   }
   _tokenClient.requestAccessToken({ prompt: forceConsent ? 'consent' : '' });
@@ -5366,7 +5367,6 @@ async function rpSignOut() {
 
 function rpShowAuthError(msg) {
   console.error('[RP Auth] Error:', msg);
-  /* Surface a brief message under the sign-in button */
   const sub = document.querySelector('.rp-login-sub');
   if (sub) {
     const errEl = document.getElementById('rp-auth-err') || document.createElement('div');
@@ -5375,6 +5375,25 @@ function rpShowAuthError(msg) {
     errEl.textContent = msg;
     sub.parentNode.insertBefore(errEl, sub.nextSibling);
   }
+}
+
+/* Non-blocking data error — shown as a dismissable banner inside the app,
+   never kicks user to login screen */
+function rpShowDataError(msg, retryFn) {
+  let banner = document.getElementById('rp-data-err-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'rp-data-err-banner';
+    banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9998;background:#F05252;color:#fff;padding:12px 16px;font-size:13px;font-weight:600;text-align:center;cursor:pointer;';
+    document.body.appendChild(banner);
+  }
+  banner.textContent = msg;
+  banner.onclick = () => {
+    banner.remove();
+    if (retryFn) retryFn();
+  };
+  /* Auto-dismiss after 8 seconds */
+  setTimeout(() => { if (banner.parentNode) banner.remove(); }, 8000);
 }
 
 /* ── Phone Sign-In ── */
@@ -6688,13 +6707,14 @@ function rpShowErrorScreen(msg) {
    This prevents the "blank wireframe" state when silent token fails.
    ═══════════════════════════════════════════════════════════════════ */
 function _rpBoot() {
-  rpShowLoginScreen();
+  /* Don't show login screen immediately — wait for Firebase to confirm
+     whether a session exists. This prevents the login flash on every load
+     for already-authenticated users. Show a neutral loading state instead. */
 
-  /* Handle redirect result on mobile — fires when page reloads after
-     signInWithRedirect completes. We set a flag so onAuthStateChanged
-     doesn't double-fire _requestSheetsToken. */
   let _redirectHandled = false;
+  let _authResolved    = false;
 
+  /* Handle redirect result on mobile */
   _fbAuth.getRedirectResult().then(result => {
     if (result && result.user) {
       _redirectHandled = true;
@@ -6706,14 +6726,19 @@ function _rpBoot() {
   }).catch(err => {
     if (err.code && err.code !== 'auth/no-auth-event') {
       console.error('[RP Auth] Redirect result error:', err.code, err.message);
+      rpShowLoginScreen();
       rpShowAuthError('Sign-in failed. Please try again.');
     }
   });
 
   _fbAuth.onAuthStateChanged(async (fbUser) => {
-    if (!fbUser) return;
+    _authResolved = true;
+    if (!fbUser) {
+      /* No session — now we show the login screen */
+      rpShowLoginScreen();
+      return;
+    }
     if (_redirectHandled) {
-      /* Already handled by getRedirectResult above — skip to avoid double request */
       _redirectHandled = false;
       return;
     }
@@ -6722,6 +6747,14 @@ function _rpBoot() {
     console.log('[RP Boot] Firebase session for', fbUser.email || fbUser.phoneNumber);
     _requestSheetsToken(false);
   });
+
+  /* Safety net: if Firebase hasn't resolved within 4 seconds, show login */
+  setTimeout(() => {
+    if (!_authResolved) {
+      console.warn('[RP Boot] Auth state timeout — showing login');
+      rpShowLoginScreen();
+    }
+  }, 4000);
 }
 
 if (document.readyState === 'loading') {
