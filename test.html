@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="rp-icon-180.png">
 <!--
   ═══════════════════════════════════════════════════════════════════
-  RALLY POINT — v2.15 — 2026-04-28
+  RALLY POINT — v2.17 — 2026-04-28
   Approved design · April 2026
   ───────────────────────────────────────────────────────────────────
   This file is the approved reference implementation of the Me screen.
@@ -94,6 +94,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <!-- ── GIS — used only for Sheets API OAuth token (not for sign-in) ── -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
@@ -1802,7 +1803,7 @@ body {
     <!-- Firebase reCAPTCHA container (invisible) -->
     <div id="rp-recaptcha" style="position:fixed;bottom:0;left:0;visibility:hidden;pointer-events:none;"></div>
     <div class="rp-login-sub">Sunrun reps only</div>
-    <div class="rp-login-sub" style="margin-top:8px;opacity:0.5;">v2.15</div>
+    <div class="rp-login-sub" style="margin-top:8px;opacity:0.5;">v2.17</div>
   </div>
 </div>
 
@@ -3899,7 +3900,7 @@ function rnkTogglePin(e) {
 
     <!-- Footer -->
     <div class="drw-footer">
-      <div style="padding:8px 20px 4px;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--rp-muted);text-align:center;">Rally Point v2.15</div>
+      <div style="padding:8px 20px 4px;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--rp-muted);text-align:center;">Rally Point v2.17</div>
       <div class="drw-footer-item" onclick="drwOpen('help')">
         <div class="drw-item-icon">❓</div>
         <div class="drw-footer-label">Help &amp; Feedback</div>
@@ -4345,7 +4346,7 @@ function rnkTogglePin(e) {
     </div>
     <div class="pref-card">
       <div class="pref-card-label">App Version</div>
-      <div style="font-size:12px;color:#888780;">Rally Point v2.15 · April 2026</div>
+      <div style="font-size:12px;color:#888780;">Rally Point v2.17 · April 2026</div>
     </div>
   </div>
   <div class="sub-screen-nav">
@@ -4425,8 +4426,12 @@ function rnkTogglePin(e) {
 
     <!-- Input bar -->
     <div style="flex-shrink:0;background:#fff;border-top:1px solid #E0DDD6;padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));display:flex;align-items:flex-end;gap:7px;">
-      <button onclick="chatAttachFile()" style="width:34px;height:34px;border-radius:50%;border:1.5px solid #D0CEC8;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;font-size:17px;padding:0;line-height:1;">📎</button>
-      <button onclick="chatAttachPhoto()" style="width:34px;height:34px;border-radius:50%;border:1.5px solid #D0CEC8;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;font-size:17px;padding:0;line-height:1;">📷</button>
+      <!-- Hidden file inputs -->
+      <input type="file" id="chat-img-library" accept="image/*" style="display:none" onchange="chatHandleImageFile(this)">
+      <input type="file" id="chat-img-camera"  accept="image/*" capture="environment" style="display:none" onchange="chatHandleImageFile(this)">
+      <input type="file" id="chat-file-attach" accept="*/*" style="display:none" onchange="chatHandleFileAttach(this)">
+      <button onclick="chatImagePickerMenu()" id="chat-img-btn" style="width:38px;height:38px;border-radius:50%;border:1.5px solid #D0CEC8;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;font-size:19px;padding:0;line-height:1;" aria-label="Add photo">📷</button>
+      <button onclick="chatOpenFileAttach()" id="chat-file-btn" style="width:38px;height:38px;border-radius:50%;border:1.5px solid #D0CEC8;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;font-size:19px;padding:0;line-height:1;" aria-label="Attach file">📎</button>
       <textarea id="chat-input" placeholder="Message…" rows="1"
         style="flex:1;border:1px solid #E0DDD6;background:#F7F6F3;padding:9px 14px;font-size:17px;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:#111110;resize:none;max-height:96px;line-height:1.4;outline:none;-webkit-appearance:none;border-radius:20px;"
         oninput="chatInputGrow(this)"
@@ -4690,6 +4695,64 @@ function rnkTogglePin(e) {
   padding: 9px; font-size: 12px; font-weight: 700;
   cursor: pointer; border-radius: 8px;
   font-family: -apple-system,'Helvetica Neue',Arial,sans-serif;
+}
+
+/* ── Chat image thumbnails ── */
+.chat-msg-img {
+  display: block; max-width: 240px; max-height: 240px;
+  border-radius: 10px; margin-top: 6px; cursor: pointer;
+  object-fit: cover; border: 1px solid #E0DDD6;
+  transition: opacity 0.15s;
+}
+.chat-msg-img:active { opacity: 0.8; }
+
+/* Fullscreen image lightbox */
+#chat-img-lightbox {
+  display: none; position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,0.92); align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+#chat-img-lightbox.open { display: flex; }
+#chat-img-lightbox img {
+  max-width: 95vw; max-height: 88vh; object-fit: contain;
+  border-radius: 6px;
+}
+#chat-img-lightbox-close {
+  position: absolute; top: max(18px, env(safe-area-inset-top)); right: 18px;
+  background: rgba(255,255,255,0.15); border: none; color: #fff;
+  font-size: 22px; width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+
+/* Upload progress overlay on img button */
+#chat-img-btn.uploading { border-color: #43E8BF; background: #F0FDF9; }
+.chat-img-progress {
+  display: none; position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px; background: #E0DDD6; border-radius: 0 0 6px 6px; overflow: hidden;
+}
+.chat-img-progress-fill { height: 100%; background: #43E8BF; width: 0; transition: width 0.2s; }
+
+/* Image picker action sheet — reuses .chat-action-sheet styles */
+
+/* ── File attachment card (non-image files) ── */
+.chat-msg-file {
+  display: flex; align-items: center; gap: 12px;
+  background: #F7F6F3; border: 1px solid #E0DDD6; border-radius: 10px;
+  padding: 12px 14px; margin-top: 6px; cursor: pointer;
+  max-width: 260px; text-decoration: none;
+  transition: background 0.1s;
+}
+.chat-msg-file:active { background: #ECEAE6; }
+.chat-msg-file-icon {
+  font-size: 28px; flex-shrink: 0; width: 36px; text-align: center;
+}
+.chat-msg-file-info { flex: 1; min-width: 0; }
+.chat-msg-file-name {
+  font-size: 14px; font-weight: 700; color: #111110;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.chat-msg-file-meta {
+  font-size: 11px; color: #888780; margin-top: 2px;
 }
 .chat-react-existing { display: flex; gap: 5px; flex-wrap: wrap; }
 .chat-react-pill {
@@ -5060,6 +5123,7 @@ const RP_FIREBASE_CONFIG = {
 const _fbApp  = firebase.initializeApp(RP_FIREBASE_CONFIG);
 const _fbAuth = firebase.auth();
 const _fbDB   = firebase.firestore();
+const _fbStorage = firebase.storage();
 
 /* GoogleAuthProvider — identity only, no extra scopes needed here */
 const _googleProvider = new firebase.auth.GoogleAuthProvider();
@@ -6832,8 +6896,9 @@ function chatRenderMessages(docs) {
       : `<div class="chat-avatar-spacer"></div>`;
 
     /* Reply reference */
-    const replyHTML = d.replyToText
-      ? `<div class="chat-msg-reply-ref">↩ <b>${_esc(d.replyToName||'')}</b>: ${_esc(d.replyToText||'')}</div>`
+    const replyPreviewText = d.replyToText || (d.replyToMsgId ? (d.isImage ? '📷 Photo' : '📎 File') : '');
+    const replyHTML = replyPreviewText
+      ? `<div class="chat-msg-reply-ref">↩ <b>${_esc(d.replyToName||'')}</b>: ${_esc(replyPreviewText)}</div>`
       : '';
 
     /* Active reactions only */
@@ -6879,8 +6944,8 @@ function chatRenderMessages(docs) {
       </div>`;
     }
 
-    /* Edit wrap (hidden by default, shown when editing own message) */
-    const editWrap = isMe ? `
+    /* Edit wrap (hidden by default, shown when editing own message — text only) */
+    const editWrap = (isMe && d.text) ? `
       <div class="chat-msg-edit-wrap" id="edit-wrap-${msgId}">
         <textarea class="chat-msg-edit-textarea" id="edit-ta-${msgId}">${_esc(d.text||'')}</textarea>
         <div class="chat-msg-edit-actions">
@@ -6888,6 +6953,13 @@ function chatRenderMessages(docs) {
           <button class="chat-msg-edit-cancel" onclick="chatEditCancel('${msgId}')">Cancel</button>
         </div>
       </div>` : '';
+
+    /* Action sheet preview text */
+    const actionPreview = d.imageUrl && !d.text
+      ? '📷 Photo'
+      : d.fileUrl && !d.text
+        ? `📎 ${_esc(d.fileName || 'File')}`
+        : _esc((d.text||'').substring(0,60));
 
     html += `
       <div class="chat-msg-group${isSame?' consecutive':''}" id="msg-${msgId}">
@@ -6899,10 +6971,23 @@ function chatRenderMessages(docs) {
           </div>` : ''}
           ${replyHTML}
           <div class="chat-msg-text" id="msg-text-${msgId}">${_esc(d.text||'').replace(/\n/g,'<br>')}</div>
+          ${d.imageUrl
+            ? `<img class="chat-msg-img" src="${d.imageUrl}" alt="image" onclick="chatLightboxOpen('${d.imageUrl}')" loading="lazy">`
+            : d.fileUrl && !d.isImage
+              ? `<a class="chat-msg-file" href="${d.fileUrl}" target="_blank" rel="noopener">
+                  <div class="chat-msg-file-icon">${chatFileIcon(d.fileName||'', d.fileType||'')}</div>
+                  <div class="chat-msg-file-info">
+                    <div class="chat-msg-file-name">${_esc(d.fileName||'File')}</div>
+                    <div class="chat-msg-file-meta">${chatFmtSize(d.fileSize)}${d.fileSize && d.fileType ? ' · ' : ''}${(d.fileType||'').split('/').pop().toUpperCase()}</div>
+                  </div>
+                  <div style="font-size:16px;color:#C8C5BF;flex-shrink:0;">↓</div>
+                </a>`
+              : ''
+          }
           ${editWrap}
           <div class="chat-msg-footer">
             ${activeReacts ? `<div class="chat-react-existing">${activeReacts}</div>` : ''}
-            <span class="chat-more-btn" onclick="chatShowActionSheet('${msgId}','${_esc(d.senderName||'')}','${_esc((d.text||'').substring(0,60))}','${sEmail}')">+</span>
+            <span class="chat-more-btn" onclick="chatShowActionSheet('${msgId}','${_esc(d.senderName||'')}','${actionPreview}','${sEmail}')">+</span>
           </div>
         </div>
       </div>
@@ -6948,7 +7033,8 @@ let _actionMsgId = null;
 
 function chatShowActionSheet(msgId, senderName, text, senderEmail) {
   _actionMsgId = msgId;
-  const isOwn = senderName === (RP.user ? RP.user.name : '');
+  const isOwn   = senderName === (RP.user ? RP.user.name : '');
+  const isPhoto = text === '📷 Photo' || text.startsWith('📎');
 
   const sheet = document.createElement('div');
   sheet.className = 'chat-action-sheet';
@@ -6963,7 +7049,7 @@ function chatShowActionSheet(msgId, senderName, text, senderEmail) {
         <div class="chat-action-icon">↩</div>
         <div class="chat-action-label">Reply</div>
       </div>
-      ${isOwn ? `<div class="chat-action-row" onclick="chatEditStart('${msgId}')">
+      ${isOwn && !isPhoto ? `<div class="chat-action-row" onclick="chatEditStart('${msgId}')">
         <div class="chat-action-icon">✏️</div>
         <div class="chat-action-label">Edit</div>
       </div>` : ''}
@@ -7221,6 +7307,228 @@ function chatPickAvatar() {
   input.click();
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   CHAT — IMAGE UPLOAD (Firebase Storage)
+   ═══════════════════════════════════════════════════════════════════
+   Flow:
+     1. User taps 🖼️ → action sheet: Camera | Photo Library
+     2. File selected → compress to ≤1200px, 0.82 JPEG quality
+     3. Upload to Storage: chat-images/{roomId}/{timestamp}_{uid}.jpg
+     4. On complete → send message doc with imageUrl field
+     5. Render: <img> thumbnail in feed, tap to lightbox
+   ═══════════════════════════════════════════════════════════════════ */
+
+function chatImagePickerMenu() {
+  if (!_chat.activeRoom) return;
+
+  /* On iOS Safari the capture attribute reliably opens camera;
+     without it, the system sheet lets user pick source.
+     We show our own sheet to match app style. */
+  const sheet = document.createElement('div');
+  sheet.className = 'chat-action-sheet';
+  sheet.id = 'chat-img-picker-sheet';
+  sheet.innerHTML = `
+    <div class="chat-action-sheet-inner">
+      <div class="chat-action-row" onclick="chatImgOpenCamera()">
+        <div class="chat-action-icon">📷</div>
+        <div class="chat-action-label">Take Photo</div>
+      </div>
+      <div class="chat-action-row" onclick="chatImgOpenLibrary()">
+        <div class="chat-action-icon">🖼️</div>
+        <div class="chat-action-label">Choose from Library</div>
+      </div>
+    </div>
+    <div class="chat-action-cancel" onclick="chatImgClosePickerSheet()">Cancel</div>
+  `;
+  sheet.addEventListener('click', e => { if (e.target === sheet) chatImgClosePickerSheet(); });
+  document.body.appendChild(sheet);
+}
+
+function chatImgClosePickerSheet() {
+  const s = document.getElementById('chat-img-picker-sheet');
+  if (s) s.remove();
+}
+
+function chatImgOpenCamera() {
+  chatImgClosePickerSheet();
+  const el = document.getElementById('chat-img-camera');
+  if (el) { el.value = ''; el.click(); }
+}
+
+function chatImgOpenLibrary() {
+  chatImgClosePickerSheet();
+  const el = document.getElementById('chat-img-library');
+  if (el) { el.value = ''; el.click(); }
+}
+
+/* Called by photo input once a file is chosen */
+function chatHandleImageFile(input) {
+  const file = input.files[0];
+  if (!file || !_chat.activeRoom || !RP.user) return;
+  chatCompressImage(file, 1200, 0.82, (blob) => {
+    chatUploadFile(blob, file.name, 'image/jpeg', true);
+  });
+}
+
+/* Resize to maxDim × maxDim (preserving aspect), output JPEG blob */
+function chatCompressImage(file, maxDim, quality, callback) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+        else       { w = Math.round(w * maxDim / h); h = maxDim; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      canvas.toBlob(blob => {
+        callback(blob, canvas.toDataURL('image/jpeg', quality));
+      }, 'image/jpeg', quality);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ── Lightbox ── */
+function chatLightboxOpen(url) {
+  const lb = document.getElementById('chat-img-lightbox');
+  const im = document.getElementById('chat-img-lightbox-img');
+  if (!lb || !im) return;
+  im.src = url;
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function chatLightboxClose() {
+  const lb = document.getElementById('chat-img-lightbox');
+  if (!lb) return;
+  lb.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CHAT — FILE ATTACHMENT (any file type, Firebase Storage)
+   ═══════════════════════════════════════════════════════════════════
+   Flow:
+     1. User taps 📎 → system Files picker (all types)
+     2. File selected → upload to Storage: chat-files/{roomId}/{ts}_{name}
+     3. On complete → send message doc with fileUrl + fileName + fileSize + fileType
+     4. Render: image types → <img> thumbnail; others → styled file card
+        with icon based on extension, tap = open download URL
+   ═══════════════════════════════════════════════════════════════════ */
+
+function chatOpenFileAttach() {
+  if (!_chat.activeRoom) return;
+  const el = document.getElementById('chat-file-attach');
+  if (el) { el.value = ''; el.click(); }
+}
+
+function chatHandleFileAttach(input) {
+  const file = input.files[0];
+  if (!file || !_chat.activeRoom || !RP.user) return;
+
+  const isImage = file.type.startsWith('image/');
+  if (isImage) {
+    /* Route images through compress pipeline */
+    chatCompressImage(file, 1200, 0.82, (blob) => {
+      chatUploadFile(blob, file.name, file.type, true);
+    });
+  } else {
+    chatUploadFile(file, file.name, file.type, false);
+  }
+}
+
+function chatUploadFile(fileOrBlob, fileName, fileType, isImage) {
+  if (!_chat.activeRoom || !RP.user || !RP._loginEmail) return;
+
+  const btn = isImage
+    ? document.getElementById('chat-img-btn')
+    : document.getElementById('chat-file-btn');
+  if (btn) { btn.classList.add('uploading'); btn.textContent = '⏳'; }
+
+  const roomId   = _chat.activeRoom.id;
+  const email    = (RP._loginEmail || '').toLowerCase();
+  const ts       = Date.now();
+  const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const folder   = isImage ? 'chat-images' : 'chat-files';
+  const path     = `${folder}/${roomId}/${ts}_${safeName}`;
+  const ref      = _fbStorage.ref(path);
+  const meta     = { contentType: fileType || 'application/octet-stream' };
+  const task     = ref.put(fileOrBlob, meta);
+  const fileSize = fileOrBlob.size;
+
+  const resetBtn = () => {
+    if (!btn) return;
+    btn.classList.remove('uploading');
+    btn.textContent = isImage ? '📷' : '📎';
+  };
+
+  task.on('state_changed',
+    snap => {
+      const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+      console.log(`[Chat] Upload ${pct}%`);
+    },
+    err => {
+      console.error('[Chat] File upload failed:', err);
+      resetBtn();
+      alert('Upload failed. Please try again.');
+    },
+    () => {
+      task.snapshot.ref.getDownloadURL().then(url => {
+        resetBtn();
+        const msg = {
+          text:        '',
+          senderName:  RP.user.name,
+          senderEmail: RP._loginEmail || '',
+          ts:          firebase.firestore.FieldValue.serverTimestamp(),
+          reactions:   {},
+          fileUrl:     url,
+          fileName:    fileName,
+          fileType:    fileType || '',
+          fileSize:    fileSize || 0,
+          isImage:     isImage,
+        };
+        if (isImage) msg.imageUrl = url;
+        if (_chat.replyTo) {
+          msg.replyToMsgId = _chat.replyTo.msgId;
+          msg.replyToName  = _chat.replyTo.senderName;
+          msg.replyToText  = _chat.replyTo.text;
+          chatCancelReply();
+        }
+        _fbDB.collection('rooms').doc(roomId)
+          .collection('messages').add(msg)
+          .catch(err => console.error('[Chat] File message send failed:', err));
+      });
+    }
+  );
+}
+
+/* ── File icon by extension ── */
+function chatFileIcon(fileName, fileType) {
+  const ext = (fileName || '').split('.').pop().toLowerCase();
+  if (['pdf'].includes(ext))                          return '📄';
+  if (['doc','docx'].includes(ext))                   return '📝';
+  if (['xls','xlsx','csv'].includes(ext))             return '📊';
+  if (['ppt','pptx'].includes(ext))                   return '📑';
+  if (['zip','rar','7z','gz'].includes(ext))          return '🗜️';
+  if (['mp4','mov','avi','hevc','m4v'].includes(ext)) return '🎬';
+  if (['mp3','m4a','aac','wav'].includes(ext))        return '🎵';
+  if (fileType && fileType.startsWith('video/'))      return '🎬';
+  if (fileType && fileType.startsWith('audio/'))      return '🎵';
+  return '📁';
+}
+
+/* ── Format file size ── */
+function chatFmtSize(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024)       return bytes + ' B';
+  if (bytes < 1048576)    return Math.round(bytes/1024) + ' KB';
+  return (bytes/1048576).toFixed(1) + ' MB';
+}
+
 /* ── Hook into drwOpen / drwCloseSub ── */
 const _origDrwOpen = window.drwOpen;
 window.drwOpen = function(name) {
@@ -7363,6 +7671,12 @@ function rpObReset() {
   to   { opacity: 1; transform: translateY(0); }
 }
 </style>
+
+<!-- IMAGE LIGHTBOX -->
+<div id="chat-img-lightbox" onclick="chatLightboxClose()">
+  <button id="chat-img-lightbox-close" onclick="chatLightboxClose()" aria-label="Close">✕</button>
+  <img id="chat-img-lightbox-img" src="" alt="">
+</div>
 
 </body>
 </html>
