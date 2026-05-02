@@ -22,6 +22,9 @@ const CONSUL_CONFIG = {
   office_admin_email:   'adam.howle@sunrun.com',
   office_admin_phone:   '5625371559',
 
+  admin_display_name:   'Adam Howle',          // Used in onboarding SMS sign-off
+  hr_sms_number:        '(562) 561-2688',       // HR text number for I-9/BG help
+
   offices:          ['Orange County', 'Newport Beach'],
   compare_offices:  ['Riverside'],
 
@@ -32,7 +35,7 @@ const CONSUL_CONFIG = {
   },
 
   office_meeting_info: {
-    'Orange County': { days: '', time: '', address: '' },  // ← UPDATE
+    'Orange County': { days: 'Monday and Thursday', time: '11:30', address: '8 Whatney, Irvine, CA 92618' },
     'Newport Beach': { days: '', time: '', address: '' },  // ← UPDATE
   },
 
